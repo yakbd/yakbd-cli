@@ -1,9 +1,15 @@
 # yakbd
 
-`yakbd` is a command-line tool for keyboard layouts. It converts layouts between `.kbl.json`, MSKLC's `.klc` files
-and CLDR Keyboard 3.0 XML, checks them, and builds them into Windows keyboard-layout DLLs and a ready-to-run
-installer. It is part of YAKBD ("Yet Another KeyBoard layout Designer", https://github.com/yakbd), together with
-the [`.kbl.json` format specification](https://github.com/yakbd/kbl-spec).
+`yakbd` is a command-line tool for keyboard layouts. It works with one open format,
+[`.kbl.json`](https://github.com/yakbd/kbl-spec) (a superset of Unicode CLDR Keyboard 3.0): it converts layouts
+between that format and the layout formats of operating systems and keyboard tools, checks them, and builds native
+layouts that install like any other. It is part of YAKBD ("Yet Another KeyBoard layout Designer",
+https://github.com/yakbd), whose aim is that a custom or minority-language layout can be made, shared and kept up to
+date by anyone, on every platform, without depending on a single vendor's tool.
+
+Windows comes first. Today yakbd converts between `.kbl.json`, MSKLC's `.klc` files and CLDR Keyboard 3.0 XML,
+reads installed Windows layout DLLs back, and builds Windows layout DLLs with one ready-to-run installer for every
+Windows architecture.
 
 - **Your MSKLC layouts keep working.** Microsoft Keyboard Layout Creator (MSKLC) is no longer developed and runs
   only on Windows. yakbd reads its `.klc` files and builds them on Windows, Linux or macOS, including native ARM64
@@ -14,7 +20,10 @@ the [`.kbl.json` format specification](https://github.com/yakbd/kbl-spec).
   was dropped or changed, and the layout file can say whether that is an error, a warning or fine.
 - **Lost the source?** yakbd reads an installed layout DLL back into an editable file.
 
-Windows is the only build target so far; other operating systems may follow.
+Windows is the only target so far. The official formats of other operating systems (macOS `.keylayout`, Linux
+XKB and others) are planned next, then third-party formats such as Keyman. The format already keeps the choices of
+each target in a section of its own (`targets.*`), and has been checked on paper for macOS and XKB
+([kbl-spec D105 and D107](https://github.com/yakbd/kbl-spec/blob/main/DECISIONS.md)).
 
 ## Install
 
@@ -76,7 +85,8 @@ command with an error writes nothing. Flags may come before or after the file na
 
 A preview: commands, options and reports may still change. Layouts built by yakbd have been tested in Windows 10
 and Windows 11 virtual machines (x64 and x86): they load, type as expected, and install, upgrade and uninstall
-cleanly. ARM64 support is tested in emulation only. Every CLDR release 49 keyboard imports and builds.
+cleanly. ARM64 support is tested in emulation only. Every CLDR release 49 keyboard imports and builds. Builds for
+other operating systems are planned and not available yet.
 
 ## Code signing policy
 
