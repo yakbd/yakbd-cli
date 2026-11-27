@@ -85,6 +85,8 @@ var (
 	pDeleteObject             = gdi32w.NewProc("DeleteObject")
 	pInitCommonControlsEx     = comctl32w.NewProc("InitCommonControlsEx")
 	pGetModuleHandleW         = kernel32w.NewProc("GetModuleHandleW")
+	pLoadImageW               = user32w.NewProc("LoadImageW")
+	pGetSystemMetrics         = user32w.NewProc("GetSystemMetrics")
 	pRtlMoveMemory            = kernel32w.NewProc("RtlMoveMemory")
 )
 
@@ -128,6 +130,11 @@ const (
 	spiGetWorkArea   = 0x0030
 	wmDone           = wmApp + 1
 	winStyle         = wsCaption | wsSysMenu | wsMinimizeBox
+	imageIcon        = 1
+	smCXIcon         = 11
+	smCYIcon         = 12
+	smCXSmIcon       = 49
+	smCYSmIcon       = 50
 )
 
 type wndClassEx struct {
@@ -188,6 +195,7 @@ type control struct {
 	hwnd   uintptr
 	boxID  string // the model's box
 	noteOf string // a note of this box
+	shown  bool
 }
 
 type wizardUI struct {
@@ -229,8 +237,17 @@ func (h *win) Wizard(w *toolsetup.Wizard, exec func(toolsetup.Request) (int, []s
 	pInitCommonControlsEx.Call(uintptr(unsafe.Pointer(&icc)))
 	inst, _, _ := pGetModuleHandleW.Call(0)
 	cursor, _, _ := pLoadCursorW.Call(0, idcArrow)
+	// YAKBD's icon, the installer's own icon group (resource 1, installer/exeres): large for Alt+Tab, small for the
+	// title bar and the taskbar.
+	icon := func(cx, cy uintptr) uintptr {
+		w, _, _ := pGetSystemMetrics.Call(cx)
+		h, _, _ := pGetSystemMetrics.Call(cy)
+		r, _, _ := pLoadImageW.Call(inst, 1, imageIcon, w, h, 0)
+		return r
+	}
 	wc := wndClassEx{lpfnWndProc: syscall.NewCallback(wndProc), hInstance: inst, hCursor: cursor,
-		hbrBackground: colorBtnFace + 1, lpszClassName: w16(WizardClass)}
+		hbrBackground: colorBtnFace + 1, lpszClassName: w16(WizardClass),
+		hIcon: icon(smCXIcon, smCYIcon), hIconSm: icon(smCXSmIcon, smCYSmIcon)}
 	wc.cbSize = uint32(unsafe.Sizeof(wc))
 	pRegisterClassExW.Call(uintptr(unsafe.Pointer(&wc)))
 	hwnd, _, err := pCreateWindowExW.Call(wsExControlParnt, uintptr(unsafe.Pointer(w16(WizardClass))), uintptr(unsafe.Pointer(w16("YAKBD Setup"))),
@@ -347,6 +364,27 @@ func (u *wizardUI) layout(first bool) {
 	}
 }
 
+// reflow stacks the choose page's rows from the top: a hidden box or an empty note takes no space, a note sits under
+// its box (26 DIP below its top), and the next row 10 DIP below the note.
+func (u *wizardUI) reflow() {
+	y := int32(100)
+	for _, c := range u.ctrls {
+		if c.boxID == "" && c.noteOf == "" {
+			continue
+		}
+		if !c.shown {
+			continue
+		}
+		c.g.y = y
+		if c.noteOf != "" {
+			y += c.g.h + 10
+		} else {
+			y += 26
+		}
+		pSetWindowPos.Call(c.hwnd, 0, uintptr(scale(c.g.x, u.dpi)), uintptr(scale(c.g.y, u.dpi)), uintptr(scale(c.g.w, u.dpi)), uintptr(scale(c.g.h, u.dpi)), swpNoZOrder|swpNoActivate)
+	}
+}
+
 func setText(hwnd uintptr, s string) { pSetWindowTextW.Call(hwnd, uintptr(unsafe.Pointer(w16(s)))) }
 
 func (u *wizardUI) box(id string) *toolsetup.Box {
@@ -385,8 +423,10 @@ func (u *wizardUI) show() {
 			visible = visible && b.Visible && b.Note != ""
 			setText(c.hwnd, b.Note)
 		}
+		c.shown = visible
 		pShowWindow.Call(c.hwnd, map[bool]uintptr{true: swShow, false: swHide}[visible])
 	}
+	u.reflow()
 	main := map[int]string{pageChoose: "&Next >", pageReady: "&" + u.verb, pageProgress: u.verb, pageFinish: "&Close"}[u.page]
 	setText(u.item(idMain), main)
 	setText(u.item(idBack), "< &Back")

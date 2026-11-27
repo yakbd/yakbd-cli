@@ -192,13 +192,21 @@ func (w *Wizard) Installed() []string {
 			if w.st.Legacy != nil {
 				where = " (earlier layout)"
 			}
-			out = append(out, fmt.Sprintf("%s %s is installed%s.", ComponentName[id], w.st.VersionOf(id), where))
+			out = append(out, upper(fmt.Sprintf("%s is installed%s.", w.st.NameOf(id), where)))
 		}
 	}
 	if len(out) == 0 {
 		out = append(out, "YAKBD is not installed on this computer.")
 	}
 	return out
+}
+
+// upper starts a sentence with a capital letter.
+func upper(s string) string {
+	if s == "" {
+		return s
+	}
+	return strings.ToUpper(s[:1]) + s[1:]
 }
 
 // Summary says what the plan will do, one line per component and for the PATH, then the plan's notes.
@@ -213,20 +221,24 @@ func (w *Wizard) Summary() []string {
 		if c := w.s.P.Manifest.Component(id); c != nil {
 			mine = c.Version
 		}
-		name := ComponentName[id]
+		name, was := ComponentName[id], upper(w.st.NameOf(id))
 		switch p.Comp[id] {
 		case Install:
-			out = append(out, fmt.Sprintf("%s %s will be installed.", name, mine))
+			if w.st.Legacy != nil && w.st.Has(id) {
+				out = append(out, fmt.Sprintf("%s %s will be installed in place of %s.", name, mine, w.st.NameOf(id)))
+			} else {
+				out = append(out, fmt.Sprintf("%s %s will be installed.", name, mine))
+			}
 		case Upgrade:
 			out = append(out, fmt.Sprintf("%s will be upgraded from %s to %s.", name, old, mine))
 		case Repair:
 			out = append(out, fmt.Sprintf("%s %s will be repaired (written again).", name, mine))
 		case Keep:
-			out = append(out, fmt.Sprintf("%s %s stays as it is.", name, old))
+			out = append(out, fmt.Sprintf("%s stays as it is.", was))
 		case KeepNewer:
-			out = append(out, fmt.Sprintf("%s %s stays: it is newer than this installer's %s.", name, old, mine))
+			out = append(out, fmt.Sprintf("%s stays: it is newer than this installer's %s.", was, mine))
 		case Remove:
-			out = append(out, fmt.Sprintf("%s %s will be removed.", name, old))
+			out = append(out, fmt.Sprintf("%s will be removed.", was))
 		}
 	}
 	switch {

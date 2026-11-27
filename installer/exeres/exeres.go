@@ -43,14 +43,47 @@ type Product struct {
 	Name, Version, Publisher string
 	// FileName is the installer's default file name (OriginalFilename).
 	FileName string
+	// Icon, when set, replaces the drawn icon (ParseICO); the YAKBD installers carry YAKBD's own icon.
+	Icon []IconImage
+}
+
+// ParseICO reads the images of an .ico file: ICONDIR (reserved 0, type 1, count) and one ICONDIRENTRY per image
+// (width, height, colours, reserved, planes, bits per pixel, size, offset in the file), as Microsoft Learn's archived
+// "Icons" article describes them (https://learn.microsoft.com/en-us/previous-versions/ms997538(v=msdn.10)); a width
+// of 0 is taken as 256, as the drawn icon's group entries already do.
+func ParseICO(b []byte) ([]IconImage, error) {
+	if len(b) < 6 || binary.LittleEndian.Uint16(b) != 0 || binary.LittleEndian.Uint16(b[2:]) != 1 {
+		return nil, fmt.Errorf("not an .ico file")
+	}
+	n := int(binary.LittleEndian.Uint16(b[4:]))
+	if n == 0 || len(b) < 6+16*n {
+		return nil, fmt.Errorf(".ico file: %d images in %d bytes", n, len(b))
+	}
+	var out []IconImage
+	for i := 0; i < n; i++ {
+		e := b[6+16*i:]
+		size := int(e[0])
+		if size == 0 {
+			size = 256
+		}
+		ln, off := binary.LittleEndian.Uint32(e[8:]), binary.LittleEndian.Uint32(e[12:])
+		if uint64(off)+uint64(ln) > uint64(len(b)) || ln == 0 {
+			return nil, fmt.Errorf(".ico file: image %d outside the file", i)
+		}
+		out = append(out, IconImage{Size: size, Data: b[off : off+ln]})
+	}
+	return out, nil
 }
 
 // For returns every resource of an installer: the manifest, the icon group with its images and the version.
 func For(p Product) ([]Resource, error) {
 	res := []Resource{{TypeManifest, 1, LangEnglishUS, []byte(Manifest)}}
-	icons, err := IconImages()
-	if err != nil {
-		return nil, err
+	icons := p.Icon
+	if icons == nil {
+		var err error
+		if icons, err = IconImages(); err != nil {
+			return nil, err
+		}
 	}
 	group := make([]byte, 6, 6+14*len(icons))
 	binary.LittleEndian.PutUint16(group[2:], 1)

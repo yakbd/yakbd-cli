@@ -219,15 +219,26 @@ func (st *State) Has(id string) bool {
 	return false
 }
 
-// VersionOf is the installed version of component id ("" when not installed).
+// VersionOf is the installed version of component id: "" when it is not installed, and for the earlier layout's
+// editor, whose version nothing reliable records (that layout's entry has the version of the CLI it carried, and its
+// yakbd-gui.exe no version resource).
 func (st *State) VersionOf(id string) string {
 	if c, ok := st.Installed[id]; ok {
 		return c.Version
 	}
-	if st.Has(id) && st.Legacy != nil {
+	if id == CLI && st.Legacy != nil {
 		return st.Legacy.Version
 	}
 	return ""
+}
+
+// NameOf names an installed component with its version for the wizard and the log: "YAKBD CLI 0.1.0-preview.2", or
+// "an earlier YAKBD Editor" when the version is not known.
+func (st *State) NameOf(id string) string {
+	if v := st.VersionOf(id); v != "" {
+		return ComponentName[id] + " " + v
+	}
+	return "an earlier " + ComponentName[id]
 }
 
 // Detect reads what is installed: the entry of the two installers, the legacy entry, the machine Path.
@@ -430,7 +441,7 @@ func (s *Setup) Decide(st *State, build string, req Request) (*Plan, error) {
 		return nil, fail(cmdline.InvalidCommandLine, "YAKBD Editor needs YAKBD CLI: the CLI cannot be removed while the editor stays (REMOVE=ALL removes both). Nothing was changed.")
 	}
 	if st.Legacy != nil && st.Legacy.Editor && final[Editor] && !s.P.Supports(Editor, build) {
-		return nil, fail(cmdline.InstallFailure, "YAKBD Editor %s is installed in the earlier layout (Program Files\\YAKBD\\yakbd), and this installer cannot move it, as it does not carry the editor. Run yakbd-gui-setup.exe instead, or remove YAKBD first. Nothing was changed.", st.Legacy.Version)
+		return nil, fail(cmdline.InstallFailure, "An earlier YAKBD Editor is installed (Program Files\\YAKBD\\yakbd), and this installer cannot move it, as it does not carry the editor. Run yakbd-gui-setup.exe instead, or remove YAKBD first. Nothing was changed.")
 	}
 	for _, id := range ComponentIDs {
 		_, inNew := st.Installed[id]
@@ -1072,8 +1083,8 @@ func (s *Setup) removeSelf(root string, res *Result) {
 func describe(st *State) string {
 	var out []string
 	for _, id := range ComponentIDs {
-		if v := st.VersionOf(id); st.Has(id) {
-			out = append(out, id+" "+v)
+		if st.Has(id) {
+			out = append(out, st.NameOf(id))
 		}
 	}
 	if st.Legacy != nil {

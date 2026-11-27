@@ -6,6 +6,7 @@ package relbuild
 
 import (
 	"bytes"
+	_ "embed"
 	"fmt"
 	"os"
 	"os/exec"
@@ -59,6 +60,13 @@ var WindowsArch = map[string]string{toolsetup.BuildX86: "386", toolsetup.BuildX6
 
 // WindowsBuilds are the installer's builds of yakbd.exe in payload order.
 var WindowsBuilds = []string{toolsetup.BuildX86, toolsetup.BuildX64, toolsetup.BuildARM64}
+
+// yakbdIcon is YAKBD's icon (the editor's, yakbd/yakbd-gui packaging/windows/yakbd.ico, MIT-0; NOTICE): the YAKBD
+// installers' icon, in Explorer, the title bar, the taskbar and the Installed apps entry (its DisplayIcon is the
+// installer copy).
+//
+//go:embed yakbd.ico
+var yakbdIcon []byte
 
 // Installer file names (docs/installer-cli.md §12).
 const (
@@ -163,7 +171,11 @@ func SetupWith(root string, o SetupOptions) ([]byte, map[string][]byte, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	res, err := exeres.For(exeres.Product{Name: toolsetup.ProductName, Version: dec.Manifest.Version(), Publisher: m.Product.Publisher, FileName: name})
+	icon, err := exeres.ParseICO(yakbdIcon)
+	if err != nil {
+		return nil, nil, err
+	}
+	res, err := exeres.For(exeres.Product{Name: toolsetup.ProductName, Version: dec.Manifest.Version(), Publisher: m.Product.Publisher, FileName: name, Icon: icon})
 	if err != nil {
 		return nil, nil, err
 	}

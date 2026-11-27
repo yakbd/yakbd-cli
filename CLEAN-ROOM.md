@@ -342,3 +342,7 @@ the shortcut facts above, and the earlier installer's own record and the three p
   among them) and the structures' field order from Microsoft's `windows` crate 0.61.3 (already downloaded for the
   shortcut work; NOTICE §1); their Learn pages were not read for this work. No code was taken.
 - Go documentation: `compress/flate` (DEFLATE, RFC 1951) for the payload's compression.
+- The icon: the .ico file layout (ICONDIR, ICONDIRENTRY) from Microsoft Learn's archived article "Icons"
+  (https://learn.microsoft.com/en-us/previous-versions/ms997538(v=msdn.10), read 2026-11-27), which also says
+  LoadImage loads an icon of a given size from an EXE; the icon itself is the project's own drawing (yakbd-gui,
+  MIT-0). LoadImageW, GetSystemMetrics and their constants: the `windows` crate.

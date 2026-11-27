@@ -278,3 +278,22 @@ func TestIcon(t *testing.T) {
 		t.Errorf("corner alpha %d, body alpha %d", px[0].A, px[16*32+2].A)
 	}
 }
+
+// TestParseICO reads an .ico file's images; a damaged one is refused.
+func TestParseICO(t *testing.T) {
+	img := []byte("\x89PNG image")
+	b := []byte{0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 32, 0}
+	b = binary.LittleEndian.AppendUint32(b, uint32(len(img)))
+	b = binary.LittleEndian.AppendUint32(b, 22)
+	b = append(b, img...)
+	got, err := ParseICO(b)
+	if err != nil || len(got) != 1 || got[0].Size != 256 || string(got[0].Data) != string(img) {
+		t.Fatalf("%+v %v", got, err)
+	}
+	if _, err := ParseICO(b[:30]); err == nil {
+		t.Error("a truncated file accepted")
+	}
+	if _, err := ParseICO(append([]byte{0, 0, 2, 0}, b[4:]...)); err == nil {
+		t.Error("a cursor file accepted")
+	}
+}

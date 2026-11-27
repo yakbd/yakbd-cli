@@ -379,6 +379,9 @@ every shortcut target a file of its component, every settings location inside th
   run the same command without `-editor`: it writes the release's `yakbd-cli-setup.exe` byte for byte (its sum is in
   `SHA256SUMS`) and prints the same `yakbd.exe` sums. In Go: `relbuild.SetupWith` with `SetupOptions{Editor}`.
 - **Product version** (the version resource): the editor's when the installer carries it, else the CLI's.
+- **Icon**: YAKBD's own (the editor's `yakbd.ico`, MIT-0, NOTICE), in both installers: Explorer, the wizard's title
+  bar and the taskbar, and the Installed apps entry (its `DisplayIcon` is the installer copy). The layout installers
+  keep their drawn icon.
 
 ### 12.2 On disk and in the registry
 
@@ -457,10 +460,10 @@ ids: CLEAN-ROOM.md.
 
 ### 12.5 The wizard
 
-One window (class `YakbdSetupWizard`, title "YAKBD Setup") with standard controls, Common Controls 6 visual styles
+One window (class `YakbdSetupWizard`, title "YAKBD Setup", the installer's icon) with standard controls, Common Controls 6 visual styles
 (the manifest's dependency), per-monitor DPI (PerMonitorV2; laid out again on WM_DPICHANGED), Segoe UI, keyboard
 navigation by IsDialogMessage (Tab, Space ticks, Enter is the main button, Esc cancels). Pages: **choose**
-(what is installed, the boxes; Next), **ready** (what will happen, line by line; Back, Install/Change/Remove),
+(what is installed, the boxes, stacked from the top: a hidden box or note takes no space; Next), **ready** (what will happen, line by line; Back, Install/Change/Remove),
 **progress** (Windows may ask for permission), **finish** (the result and notes; Close). Cancel exits with 1602,
 nothing changed. Its rules are `toolsetup.Wizard`, tested on any OS; the window only draws it.
 
@@ -485,7 +488,9 @@ signatures and constants, Microsoft's `windows` crate; CLEAN-ROOM.md lists them.
 0.1.0-preview.1 and preview.2 of `yakbd-setup.exe` (and the editor's 0.1.0-preview.1, which carried its files as
 that installer's extra payload) installed into `Program Files\YAKBD\yakbd` under the product code
 `{EBE1EAEC-C574-5473-8489-B3FF22FC6506}` (`installer.ToolProductCode`). Either new installer takes it over: the
-components found there (the CLI; the editor when its record lists `yakbd-gui.exe`) count as installed, are installed
+components found there (the CLI; the editor when its record lists `yakbd-gui.exe`) count as installed (the CLI
+with the earlier entry's version, which was the CLI's; the editor without one, as nothing records it reliably:
+"An earlier YAKBD Editor is installed"), are installed
 anew into the new folders, then the old files, folder, PATH entry (when it had added it; the new one is set
 instead) and entry are removed, after the new entry is written. A takeover that fails leaves the earlier
 installation as it was. The new `/x` also removes an earlier installation alone. The old installers themselves know

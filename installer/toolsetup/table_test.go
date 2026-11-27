@@ -694,3 +694,28 @@ func TestCompareVersions(t *testing.T) {
 		t.Error(vs)
 	}
 }
+
+// TestLegacyNames: the earlier layout's editor has no reliable version; the wizard names it without one, its CLI with
+// the earlier entry's version (the CLI's).
+func TestLegacyNames(t *testing.T) {
+	f := newFake()
+	plantLegacy(f, true)
+	s := guiSetup(t, f, "0.1.0-preview.3", "0.1.0-preview.3")
+	st, _ := s.Detect()
+	w, err := NewWizard(s, st, BuildX64, false, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := strings.Join(w.Installed(), "\n")
+	if got != "YAKBD CLI 0.1.0-preview.2 is installed (earlier layout).\nAn earlier YAKBD Editor is installed (earlier layout)." {
+		t.Errorf("installed lines %q", got)
+	}
+	sum := strings.Join(w.Summary(), "\n")
+	if !strings.Contains(sum, "YAKBD Editor 0.1.0-preview.3 will be installed in place of an earlier YAKBD Editor.") || strings.Contains(sum, "Editor 0.1.0-preview.2") {
+		t.Errorf("summary %q", sum)
+	}
+	_, _, err = run(cliSetup(t, f, "0.1.0-preview.3"), Request{})
+	if err == nil || !strings.Contains(err.Error(), "An earlier YAKBD Editor is installed") {
+		t.Errorf("refusal %v", err)
+	}
+}
