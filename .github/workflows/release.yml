@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version without "v": the tool own version (internal/cli VersionString, e.g. 0.1.0-preview.1), or x.y.z-rehearsal.N'
+        description: 'Version without "v": the tool own version (internal/cli VersionString, e.g. 0.1.0-preview.2), or x.y.z-rehearsal.N'
         required: true
         type: string
       sign:
@@ -133,14 +133,16 @@ jobs:
         run: |
           git tag "v$VERSION" "$GITHUB_SHA"
           git push origin "refs/tags/v$VERSION"
-          pre=""
+          # A preview (x.y.z-preview.N) is a normal release marked latest: the repository page does not show a pre-release
+          # as its release. A rehearsal and any other suffix stay pre-releases (docs/release.md §2).
+          mark="--latest"
           SIGNED="yakbd-setup.exe is unsigned in this release"
           if [ "${{ inputs.sign }}" = "true" ]; then SIGNED="yakbd-setup.exe is signed through SignPath Foundation"; fi
-          case "$VERSION" in *-*) pre="--prerelease" ;; esac
+          case "$VERSION" in *-rehearsal.*) mark="--prerelease" ;; *-preview.*) ;; *-*) mark="--prerelease" ;; esac
           notes="yakbd $VERSION, built from $GITHUB_SHA by $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID.
           Check a download with SHA256SUMS and gh attestation verify FILE -R $GITHUB_REPOSITORY: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/v$VERSION/docs/release.md
           Code signing ($SIGNED): $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/v$VERSION/docs/code-signing-policy.md
           The arm64 build of yakbd.exe is tested in emulation only."
-          gh release create "v$VERSION" dist/* --repo "$GITHUB_REPOSITORY" --draft $pre --verify-tag \
+          gh release create "v$VERSION" dist/* --repo "$GITHUB_REPOSITORY" --draft $mark --verify-tag \
             --title "yakbd $VERSION" \
             --notes "$notes"

@@ -6,7 +6,7 @@ workflow leaves a **draft** release; a maintainer reads it and publishes it.
 
 ## 1. What a release contains
 
-For version `V` (for example `0.1.0-preview.1`; the tag is `vV`):
+For version `V` (for example `0.1.0-preview.2`; the tag is `vV`):
 
 | file | what it is |
 |---|---|
@@ -16,8 +16,8 @@ For version `V` (for example `0.1.0-preview.1`; the tag is `vV`):
 | `SHA256SUMS` | the SHA-256 of every other file, in the format of `sha256sum` |
 
 `yakbd version` prints `yakbd V` and the uninstall entry's `DisplayVersion` is `V`. Windows version resources hold
-four numbers: they get the leading numbers of `V` (`0.1.0.0` for `0.1.0-preview.1`) and their version strings `V`.
-A pre-release and the final release of the same numbers count as the same version when one is installed over the
+four numbers: they get the leading numbers of `V` (`0.1.0.0` for `0.1.0-preview.2`) and their version strings `V`.
+A semantic-version pre-release (such as a preview) and the final release of the same numbers count as the same version when one is installed over the
 other ([`installer-cli.md`](installer-cli.md) §6). The
 arm64 build of `yakbd.exe` has so far been tested on Windows on ARM in emulation only.
 
@@ -27,9 +27,9 @@ arm64 build of `yakbd.exe` has so far been tested on Windows on ARM in emulation
    or empty) to the release's version, commit and push to `main`, and wait for CI to pass.
 2. Start the workflow: in the repository, Actions > release > Run workflow, or
 
-       gh workflow run release.yml -R yakbd/yakbd-cli -f version=0.1.0-preview.1
+       gh workflow run release.yml -R yakbd/yakbd-cli -f version=0.1.0-preview.2
 
-   Inputs: `version` (required; it must equal the tool's own version, `0.1.0-preview.1` today, which `go run ./tools/release -version V
+   Inputs: `version` (required; it must equal the tool's own version, `0.1.0-preview.2` today, which `go run ./tools/release -version V
    -check` checks; a version containing `-rehearsal.` is exempt, for trying the workflow out) and `sign` (default
    off, §4).
 3. The workflow, in three jobs:
@@ -40,8 +40,14 @@ arm64 build of `yakbd.exe` has so far been tested on Windows on ARM in emulation
    - **sign** (only with `sign`, §4);
    - **release**: puts the signed installer in place when there is one, writes `SHA256SUMS`, creates the build
      provenance attestation for every file (`actions/attest-build-provenance`), pushes the tag `vV` on the built
-     commit and creates the draft release with all files. A version with a `-` suffix is marked as a pre-release.
-4. Check the draft (files, notes), then publish it. Releases of `yakbd/yakbd-cli` are immutable (a repository setting): once published,
+     commit and creates the draft release with all files. A preview (`x.y.z-preview.N`) is a normal release, marked
+     as the latest (maintainer decision: a GitHub pre-release is not shown as the release on the repository page,
+     and the previews are what people should download). A rehearsal (`-rehearsal.N`) and any other suffix are marked as a pre-release.
+4. Check the draft (files, notes), then publish it, as the latest release for a preview or final version:
+
+       gh release edit vV -R yakbd/yakbd-cli --draft=false --latest
+
+   or publish it on the web page with the latest-release option on. Releases of `yakbd/yakbd-cli` are immutable (a repository setting): once published,
    the tag and the files cannot change, so a mistake means a new version, not a fix in place.
 
 Do not push a change to `.github/workflows/` while the workflow runs: GitHub then refused (seen once) the workflow's own push of
