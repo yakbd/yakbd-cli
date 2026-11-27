@@ -1,23 +1,41 @@
 # Code signing policy
 
-**Status: planned.** Signing has not started yet. The 0.1 preview release ships every file unsigned, including
-`yakbd-setup.exe`; the project applies to SignPath Foundation right after that release, and signing starts with a
-later release. This page describes how signing will work once the project has been accepted. Releases can
+**Status: planned.** Signing has not started yet: the 0.1 previews ship every file unsigned, including
+`yakbd-setup.exe`. The project has applied to SignPath Foundation, and signing starts with a release after the
+project has been accepted. This page describes how signing will work then. Releases can
 already be checked with their `SHA256SUMS` file and build provenance attestation ([`release.md`](release.md)).
 
 Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by
 [SignPath Foundation](https://signpath.org).
 
+## The project
+
+The project is **yakbd**, one SignPath project for two repositories of the
+[yakbd organisation](https://github.com/yakbd):
+
+- [`yakbd/yakbd-cli`](https://github.com/yakbd/yakbd-cli): the command-line tool `yakbd` and its installer (this
+  repository);
+- [`yakbd/yakbd-gui`](https://github.com/yakbd/yakbd-gui): the graphical editor, released with the tool. Its own
+  policy page mirrors this one.
+
 ## What is signed
 
-Only `yakbd-setup.exe`, the installer of the yakbd tool, published in the
-[releases](https://github.com/yakbd/yakbd-cli/releases) of `yakbd/yakbd-cli`. The certificate is SignPath
-Foundation's, so Windows shows "SignPath Foundation" as the publisher.
+Only Windows programs this project builds itself, from its own source, in the release workflows of these two
+repositories:
+
+- `yakbd-setup.exe`, the one installer for every Windows architecture (x86, x64 and arm64), published in the
+  releases of [`yakbd/yakbd-cli`](https://github.com/yakbd/yakbd-cli/releases) and, with the editor added, of
+  [`yakbd/yakbd-gui`](https://github.com/yakbd/yakbd-gui/releases);
+- nested inside it, the project's own programs it installs: `yakbd.exe` (each architecture's build) and, in the
+  editor's release, `yakbd-gui.exe`.
+
+The certificate is SignPath Foundation's, so Windows shows "SignPath Foundation" as the publisher.
 
 Not signed:
 
-- the `yakbd.exe` inside `yakbd-setup.exe` (only the installer file is signed) and the Linux and macOS archives of a
-  release;
+- third-party files, never: for example the Qt libraries and plugins the editor ships with keep the form their
+  makers give them;
+- the Linux and macOS archives of a release;
 - the layout installers (`<dll name>-setup.exe`) that `yakbd installer` writes. They are built by the authors of
   the layouts on their own machines, not by this project, and are never signed with this project's certificate.
   An author can sign their own: [`windows-security-prompts.md`](windows-security-prompts.md) §4.
@@ -29,7 +47,8 @@ Not signed:
   builds every binary twice and compares the hashes.
 - **Started by hand.** The workflow runs only when a maintainer starts it for a version; it has no automatic
   trigger.
-- **Signed only after approval.** The signing step sends the built `yakbd-setup.exe` to SignPath. An approver
+- **Signed only after approval.** The signing step sends the built `yakbd-setup.exe` to SignPath (the programs
+  nested in it are signed in the same request). An approver
   checks that the request comes from the release workflow of this repository for the intended version, and approves
   it in SignPath. Every release is approved by hand.
 - **Published unchanged.** The release is published with its assets and tag frozen (an immutable GitHub
@@ -41,7 +60,8 @@ Not signed:
 ## Team roles
 
 - **Authors** (may change the source without further review): the members of the
-  [yakbd organisation](https://github.com/orgs/yakbd/people) with write access to `yakbd/yakbd-cli`.
+  [yakbd organisation](https://github.com/orgs/yakbd/people) with write access to `yakbd/yakbd-cli` or
+  `yakbd/yakbd-gui`.
 - **Reviewers**: every change from someone outside the authors, such as a pull request, is reviewed by an author
   before it is merged.
 - **Approvers** (approve each signing request): the [owners of the yakbd
@@ -55,10 +75,11 @@ This program will not transfer any information to other networked systems unless
 user or the person installing or operating it.
 
 This applies to `yakbd.exe`, `yakbd-setup.exe` and the layout installers `yakbd` writes: none of them contains
-network code.
+network code. The editor's policy page says the same of `yakbd-gui.exe`.
 
 ## Reporting
 
 If you think a file signed under this policy is not what this page says, or was signed by mistake, open an issue
-in [`yakbd/yakbd-cli`](https://github.com/yakbd/yakbd-cli/issues), or write to SignPath Foundation
+in [`yakbd/yakbd-cli`](https://github.com/yakbd/yakbd-cli/issues) (or in
+[`yakbd/yakbd-gui`](https://github.com/yakbd/yakbd-gui/issues) for the editor), or write to SignPath Foundation
 ([signpath.org](https://signpath.org)).

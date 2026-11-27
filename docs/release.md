@@ -112,7 +112,7 @@ signer SignPath Foundation.
 
 ## 4. Signing
 
-Only `yakbd-setup.exe` is to be signed, through [SignPath Foundation](https://signpath.org), which signs open-source
+`yakbd-setup.exe` and the `yakbd.exe` builds nested in it are to be signed, through [SignPath Foundation](https://signpath.org), which signs open-source
 projects for free with its own certificate; the policy is [`code-signing-policy.md`](code-signing-policy.md). It is
 **not enabled yet**: SignPath Foundation signs a project only after it has released the files it is asked to
 sign, so the first releases ship `yakbd-setup.exe` unsigned.
@@ -120,7 +120,10 @@ sign, so the first releases ship `yakbd-setup.exe` unsigned.
 The workflow is ready for it: with the input `sign` on, the job `sign` sends the unsigned `yakbd-setup.exe` (as a
 workflow artifact) to SignPath with `signpath/github-action-submit-signing-request@v3`, waits until a person has
 approved the request at SignPath, and passes the signed file to the release job, which puts it in the release and
-computes `SHA256SUMS` and the attestation over it. To enable it, once the SignPath project exists:
+computes `SHA256SUMS` and the attestation over it. That job signs the installer file only: the `yakbd.exe` builds
+travel inside the installer's own payload format, which a signing service cannot open, so signing them as well means
+signing the builds first and assembling `yakbd-setup.exe` around the signed files (the payload's hashes then cover
+the signed bytes). That change comes with enabling signing. To enable it, once the SignPath project exists:
 
 | repository setting | kind | value |
 |---|---|---|
