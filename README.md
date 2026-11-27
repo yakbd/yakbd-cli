@@ -32,7 +32,8 @@ From the [latest release](https://github.com/yakbd/yakbd-cli/releases/latest) of
 - **Windows**: [`yakbd-cli-setup.exe`](https://github.com/yakbd/yakbd-cli/releases/latest/download/yakbd-cli-setup.exe)
   installs YAKBD CLI (`yakbd.exe` for the PC's architecture) into `Program Files\YAKBD\CLI` and puts it on the PATH
   (a choice in its wizard; unattended: `yakbd-cli-setup.exe /quiet /norestart` from an elevated prompt; uninstall
-  under "Installed apps", entry "YAKBD"). The editor's installer, `yakbd-gui-setup.exe` from
+  under "Installed apps", entry "YAKBD"). The editor's installer,
+  [`yakbd-gui-setup.exe`](https://github.com/yakbd/yakbd-gui/releases/latest/download/yakbd-gui-setup.exe) from
   [yakbd/yakbd-gui](https://github.com/yakbd/yakbd-gui/releases/latest), installs the editor and the CLI together.
   Windows may warn about either: [`docs/windows-security-prompts.md`](docs/windows-security-prompts.md).
 - **Linux and macOS**: `yakbd-<version>-linux-amd64.tar.gz`, `-linux-arm64.tar.gz` or `-macos.tar.gz` (one
