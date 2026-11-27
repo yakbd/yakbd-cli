@@ -131,11 +131,11 @@ func (b *lowerer) positions() {
 		addedIDs = append(addedIDs, d.Position)
 	}
 	if len(defaultedVK) > 0 || len(addedIDs) > 0 {
-		b.defaulted("vk", map[string]any{"positions": defaultedVK, "addedFromTableA": addedIDs},
+		b.defaulted("vk", vkFields(defaultedVK, addedIDs), map[string]any{"positions": defaultedVK, "addedFromTableA": addedIDs},
 			"virtual keys from Table A for %d position(s); %d Table A position(s) added", len(defaultedVK), len(addedIDs))
 	}
 	if len(defaultedFlags) > 0 {
-		b.defaulted("scanCodeFlags", defaultedFlags, "scan-code flags by rule for %d position(s)", len(defaultedFlags))
+		b.defaulted("scanCodeFlags", fieldsOf(defaultedFlags, "keys", "scanCodeFlags"), defaultedFlags, "scan-code flags by rule for %d position(s)", len(defaultedFlags))
 	}
 	// Duplicates (§5); not reported with useTableA false, where every VK is explicit (D59), nor between a position
 	// of the file and a Table A row added above (D86: the added row only gives the key its VK; it never owns the
@@ -162,7 +162,7 @@ func (b *lowerer) positions() {
 	if f.ScanCodeTableSize != nil {
 		size = *f.ScanCodeTableSize
 	} else {
-		b.defaulted("scanCodeTableSize", size, "bMaxVSCtoVK %02x", size)
+		b.defaulted("scanCodeTableSize", []string{"/targets/windows/scanCodeTableSize"}, size, "bMaxVSCtoVK %02x", size)
 	}
 	p.ScanCodeTableSize = &size
 	b.t.ScanToVK = make([]uint16, size)

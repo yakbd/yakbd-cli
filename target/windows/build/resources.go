@@ -101,7 +101,7 @@ func (b *lowerer) resources() *windows.DLL {
 		defaulted = append(defaulted, "localeName")
 	}
 	if len(defaulted) > 0 {
-		b.defaulted("strings", defaulted, "DLL strings %s by rule", strings.Join(defaulted, ", "))
+		b.defaulted("strings", memberFields("strings", defaulted), defaulted, "DLL strings %s by rule", strings.Join(defaulted, ", "))
 	}
 	if len(l.Metadata.LocalizedNames) > 0 && (f.Strings == nil || f.Strings.LayoutName == nil) {
 		b.lost("windows.stringLanguageUnmapped", "/metadata/localizedNames", "localised names have no LANGID; pin targets.windows.strings.layoutName")
@@ -154,7 +154,7 @@ func (b *lowerer) resources() *windows.DLL {
 		vdef = append(vdef, "fileDescription")
 	}
 	if len(vdef) > 0 {
-		b.defaulted("versionInfo", vdef, "version resource %s by rule", strings.Join(vdef, ", "))
+		b.defaulted("versionInfo", memberFields("versionInfo", vdef), vdef, "version resource %s by rule", strings.Join(vdef, ", "))
 	}
 	p.VersionInfo = vi
 	str := func(s *string) string {
@@ -192,7 +192,7 @@ func (b *lowerer) resources() *windows.DLL {
 		}
 	}
 	if len(rdef) > 0 {
-		b.defaulted("registration", rdef, "registration %s by rule", strings.Join(rdef, ", "))
+		b.defaulted("registration", memberFields("registration", rdef), rdef, "registration %s by rule", strings.Join(rdef, ", "))
 	}
 	p.Registration = reg
 	return d

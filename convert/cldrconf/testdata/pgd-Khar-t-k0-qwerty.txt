@@ -8,7 +8,7 @@ round trip without the kbl special, paths that differ:
   /metadata/provenance/cldrImports
   /metadata/provenance/notes
 tests: no CLDR test file
-validate -windows: exit 1, 43 loss or error line(s)
+validate -windows: exit 1, 99 loss or error line(s)
   accept general.normalizationNotApplied /settings/normalization
   accept windows.ctrlLetterFallback /hardware/layers
   error windows.langIdMissing /targets/windows/registration/langId
@@ -18,41 +18,97 @@ validate -windows: exit 1, 43 loss or error line(s)
   warning windows.frameKeyWithoutText /positions/Escape
   warning windows.frameKeyWithoutText /positions/NumpadEnter
   warning windows.frameKeyWithoutText /positions/Tab
-  warning windows.markerNotCompiled /hardware/layers (Digit0) (×2)
-  warning windows.markerNotCompiled /hardware/layers (Digit5) (×2)
-  warning windows.markerNotCompiled /hardware/layers (Digit6) (×2)
-  warning windows.markerNotCompiled /hardware/layers (Digit7) (×2)
-  warning windows.markerNotCompiled /hardware/layers (Digit8) (×2)
-  warning windows.markerNotCompiled /hardware/layers (Digit9) (×2)
-  warning windows.markerNotCompiled /hardware/layers (KeyA)
-  warning windows.markerNotCompiled /hardware/layers (KeyB) (×4)
-  warning windows.markerNotCompiled /hardware/layers (KeyC) (×4)
-  warning windows.markerNotCompiled /hardware/layers (KeyD) (×6)
-  warning windows.markerNotCompiled /hardware/layers (KeyF) (×4)
-  warning windows.markerNotCompiled /hardware/layers (KeyG) (×4)
-  warning windows.markerNotCompiled /hardware/layers (KeyH) (×2)
-  warning windows.markerNotCompiled /hardware/layers (KeyJ) (×4)
-  warning windows.markerNotCompiled /hardware/layers (KeyK) (×5)
-  warning windows.markerNotCompiled /hardware/layers (KeyL) (×2)
-  warning windows.markerNotCompiled /hardware/layers (KeyM) (×2)
-  warning windows.markerNotCompiled /hardware/layers (KeyN) (×3)
-  warning windows.markerNotCompiled /hardware/layers (KeyP) (×4)
-  warning windows.markerNotCompiled /hardware/layers (KeyQ) (×4)
-  warning windows.markerNotCompiled /hardware/layers (KeyR) (×2)
-  warning windows.markerNotCompiled /hardware/layers (KeyS) (×3)
-  warning windows.markerNotCompiled /hardware/layers (KeyT) (×6)
-  warning windows.markerNotCompiled /hardware/layers (KeyV) (×2)
-  warning windows.markerNotCompiled /hardware/layers (KeyW) (×2)
-  warning windows.markerNotCompiled /hardware/layers (KeyX) (×2)
-  warning windows.markerNotCompiled /hardware/layers (KeyY) (×3)
-  warning windows.markerNotCompiled /hardware/layers (KeyZ) (×2)
-  warning windows.markerNotCompiled /hardware/layers (Quote) (×2)
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/Digit0
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/Digit5
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/Digit6
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/Digit7
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/Digit8
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/Digit9
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyB
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyC
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyD
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyF
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyG
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyH
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyJ
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyK
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyL
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyM
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyN
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyP
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyQ
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyR
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyS
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyT
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyV
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyW
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyX
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyY
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyZ
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/Quote
+  warning windows.markerNotCompiled /hardware/layers/1/bindings/KeyB
+  warning windows.markerNotCompiled /hardware/layers/1/bindings/KeyC
+  warning windows.markerNotCompiled /hardware/layers/1/bindings/KeyD
+  warning windows.markerNotCompiled /hardware/layers/1/bindings/KeyF
+  warning windows.markerNotCompiled /hardware/layers/1/bindings/KeyG
+  warning windows.markerNotCompiled /hardware/layers/1/bindings/KeyJ
+  warning windows.markerNotCompiled /hardware/layers/1/bindings/KeyK
+  warning windows.markerNotCompiled /hardware/layers/1/bindings/KeyP
+  warning windows.markerNotCompiled /hardware/layers/1/bindings/KeyQ
+  warning windows.markerNotCompiled /hardware/layers/1/bindings/KeyT
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/Digit0
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/Digit5
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/Digit6
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/Digit7
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/Digit8
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/Digit9
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyB
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyC
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyD
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyF
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyG
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyJ
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyK
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyP
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyQ
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyT
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/Quote
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyB
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyC
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyD
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyF
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyG
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyH
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyJ
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyK
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyL
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyM
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyN
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyP
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyQ
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyR
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyS
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyT
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyV
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyW
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyX
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyY
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyZ
+  warning windows.markerNotCompiled /hardware/layers/4/bindings/KeyD
+  warning windows.markerNotCompiled /hardware/layers/4/bindings/KeyK
+  warning windows.markerNotCompiled /hardware/layers/4/bindings/KeyN
+  warning windows.markerNotCompiled /hardware/layers/4/bindings/KeyS
+  warning windows.markerNotCompiled /hardware/layers/4/bindings/KeyT
+  warning windows.markerNotCompiled /hardware/layers/4/bindings/KeyY
+  warning windows.markerNotCompiled /hardware/layers/5/bindings/KeyA
+  warning windows.markerNotCompiled /hardware/layers/5/bindings/KeyD
+  warning windows.markerNotCompiled /hardware/layers/5/bindings/KeyT
   warning windows.transformNotCompiled /transforms/simple/0
   warning windows.transformNotCompiled /transforms/simple/1
   warning windows.transformNotCompiled /transforms/simple/2
   warning windows.transformNotCompiled /transforms/simple/3
   warning windows.transformNotCompiled /transforms/simple/4
-compile -langid 0409: exit 0, 42 loss or error line(s)
+compile -langid 0409: exit 0, 98 loss or error line(s)
   accept general.normalizationNotApplied /settings/normalization
   accept windows.ctrlLetterFallback /hardware/layers
   warning windows.capsUnmatched /hardware/layers
@@ -61,35 +117,91 @@ compile -langid 0409: exit 0, 42 loss or error line(s)
   warning windows.frameKeyWithoutText /positions/Escape
   warning windows.frameKeyWithoutText /positions/NumpadEnter
   warning windows.frameKeyWithoutText /positions/Tab
-  warning windows.markerNotCompiled /hardware/layers (Digit0) (×2)
-  warning windows.markerNotCompiled /hardware/layers (Digit5) (×2)
-  warning windows.markerNotCompiled /hardware/layers (Digit6) (×2)
-  warning windows.markerNotCompiled /hardware/layers (Digit7) (×2)
-  warning windows.markerNotCompiled /hardware/layers (Digit8) (×2)
-  warning windows.markerNotCompiled /hardware/layers (Digit9) (×2)
-  warning windows.markerNotCompiled /hardware/layers (KeyA)
-  warning windows.markerNotCompiled /hardware/layers (KeyB) (×4)
-  warning windows.markerNotCompiled /hardware/layers (KeyC) (×4)
-  warning windows.markerNotCompiled /hardware/layers (KeyD) (×6)
-  warning windows.markerNotCompiled /hardware/layers (KeyF) (×4)
-  warning windows.markerNotCompiled /hardware/layers (KeyG) (×4)
-  warning windows.markerNotCompiled /hardware/layers (KeyH) (×2)
-  warning windows.markerNotCompiled /hardware/layers (KeyJ) (×4)
-  warning windows.markerNotCompiled /hardware/layers (KeyK) (×5)
-  warning windows.markerNotCompiled /hardware/layers (KeyL) (×2)
-  warning windows.markerNotCompiled /hardware/layers (KeyM) (×2)
-  warning windows.markerNotCompiled /hardware/layers (KeyN) (×3)
-  warning windows.markerNotCompiled /hardware/layers (KeyP) (×4)
-  warning windows.markerNotCompiled /hardware/layers (KeyQ) (×4)
-  warning windows.markerNotCompiled /hardware/layers (KeyR) (×2)
-  warning windows.markerNotCompiled /hardware/layers (KeyS) (×3)
-  warning windows.markerNotCompiled /hardware/layers (KeyT) (×6)
-  warning windows.markerNotCompiled /hardware/layers (KeyV) (×2)
-  warning windows.markerNotCompiled /hardware/layers (KeyW) (×2)
-  warning windows.markerNotCompiled /hardware/layers (KeyX) (×2)
-  warning windows.markerNotCompiled /hardware/layers (KeyY) (×3)
-  warning windows.markerNotCompiled /hardware/layers (KeyZ) (×2)
-  warning windows.markerNotCompiled /hardware/layers (Quote) (×2)
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/Digit0
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/Digit5
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/Digit6
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/Digit7
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/Digit8
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/Digit9
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyB
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyC
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyD
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyF
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyG
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyH
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyJ
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyK
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyL
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyM
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyN
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyP
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyQ
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyR
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyS
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyT
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyV
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyW
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyX
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyY
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyZ
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/Quote
+  warning windows.markerNotCompiled /hardware/layers/1/bindings/KeyB
+  warning windows.markerNotCompiled /hardware/layers/1/bindings/KeyC
+  warning windows.markerNotCompiled /hardware/layers/1/bindings/KeyD
+  warning windows.markerNotCompiled /hardware/layers/1/bindings/KeyF
+  warning windows.markerNotCompiled /hardware/layers/1/bindings/KeyG
+  warning windows.markerNotCompiled /hardware/layers/1/bindings/KeyJ
+  warning windows.markerNotCompiled /hardware/layers/1/bindings/KeyK
+  warning windows.markerNotCompiled /hardware/layers/1/bindings/KeyP
+  warning windows.markerNotCompiled /hardware/layers/1/bindings/KeyQ
+  warning windows.markerNotCompiled /hardware/layers/1/bindings/KeyT
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/Digit0
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/Digit5
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/Digit6
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/Digit7
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/Digit8
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/Digit9
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyB
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyC
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyD
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyF
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyG
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyJ
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyK
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyP
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyQ
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyT
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/Quote
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyB
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyC
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyD
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyF
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyG
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyH
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyJ
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyK
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyL
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyM
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyN
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyP
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyQ
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyR
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyS
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyT
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyV
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyW
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyX
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyY
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyZ
+  warning windows.markerNotCompiled /hardware/layers/4/bindings/KeyD
+  warning windows.markerNotCompiled /hardware/layers/4/bindings/KeyK
+  warning windows.markerNotCompiled /hardware/layers/4/bindings/KeyN
+  warning windows.markerNotCompiled /hardware/layers/4/bindings/KeyS
+  warning windows.markerNotCompiled /hardware/layers/4/bindings/KeyT
+  warning windows.markerNotCompiled /hardware/layers/4/bindings/KeyY
+  warning windows.markerNotCompiled /hardware/layers/5/bindings/KeyA
+  warning windows.markerNotCompiled /hardware/layers/5/bindings/KeyD
+  warning windows.markerNotCompiled /hardware/layers/5/bindings/KeyT
   warning windows.transformNotCompiled /transforms/simple/0
   warning windows.transformNotCompiled /transforms/simple/1
   warning windows.transformNotCompiled /transforms/simple/2

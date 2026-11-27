@@ -8,7 +8,7 @@ round trip without the kbl special, paths that differ:
   /metadata/provenance/cldrImports
   /metadata/provenance/notes
 tests: no CLDR test file
-validate -windows: exit 1, 33 loss or error line(s)
+validate -windows: exit 1, 39 loss or error line(s)
   accept general.normalizationNotApplied /settings/normalization
   accept windows.ctrlLetterFallback /hardware/layers
   error windows.langIdMissing /targets/windows/registration/langId
@@ -18,10 +18,16 @@ validate -windows: exit 1, 33 loss or error line(s)
   warning windows.frameKeyWithoutText /positions/Escape
   warning windows.frameKeyWithoutText /positions/NumpadEnter
   warning windows.frameKeyWithoutText /positions/Tab
-  warning windows.markerNotCompiled /hardware/layers (KeyF) (×5)
-  warning windows.markerNotCompiled /hardware/layers (KeyY) (×2)
-  warning windows.markerNotCompiled /hardware/layers (Quote)
-  warning windows.markerNotCompiled /hardware/layers (Slash) (×2)
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyF
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/Slash
+  warning windows.markerNotCompiled /hardware/layers/1/bindings/KeyF
+  warning windows.markerNotCompiled /hardware/layers/1/bindings/KeyY
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyF
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyY
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/Slash
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyF
+  warning windows.markerNotCompiled /hardware/layers/4/bindings/Quote
+  warning windows.markerNotCompiled /hardware/layers/5/bindings/KeyF
   warning windows.transformNotCompiled /transforms/simple/0
   warning windows.transformNotCompiled /transforms/simple/1
   warning windows.transformNotCompiled /transforms/simple/10
@@ -42,7 +48,7 @@ validate -windows: exit 1, 33 loss or error line(s)
   warning windows.transformNotCompiled /transforms/simple/7
   warning windows.transformNotCompiled /transforms/simple/8
   warning windows.transformNotCompiled /transforms/simple/9
-compile -langid 0409: exit 0, 32 loss or error line(s)
+compile -langid 0409: exit 0, 38 loss or error line(s)
   accept general.normalizationNotApplied /settings/normalization
   accept windows.ctrlLetterFallback /hardware/layers
   warning windows.capsUnmatched /hardware/layers
@@ -51,10 +57,16 @@ compile -langid 0409: exit 0, 32 loss or error line(s)
   warning windows.frameKeyWithoutText /positions/Escape
   warning windows.frameKeyWithoutText /positions/NumpadEnter
   warning windows.frameKeyWithoutText /positions/Tab
-  warning windows.markerNotCompiled /hardware/layers (KeyF) (×5)
-  warning windows.markerNotCompiled /hardware/layers (KeyY) (×2)
-  warning windows.markerNotCompiled /hardware/layers (Quote)
-  warning windows.markerNotCompiled /hardware/layers (Slash) (×2)
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyF
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/Slash
+  warning windows.markerNotCompiled /hardware/layers/1/bindings/KeyF
+  warning windows.markerNotCompiled /hardware/layers/1/bindings/KeyY
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyF
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyY
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/Slash
+  warning windows.markerNotCompiled /hardware/layers/3/bindings/KeyF
+  warning windows.markerNotCompiled /hardware/layers/4/bindings/Quote
+  warning windows.markerNotCompiled /hardware/layers/5/bindings/KeyF
   warning windows.transformNotCompiled /transforms/simple/0
   warning windows.transformNotCompiled /transforms/simple/1
   warning windows.transformNotCompiled /transforms/simple/10

@@ -329,9 +329,9 @@ validate -windows: exit 1, 326 loss or error line(s)
   warning windows.frameKeyWithoutText /positions/Escape
   warning windows.frameKeyWithoutText /positions/NumpadEnter
   warning windows.frameKeyWithoutText /positions/Tab
-  warning windows.markerNotCompiled /hardware/layers (KeyF)
-  warning windows.markerNotCompiled /hardware/layers (KeyG)
-  warning windows.markerNotCompiled /hardware/layers (KeyH)
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyF
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyG
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyH
   warning windows.transformNotCompiled /transforms/simple/0
   warning windows.transformNotCompiled /transforms/simple/1
 compile -langid 0409: exit 1, 325 loss or error line(s)
@@ -655,9 +655,9 @@ compile -langid 0409: exit 1, 325 loss or error line(s)
   warning windows.frameKeyWithoutText /positions/Escape
   warning windows.frameKeyWithoutText /positions/NumpadEnter
   warning windows.frameKeyWithoutText /positions/Tab
-  warning windows.markerNotCompiled /hardware/layers (KeyF)
-  warning windows.markerNotCompiled /hardware/layers (KeyG)
-  warning windows.markerNotCompiled /hardware/layers (KeyH)
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyF
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyG
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyH
   warning windows.transformNotCompiled /transforms/simple/0
   warning windows.transformNotCompiled /transforms/simple/1
 compile -langid 0409 -accept windows.vkMissing,windows.frameKeyWithoutText,windows.deadKeyResultUnencodable,windows.deadCharacterInvalid: exit 0, 325 loss or error line(s)
@@ -981,9 +981,9 @@ compile -langid 0409 -accept windows.vkMissing,windows.frameKeyWithoutText,windo
   accept windows.frameKeyWithoutText /positions/NumpadEnter
   accept windows.frameKeyWithoutText /positions/Tab
   warning windows.capsUnmatched /hardware/layers
-  warning windows.markerNotCompiled /hardware/layers (KeyF)
-  warning windows.markerNotCompiled /hardware/layers (KeyG)
-  warning windows.markerNotCompiled /hardware/layers (KeyH)
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyF
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyG
+  warning windows.markerNotCompiled /hardware/layers/2/bindings/KeyH
   warning windows.transformNotCompiled /transforms/simple/0
   warning windows.transformNotCompiled /transforms/simple/1
 cases: 0 typed, 0 skipped

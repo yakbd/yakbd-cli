@@ -64,10 +64,10 @@ func TestNormalization(t *testing.T) {
 		t.Errorf("dead keys %+v, want %+v", tb.DeadKeys, want)
 	}
 	for path, w := range map[string]string{
-		"/hardware/layers (KeyQ)":         "2126 > 03A9",
-		"/hardware/layers (KeyW)":         "0061 0301 > 00E1",
-		"/deadKeys/oxia/spacing":          "1FFD > 00B4",
-		"/deadKeys/oxia/entries/0/result": "212B > 00C5",
+		"/hardware/layers/0/bindings/KeyQ": "2126 > 03A9",
+		"/hardware/layers/0/bindings/KeyW": "0061 0301 > 00E1",
+		"/deadKeys/oxia/spacing":           "1FFD > 00B4",
+		"/deadKeys/oxia/entries/0/result":  "212B > 00C5",
 	} {
 		if changed[path] != w {
 			t.Errorf("%s: entry %q, want %q", path, changed[path], w)

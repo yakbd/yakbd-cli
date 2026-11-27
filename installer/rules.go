@@ -8,6 +8,7 @@ import (
 
 	"github.com/yakbd/yakbd-cli/loss"
 	"github.com/yakbd/yakbd-cli/model"
+	"github.com/yakbd/yakbd-cli/target/windows/build"
 )
 
 // productNamespace is the UUID namespace of rule productCode (kbl targets/windows-install.md section 2, D48).
@@ -61,26 +62,25 @@ func Decide(l *model.Layout, pins *model.WindowsTarget) (Decisions, *loss.Report
 	if pins != nil {
 		dll = pins.DLLName
 	}
-	defaulted := func(rule string, value any, msg string) {
-		r.Append(loss.Entry{Class: loss.Defaulted, Severity: loss.Accepted, Code: "windowsDefault." + rule,
-			Where: loss.Where{Path: "/targets/windows"}, Message: msg, Detail: map[string]any{"value": value}})
+	defaulted := func(rule string, fields []string, value any, msg string) {
+		r.Append(build.DefaultedEntry(rule, fields, value, msg))
 	}
 
 	d.ProductCode = strings.ToUpper(reg.ProductCode)
 	if d.ProductCode == "" {
 		d.ProductCode = DefaultProductCode(l.Metadata.ID, dll)
-		defaulted("productCode", d.ProductCode, "product code "+d.ProductCode+" by rule (from metadata.id and the DLL name)")
+		defaulted("productCode", []string{"/targets/windows/registration/productCode"}, d.ProductCode, "product code "+d.ProductCode+" by rule (from metadata.id and the DLL name)")
 	}
 	if inst.EnableForUser != nil {
 		d.Enable = *inst.EnableForUser
 	} else {
 		d.Enable = true
-		defaulted("enableForUser", true, "the installer enables the layout for the installing user by rule")
+		defaulted("enableForUser", []string{"/targets/windows/install/enableForUser"}, true, "the installer enables the layout for the installing user by rule")
 	}
 	if inst.EnableForSignInAndNewUsers != nil {
 		d.SignIn = *inst.EnableForSignInAndNewUsers
 	} else {
-		defaulted("enableForSignInAndNewUsers", false, "the installer leaves the sign-in screen and new accounts alone by rule")
+		defaulted("enableForSignInAndNewUsers", []string{"/targets/windows/install/enableForSignInAndNewUsers"}, false, "the installer leaves the sign-in screen and new accounts alone by rule")
 	}
 	entry := map[string]any{}
 	d.ProductName = inst.ProductName
@@ -101,7 +101,13 @@ func Decide(l *model.Layout, pins *model.WindowsTarget) (Decisions, *loss.Report
 		entry["publisher"] = d.Publisher
 	}
 	if len(entry) > 0 {
-		defaulted("uninstallEntry", entry, "uninstall entry name, version or publisher by rule")
+		var fields []string
+		for _, k := range []string{"productName", "productVersion", "publisher"} {
+			if _, ok := entry[k]; ok {
+				fields = append(fields, model.Pointer("targets", "windows", "install", k))
+			}
+		}
+		defaulted("uninstallEntry", fields, entry, "uninstall entry name, version or publisher by rule")
 	}
 
 	bad := func(path, format string, a ...any) {

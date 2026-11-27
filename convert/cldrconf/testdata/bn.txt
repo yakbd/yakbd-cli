@@ -19,9 +19,9 @@ validate -windows: exit 1, 16 loss or error line(s)
   warning windows.frameKeyWithoutText /positions/Escape
   warning windows.frameKeyWithoutText /positions/NumpadEnter
   warning windows.frameKeyWithoutText /positions/Tab
-  warning windows.markerNotCompiled /hardware/layers (KeyA)
-  warning windows.markerNotCompiled /hardware/layers (KeyQ)
-  warning windows.markerNotCompiled /hardware/layers (KeyX)
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyQ
+  warning windows.markerNotCompiled /hardware/layers/1/bindings/KeyA
+  warning windows.markerNotCompiled /hardware/layers/1/bindings/KeyX
   warning windows.transformNotCompiled /transforms/simple/0
   warning windows.transformNotCompiled /transforms/simple/1
 compile -langid 0409: exit 0, 15 loss or error line(s)
@@ -35,9 +35,9 @@ compile -langid 0409: exit 0, 15 loss or error line(s)
   warning windows.frameKeyWithoutText /positions/Escape
   warning windows.frameKeyWithoutText /positions/NumpadEnter
   warning windows.frameKeyWithoutText /positions/Tab
-  warning windows.markerNotCompiled /hardware/layers (KeyA)
-  warning windows.markerNotCompiled /hardware/layers (KeyQ)
-  warning windows.markerNotCompiled /hardware/layers (KeyX)
+  warning windows.markerNotCompiled /hardware/layers/0/bindings/KeyQ
+  warning windows.markerNotCompiled /hardware/layers/1/bindings/KeyA
+  warning windows.markerNotCompiled /hardware/layers/1/bindings/KeyX
   warning windows.transformNotCompiled /transforms/simple/0
   warning windows.transformNotCompiled /transforms/simple/1
 case bn-test/tests/au#1: skip: windows.transformNotCompiled: Windows types "\u0995\u09c7", CLDR expects "\u0995\u09cc"

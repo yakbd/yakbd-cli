@@ -101,9 +101,12 @@ type reportFlags struct {
 	jsonPath       string
 	strictDefaults bool
 	quiet          bool
+	command        string // the command, for the report file
+	input          string // the input file, once known
 }
 
 func (rf *reportFlags) register(fs *flag.FlagSet) {
+	rf.command = fs.Name()
 	fs.StringVar(&rf.jsonPath, "report", "", "also write the report as JSON to this file")
 	fs.BoolVar(&rf.strictDefaults, "strict-defaults", false, `treat every choice taken from a default rule as an error ("windowsDefault.*": "error")`)
 	fs.BoolVar(&rf.quiet, "q", false, "print only errors and warnings")
@@ -128,7 +131,7 @@ func (rf *reportFlags) finish(r *loss.Report, stderr io.Writer) bool {
 		fmt.Fprint(stderr, r.Summary())
 	}
 	if rf.jsonPath != "" {
-		b, _ := json.MarshalIndent(r, "", "  ")
+		b, _ := json.MarshalIndent(reportOf(r, rf.command, rf.input), "", "  ")
 		if err := os.WriteFile(rf.jsonPath, append(b, '\n'), 0o644); err != nil {
 			fmt.Fprintf(stderr, "yakbd: %v\n", err)
 			return false
@@ -225,14 +228,16 @@ func compile(args []string, stdout, stderr io.Writer) int {
 	expect := fs.Bool("emit-expectations", false, "also write <dir>/<name>.expect.txt: the expected result of every key for a test run on Windows")
 	langID := fs.String("langid", "", "LANGID (4 hex digits) for a file that has no targets.windows.registration.langId")
 	accept := fs.String("accept", "", "comma-separated loss kinds (or prefix.*) to accept for this run")
-	if err := fs.Parse(args); err != nil {
+	pos, err := parseInterleaved(fs, args)
+	if err != nil {
 		return ExitUsage
 	}
-	if fs.NArg() != 1 {
+	if len(pos) != 1 {
 		fs.Usage()
 		return ExitUsage
 	}
-	l, r := readLayout(fs.Arg(0), "")
+	rf.input = pos[0]
+	l, r := readLayout(pos[0], "")
 	if l == nil || r.HasErrors() {
 		rf.finish(r, stderr)
 		return ExitError
@@ -329,6 +334,7 @@ func convert(args []string, stdout, stderr io.Writer) int {
 		return ExitUsage
 	}
 	in, outPath := pos[0], pos[1]
+	rf.input = in
 	l, r := readLayout(in, *tests)
 	if l == nil || r.HasErrors() {
 		rf.finish(r, stderr)
@@ -390,14 +396,16 @@ func validate(args []string, stdout, stderr io.Writer) int {
 	var rf reportFlags
 	rf.register(fs)
 	forWindows := fs.Bool("windows", false, "also check that the layout builds for Windows (the build's report)")
-	if err := fs.Parse(args); err != nil {
+	pos, err := parseInterleaved(fs, args)
+	if err != nil {
 		return ExitUsage
 	}
-	if fs.NArg() != 1 {
+	if len(pos) != 1 {
 		fs.Usage()
 		return ExitUsage
 	}
-	in := fs.Arg(0)
+	in := pos[0]
+	rf.input = in
 	// The file itself: format rules, schema and the checks of SPEC §19.
 	l, r := readLayout(in, "")
 	if l != nil && !r.HasErrors() && *forWindows {
@@ -415,17 +423,19 @@ func pin(args []string, stdout, stderr io.Writer) int {
 	fs := newFlags("pin", "layout [output.kbl.json]", stderr)
 	var rf reportFlags
 	rf.register(fs)
-	if err := fs.Parse(args); err != nil {
+	pos, err := parseInterleaved(fs, args)
+	if err != nil {
 		return ExitUsage
 	}
-	if fs.NArg() < 1 || fs.NArg() > 2 {
+	if len(pos) < 1 || len(pos) > 2 {
 		fs.Usage()
 		return ExitUsage
 	}
-	in := fs.Arg(0)
+	in := pos[0]
+	rf.input = in
 	outPath := in
-	if fs.NArg() == 2 {
-		outPath = fs.Arg(1)
+	if len(pos) == 2 {
+		outPath = pos[1]
 	}
 	if formatOf(outPath) != "kbl" {
 		fmt.Fprintln(stderr, "yakbd pin: the output must be a .kbl.json file")

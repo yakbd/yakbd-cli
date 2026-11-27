@@ -47,7 +47,7 @@ a DLL always come from the same rules. All paths go through the model: `.klc` �
 | `pe` | PE/COFF images: sections with symbolic fixups, exports, resources, base relocations, checksum; a reader |
 | `internal/unicode/norm` | Unicode normalisation forms NFD and NFC (UAX #15) with the standard library only; tables generated from the Unicode 18.0.0 UCD, Hangul by algorithm; tested against the full `NormalizationTest.txt` |
 | `tools/genucd` | writes `internal/unicode/norm/tables.go` from the UCD files `UnicodeData.txt` and `DerivedNormalizationProps.txt` (not in the repository; the generated file records their SHA-256) |
-| `internal/cli` | the subcommands `compile`, `convert`, `validate`, `pin`, `installer`, `version` |
+| `internal/cli` | the subcommands `compile`, `convert`, `validate`, `pin`, `installer`, `version`, and the `-report` file (docs/report-file.md: tool version, JSON pointers into the input) |
 | `installer` | a build set → `Package` (manifest + files; machine kinds x64 = x64 + wow64, arm64 = arm64x + wow64, x86), the product-code rule, `Container` with its one implementation `ExeContainer` (embedded stub + payload); embeds `stub-386.exe` |
 | `installer/cmdline` | the installers' msiexec-compatible command line, exit codes, UI-level, restart and log rules (docs/installer-cli.md, whose tables its tests read); pure, standard library only (compiled into the stub) |
 | `installer/exeres` | the installer program's resources (manifest `asInvoker`, an icon drawn by code, a version resource from the install data), added as a new `.rsrc` section when `yakbd installer` writes the file (docs/installer.md §3.1, §5.1); not compiled into the stub |

@@ -109,10 +109,43 @@ func (b *lowerer) lost(kind, path, format string, args ...any) {
 		Message: fmt.Sprintf(format, args...)})
 }
 
-func (b *lowerer) defaulted(rule string, value any, format string, args ...any) {
-	b.r.Append(loss.Entry{Class: loss.Defaulted, Severity: loss.Accepted, Code: "windowsDefault." + rule,
-		Where: loss.Where{Path: "/targets/windows"}, Message: fmt.Sprintf(format, args...),
-		Detail: map[string]any{"value": value}})
+// defaulted reports a use of default rule `rule` that filled the members at the JSON pointers fields
+// (DefaultedEntry).
+func (b *lowerer) defaulted(rule string, fields []string, value any, format string, args ...any) {
+	b.r.Append(DefaultedEntry(rule, fields, value, fmt.Sprintf(format, args...)))
+}
+
+// DefaultedEntry is the report entry of a default rule that filled the members at the JSON pointers fields (at
+// least one): its location is the one member, or the deepest object holding them all with the pointers in
+// detail.fields (docs/report-file.md §4).
+func DefaultedEntry(rule string, fields []string, value any, msg string) loss.Entry {
+	e := loss.Entry{Class: loss.Defaulted, Severity: loss.Accepted, Code: "windowsDefault." + rule,
+		Where: loss.Where{Path: commonParent(fields)}, Message: msg, Detail: map[string]any{"value": value}}
+	if len(fields) > 1 {
+		e.Detail["fields"] = fields
+	}
+	return e
+}
+
+// commonParent is the one pointer of ps, or the longest pointer that is a parent of all of them.
+func commonParent(ps []string) string {
+	if len(ps) == 1 {
+		return ps[0]
+	}
+	var common []string
+	for i, p := range ps {
+		toks := strings.Split(p, "/")
+		if i == 0 {
+			common = toks[:len(toks)-1]
+			continue
+		}
+		n := 0
+		for n < len(common) && n < len(toks)-1 && common[n] == toks[n] {
+			n++
+		}
+		common = common[:n]
+	}
+	return strings.Join(common, "/")
 }
 
 func (b *lowerer) run() *Result {
@@ -141,14 +174,14 @@ func (b *lowerer) meta() {
 	p.DLLName = f.DLLName
 	if p.DLLName == "" {
 		p.DLLName = DefaultDLLName(l.Metadata.ID)
-		b.defaulted("dllName", p.DLLName, "DLL name %s from metadata.id", p.DLLName)
+		b.defaulted("dllName", []string{"/targets/windows/dllName"}, p.DLLName, "DLL name %s from metadata.id", p.DLLName)
 	}
 	p.Builds = f.Builds
 	if len(p.Builds) == 0 {
 		// D39: every build the tool can make; arm64x since its writer passed the gate of D44 (VM-6, D66).
 		p.Builds = []string{"x86", "x64", "wow64", "arm64x"}
 		b.r.Append(loss.Entry{Class: loss.Defaulted, Severity: loss.Accepted, Code: "windowsDefault.builds",
-			Where: loss.Where{Path: "/targets/windows"}, Message: "builds x86, x64, wow64, arm64x",
+			Where: loss.Where{Path: "/targets/windows/builds"}, Message: "builds x86, x64, wow64, arm64x",
 			Detail: map[string]any{"value": p.Builds, "skipped": []string{}}})
 	}
 	has := map[string]bool{}
@@ -172,17 +205,17 @@ func (b *lowerer) meta() {
 			}
 		}
 		lf.AltGr = &v
-		b.defaulted("altGr", v, "KLLF_ALTGR %v (a layer uses altR: %v)", v, v)
+		b.defaulted("altGr", []string{"/targets/windows/localeFlags/altGr"}, v, "KLLF_ALTGR %v (a layer uses altR: %v)", v, v)
 	}
 	if lf.ShiftLock == nil {
 		v := l.Settings != nil && l.Settings.CapsLockOffBy == "shift"
 		lf.ShiftLock = &v
-		b.defaulted("shiftLock", v, "KLLF_SHIFTLOCK %v from settings.capsLockOffBy", v)
+		b.defaulted("shiftLock", []string{"/targets/windows/localeFlags/shiftLock"}, v, "KLLF_SHIFTLOCK %v from settings.capsLockOffBy", v)
 	}
 	if lf.LrmRlm == nil {
 		v := l.Settings != nil && l.Settings.BidiMarksOnShiftBackspace != nil && *l.Settings.BidiMarksOnShiftBackspace
 		lf.LrmRlm = &v
-		b.defaulted("lrmRlm", v, "KLLF_LRM_RLM %v from settings.bidiMarksOnShiftBackspace", v)
+		b.defaulted("lrmRlm", []string{"/targets/windows/localeFlags/lrmRlm"}, v, "KLLF_LRM_RLM %v from settings.bidiMarksOnShiftBackspace", v)
 	}
 	p.LocaleFlags = lf
 	b.altGr = *lf.AltGr
@@ -199,13 +232,13 @@ func (b *lowerer) meta() {
 	if p.KbdVersion == nil {
 		v := windows.KBD_VERSION
 		p.KbdVersion = &v
-		b.defaulted("kbdVersion", v, "version word %d", v)
+		b.defaulted("kbdVersion", []string{"/targets/windows/kbdVersion"}, v, "version word %d", v)
 	}
 	b.t.Version = uint16(*p.KbdVersion)
 	p.KeyboardType = f.KeyboardType
 	if p.KeyboardType == nil {
 		p.KeyboardType = &model.KeyboardType{}
-		b.defaulted("keyboardType", map[string]int{"type": 0, "subType": 0}, "dwType and dwSubType 0")
+		b.defaulted("keyboardType", []string{"/targets/windows/keyboardType"}, map[string]int{"type": 0, "subType": 0}, "dwType and dwSubType 0")
 	}
 	b.t.Type, b.t.SubType = p.KeyboardType.Type, p.KeyboardType.SubType
 }
@@ -278,3 +311,27 @@ func (r *Result) PositionList() []PositionInfo { return r.positions }
 
 // Columns returns the representative Windows state of each column.
 func (r *Result) Columns() []int { return r.columns }
+
+// fieldsOf is the pointer /targets/windows/<object>/<id>/<member> of each id.
+func fieldsOf(ids []string, object, member string) []string {
+	var out []string
+	for _, id := range ids {
+		out = append(out, model.Pointer("targets", "windows", object, id, member))
+	}
+	return out
+}
+
+// memberFields is the pointer /targets/windows/<object>/<member> of each member.
+func memberFields(object string, members []string) []string {
+	var out []string
+	for _, m := range members {
+		out = append(out, model.Pointer("targets", "windows", object, m))
+	}
+	return out
+}
+
+// vkFields are the members rule vk fills: the virtual key of each position, those added from Table A included
+// (whose /positions/<id> pin writes too; detail.value.addedFromTableA names them).
+func vkFields(defaulted, added []string) []string {
+	return fieldsOf(append(append([]string{}, defaulted...), added...), "keys", "vk")
+}

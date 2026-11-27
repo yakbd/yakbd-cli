@@ -48,7 +48,7 @@ func (b *lowerer) modifiers() {
 			}
 			b.bits = append(b.bits, modBit{v, customBits[i], name})
 		}
-		b.defaulted("modifierBits", b.bitsPin(), "VK_TO_BIT: SHIFT, CONTROL, MENU and %d custom modifier(s)", len(b.bits)-3)
+		b.defaulted("modifierBits", []string{"/targets/windows/modifiers/bits"}, b.bitsPin(), "VK_TO_BIT: SHIFT, CONTROL, MENU and %d custom modifier(s)", len(b.bits)-3)
 	}
 	p.Modifiers = &model.WindowsModifiers{Bits: b.bitsPin()}
 	if f.Modifiers != nil {
@@ -74,7 +74,7 @@ func (b *lowerer) modifiers() {
 		}
 	} else {
 		b.modNum = b.defaultModNumber()
-		b.defaulted("modNumber", modNumberPin(b.modNum), "ModNumber from the layers' states")
+		b.defaulted("modNumber", []string{"/targets/windows/modifiers/modNumber"}, modNumberPin(b.modNum), "ModNumber from the layers' states")
 	}
 	p.Modifiers.ModNumber = modNumberPin(b.modNum)
 	b.t.Modifiers.ModNumber = b.modNum

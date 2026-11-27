@@ -53,7 +53,9 @@ shows how to install the new build next to the old one, check it, and only then 
     yakbd version
 
 `yakbd <command> -h` lists a command's options. Every command prints a report (errors, warnings, losses, and each
-choice taken from a default rule); `-report report.json` saves it as JSON. A command with an error writes nothing.
+choice taken from a default rule); `-report report.json` saves it as JSON, in the shape of
+[`docs/report-file.md`](docs/report-file.md) (for programs: JSON pointers into the input file, the tool version). A
+command with an error writes nothing. Flags may come before or after the file names.
 
 ## Documentation
 
@@ -63,7 +65,8 @@ choice taken from a default rule); `-report report.json` saves it as JSON. A com
 | [`docs/recover-a-layout.md`](docs/recover-a-layout.md) | getting an editable file back from an installed layout DLL |
 | [`docs/windows-security-prompts.md`](docs/windows-security-prompts.md) | Smart App Control, SmartScreen and UAC; checking a download; signing your own layout installer |
 | [`docs/code-signing-policy.md`](docs/code-signing-policy.md) | **Code signing policy** of `yakbd-setup.exe` (planned) |
-| [`docs/installer.md`](docs/installer.md), [`docs/installer-cli.md`](docs/installer-cli.md) | what the installers do, their command line and exit codes |
+| [`docs/installer.md`](docs/installer.md), [`docs/installer-cli.md`](docs/installer-cli.md) | what the installers do, their command line and exit codes; the extra payload of `yakbd-setup.exe` (§12.1) |
+| [`docs/report-file.md`](docs/report-file.md) | the `-report` JSON file, for programs that run yakbd (an editor, a build script) |
 | [`docs/dll-import.md`](docs/dll-import.md) | how layout DLLs are read |
 | [`docs/cldr.md`](docs/cldr.md) | CLDR keyboards: import, Windows builds, the conformance test |
 | [`docs/release.md`](docs/release.md) | how releases are built, checked and signed |

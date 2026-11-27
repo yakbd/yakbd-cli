@@ -43,7 +43,7 @@ func (b *lowerer) deadCharacters() {
 		b.dead[id] = units[0]
 	}
 	if len(defaulted) > 0 {
-		b.defaulted("deadCharacter", defaulted, "dead characters from spacing for %d dead key(s)", len(defaulted))
+		b.defaulted("deadCharacter", fieldsOf(defaulted, "deadKeys", "character"), defaulted, "dead characters from spacing for %d dead key(s)", len(defaulted))
 	}
 }
 
@@ -106,10 +106,9 @@ func (b *lowerer) rows() {
 			}
 			r.vk = on
 		}
-		path := "/hardware/layers"
 		for c := 0; c < cols; c++ {
 			bnd := b.l.Resolve(pi.id, b.reps[c])
-			r.cells[c] = b.cellOf(b.l.Effective(bnd), path+" ("+pi.id+")")
+			r.cells[c] = b.cellOf(b.l.Effective(bnd), b.bindingPath(pi.id, bnd))
 			if pi.numLock && b.states[c]&1 != 0 && !r.cells[c].empty() {
 				b.lost("windows.numpadShiftUnreachable", "/positions/"+pi.id, "%s has outputs with Shift; Windows turns Shift+number pad into navigation", pi.id)
 			}
@@ -142,7 +141,7 @@ func (b *lowerer) rows() {
 		rows = append(rows, r)
 	}
 	if len(b.attrDefaulted) > 0 {
-		b.defaulted("attributes", b.attrDefaulted, "Caps Lock attributes from the layers for %d position(s)", len(b.attrDefaulted))
+		b.defaulted("attributes", fieldsOf(b.attrDefaulted, "keys", "attributes"), b.attrDefaulted, "Caps Lock attributes from the layers for %d position(s)", len(b.attrDefaulted))
 	}
 	if len(b.capsUnmatched) > 0 {
 		b.r.Append(loss.Entry{Class: loss.Loss, Severity: loss.Warning, Code: "windows.capsUnmatched", Where: loss.Where{Path: "/hardware/layers"},
@@ -259,7 +258,7 @@ func (b *lowerer) attributes(pi *posInfo, r *row) {
 			return cell{}
 		}
 		bnd := b.l.Resolve(pi.id, b.representative(s).WithCaps(true))
-		c := b.cellOf(b.l.Effective(bnd), "/hardware/layers ("+pi.id+")")
+		c := b.cellOf(b.l.Effective(bnd), b.bindingPath(pi.id, bnd))
 		if c.empty() && bnd != nil && !out(s).empty() {
 			// D64: an explicit nothing is a real Caps Lock output (WCH_NONE in the Caps Lock row), not D40's case
 			return cell{none: true}
@@ -333,7 +332,8 @@ func (b *lowerer) attributes(pi *posInfo, r *row) {
 	if lock := b.pin.Modifiers.KanaLockComponent; lock != "" {
 		st := b.representative(0)
 		st.Custom[lock] = true
-		lockOut := b.cellOf(b.l.Effective(b.l.Resolve(pi.id, st)), "/hardware/layers ("+pi.id+")")
+		lockBnd := b.l.Resolve(pi.id, st)
+		lockOut := b.cellOf(b.l.Effective(lockBnd), b.bindingPath(pi.id, lockBnd))
 		kana := out(windows.KBDKANA)
 		switch {
 		case eq(lockOut, o0):
@@ -435,7 +435,7 @@ func (b *lowerer) tables(rows []*row) {
 		return a.r.scan < c.r.scan
 	})
 	if len(b.file.Tables) == 0 && len(all) > 0 {
-		b.defaulted("tables", nil, "rows by width, then by scan code")
+		b.defaulted("tables", []string{"/targets/windows/tables"}, nil, "rows by width, then by scan code")
 	}
 	for _, x := range all {
 		r, w := x.r, x.width
@@ -547,4 +547,9 @@ func (b *lowerer) vkBound(v byte) bool {
 		}
 	}
 	return false
+}
+
+// bindingPath is the JSON pointer of a binding of position pos (model.Layout.BindingPointer).
+func (b *lowerer) bindingPath(pos string, bnd *model.Binding) string {
+	return b.l.BindingPointer(pos, bnd)
 }

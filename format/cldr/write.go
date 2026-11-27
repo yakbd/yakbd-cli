@@ -580,7 +580,7 @@ func (wr *writer) layerRows() []writtenLayer {
 		}
 	}
 	var out []writtenLayer
-	for li, ly := range layers {
+	for _, ly := range layers {
 		wl := writtenLayer{}
 		if ly.src != nil {
 			wl.id = ly.src.ID
@@ -597,7 +597,7 @@ func (wr *writer) layerRows() []writtenLayer {
 		wl.modifiers = strings.Join(sets, ", ")
 		for _, p := range sortedKeys(ly.bind) {
 			if !inForm[p] {
-				wr.lost("cldr.positionNotInForm", fmt.Sprintf("/hardware/layers/%d/bindings/%s", li, p), map[string]any{"position": p},
+				wr.lost("cldr.positionNotInForm", wr.l.BindingPointer(p, ly.bind[p]), map[string]any{"position": p},
 					"position %s has no place in the form", p)
 			}
 		}
@@ -609,7 +609,7 @@ func (wr *writer) layerRows() []writtenLayer {
 					keys = append(keys, "gap")
 					continue
 				}
-				keys = append(keys, wr.keyFor(b, fmt.Sprintf("/hardware/layers/%d/bindings/%s", li, p)))
+				keys = append(keys, wr.keyFor(b, wr.l.BindingPointer(p, b)))
 			}
 			// trailing gaps carry no information
 			for len(keys) > 0 && keys[len(keys)-1] == "gap" {

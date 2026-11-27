@@ -199,11 +199,15 @@ func runCLI(t *testing.T, report string, args ...string) (int, []string) {
 
 // reportLines are the losses and errors of a report: severity, kind and location (the file name dropped, it is a
 // temporary path), sorted, with a count for repeats.
-// jsonReport is the JSON form of a loss.Report (class and severity by name).
+// jsonReport is the -report file (docs/report-file.md); a location is its pointer, else its path.
 type jsonReport struct {
 	Entries []struct {
 		Class, Severity, Kind string
-		Where                 loss.Where
+		Where                 struct {
+			File, Path string
+			Line       int
+			Pointer    *string
+		}
 	}
 }
 
@@ -213,8 +217,10 @@ func reportLines(r *jsonReport) []string {
 		if e.Class != loss.Loss.String() && e.Severity != loss.Error.String() {
 			continue
 		}
-		w := e.Where
-		w.File = ""
+		w := loss.Where{Line: e.Where.Line, Path: e.Where.Path}
+		if e.Where.Pointer != nil {
+			w.Path = *e.Where.Pointer
+		}
 		s := e.Severity + " " + e.Kind
 		if ws := w.String(); ws != "" {
 			s += " " + ws

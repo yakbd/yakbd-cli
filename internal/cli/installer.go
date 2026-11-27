@@ -24,13 +24,15 @@ func installerCmd(args []string, stdout, stderr io.Writer) int {
 	signIn := fs.String("signin", "", "true or false: override install.enableForSignInAndNewUsers (default: the file, else rule enableForSignInAndNewUsers = false)")
 	langID := fs.String("langid", "", "LANGID (4 hex digits) for a file that has no targets.windows.registration.langId")
 	accept := fs.String("accept", "", "comma-separated loss kinds (or prefix.*) to accept for this run")
-	if err := fs.Parse(args); err != nil {
+	pos, err := parseInterleaved(fs, args)
+	if err != nil {
 		return ExitUsage
 	}
-	if fs.NArg() != 1 {
+	if len(pos) != 1 {
 		fs.Usage()
 		return ExitUsage
 	}
+	rf.input = pos[0]
 	var enableOverride *bool
 	switch *enable {
 	case "":
@@ -62,7 +64,7 @@ func installerCmd(args []string, stdout, stderr io.Writer) int {
 			kinds = append(kinds, s)
 		}
 	}
-	l, r := readLayout(fs.Arg(0), "")
+	l, r := readLayout(pos[0], "")
 	if l == nil || r.HasErrors() {
 		rf.finish(r, stderr)
 		return ExitError

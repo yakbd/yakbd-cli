@@ -18,7 +18,7 @@ validate -windows: exit 1, 18 loss or error line(s)
   warning windows.frameKeyWithoutText /positions/Escape
   warning windows.frameKeyWithoutText /positions/NumpadEnter
   warning windows.frameKeyWithoutText /positions/Tab
-  warning windows.markerNotCompiled /hardware/layers (Quote)
+  warning windows.markerNotCompiled /hardware/layers/4/bindings/Quote
   warning windows.transformNotCompiled /transforms/simple/0
   warning windows.transformNotCompiled /transforms/simple/1
   warning windows.transformNotCompiled /transforms/simple/2
@@ -36,7 +36,7 @@ compile -langid 0409: exit 0, 17 loss or error line(s)
   warning windows.frameKeyWithoutText /positions/Escape
   warning windows.frameKeyWithoutText /positions/NumpadEnter
   warning windows.frameKeyWithoutText /positions/Tab
-  warning windows.markerNotCompiled /hardware/layers (Quote)
+  warning windows.markerNotCompiled /hardware/layers/4/bindings/Quote
   warning windows.transformNotCompiled /transforms/simple/0
   warning windows.transformNotCompiled /transforms/simple/1
   warning windows.transformNotCompiled /transforms/simple/2
