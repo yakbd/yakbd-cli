@@ -1,8 +1,9 @@
 // Package toolsetup is the logic of yakbd-setup.exe, the tool's own installer (docs/installer-cli.md §12): its
-// payload (yakbd.exe for x86, x64 and arm64), and install, upgrade, repair and uninstall per machine into Program
-// Files with the folder on the machine PATH and an uninstall entry. It talks to Windows only through System
-// (implemented by installer/winhost), so that every decision is tested on any OS. Standard library and the
-// installer packages it shares with the layout installers only: it is compiled into installer/toolstub.
+// payload (yakbd.exe for x86, x64 and arm64, and an optional extra payload of more files for the same folder,
+// §12.1), and install, upgrade, repair and uninstall per machine into Program Files with the folder on the machine
+// PATH and an uninstall entry. It talks to Windows only through System (implemented by installer/winhost), so that
+// every decision is tested on any OS. Standard library and the installer packages it shares with the layout
+// installers only: it is compiled into installer/toolstub.
 package toolsetup
 
 import (
@@ -13,6 +14,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/yakbd/yakbd-cli/installer/payload"
 )
@@ -43,6 +45,27 @@ type Manifest struct {
 	Format  int     `json:"format"`
 	Product Product `json:"product"`
 	Files   []File  `json:"files"`
+	// Extra is the extra payload (docs/installer-cli.md §12.1): more files installed into the folder of yakbd.exe,
+	// such as a graphical program. Left out when empty, so that a payload without it keeps its earlier bytes.
+	Extra []ExtraFile `json:"extra,omitempty"`
+}
+
+// ExtraFile is one file of the extra payload.
+type ExtraFile struct {
+	// Path is relative to the install folder, with backslashes (`qml\a.dll`); CheckExtraPath has the rules.
+	Path string `json:"path"`
+	// Build limits the file to the machines of one build of yakbd.exe; empty: every build.
+	Build  string `json:"build,omitempty"`
+	Offset int64  `json:"offset"`
+	Size   int64  `json:"size"`
+	SHA256 string `json:"sha256"`
+}
+
+// Extra is one file for Encode's extra payload.
+type Extra struct {
+	Path  string
+	Build string // empty: every build
+	Data  []byte
 }
 
 // Product is the uninstall entry's data.
@@ -66,11 +89,13 @@ type File struct {
 type Payload struct {
 	Manifest *Manifest
 	Data     map[string][]byte
+	// ExtraData holds the bytes of Manifest.Extra[i] at index i.
+	ExtraData [][]byte
 }
 
-// Encode writes the payload; builds gives the order (deterministic output).
-func Encode(m Manifest, builds []string, data map[string][]byte) ([]byte, error) {
-	m.Format, m.Files = Version, nil
+// Encode writes the payload; builds and extra give the order (deterministic output). extra may be empty.
+func Encode(m Manifest, builds []string, data map[string][]byte, extra []Extra) ([]byte, error) {
+	m.Format, m.Files, m.Extra = Version, nil, nil
 	var blob bytes.Buffer
 	for _, b := range builds {
 		d, ok := data[b]
@@ -84,6 +109,11 @@ func Encode(m Manifest, builds []string, data map[string][]byte) ([]byte, error)
 		sum := sha256.Sum256(d)
 		m.Files = append(m.Files, File{Build: b, Machine: mach, Offset: int64(blob.Len()), Size: int64(len(d)), SHA256: hex.EncodeToString(sum[:])})
 		blob.Write(d)
+	}
+	for _, x := range extra {
+		sum := sha256.Sum256(x.Data)
+		m.Extra = append(m.Extra, ExtraFile{Path: x.Path, Build: x.Build, Offset: int64(blob.Len()), Size: int64(len(x.Data)), SHA256: hex.EncodeToString(sum[:])})
+		blob.Write(x.Data)
 	}
 	if err := m.check(); err != nil {
 		return nil, err
@@ -117,7 +147,85 @@ func (m *Manifest) check() error {
 		}
 		seen[f.Build] = true
 	}
+	return checkExtra(m.Extra, seen)
+}
+
+// reservedSuffixes are the endings of the installer's temporary names (Install, Uninstall).
+var reservedSuffixes = []string{".yakbd-tmp", ".yakbd-new"}
+
+// CheckExtraPath checks one path of the extra payload: relative, with backslashes, every part a plain name
+// (not empty, "." or "..", no control character or any of <>:"/|?*, not ending in a space or a dot), not
+// yakbd.exe or setup.exe at the top, and not ending in a name the installer uses for its temporary files.
+func CheckExtraPath(p string) error {
+	if p == "" {
+		return errors.New("an extra payload path is empty")
+	}
+	for _, part := range strings.Split(p, `\`) {
+		if part == "" || part == "." || part == ".." || strings.HasSuffix(part, " ") || strings.HasSuffix(part, ".") {
+			return fmt.Errorf("extra payload path %q: %q is not a file or folder name", p, part)
+		}
+		for _, c := range part {
+			if c < 0x20 || strings.ContainsRune(`<>:"/|?*`, c) {
+				return fmt.Errorf("extra payload path %q: character %q is not allowed", p, c)
+			}
+		}
+	}
+	l := strings.ToLower(p)
+	if top, _, _ := strings.Cut(l, `\`); top == strings.ToLower(ExeName) || top == strings.ToLower(InstallerName) {
+		return fmt.Errorf("extra payload path %q: the installer writes that file itself", p)
+	}
+	for _, s := range reservedSuffixes {
+		if strings.HasSuffix(l, s) {
+			return fmt.Errorf("extra payload path %q: the installer uses names ending in %s", p, s)
+		}
+	}
 	return nil
+}
+
+// checkExtra checks the extra payload: every path (CheckExtraPath), every build one of builds, and for each
+// machine no path twice (letter case ignored) and no file where another file needs a folder.
+func checkExtra(xs []ExtraFile, builds map[string]bool) error {
+	for _, x := range xs {
+		if err := CheckExtraPath(x.Path); err != nil {
+			return err
+		}
+		if x.Build != "" && !builds[x.Build] {
+			return fmt.Errorf("extra payload file %s: build %q is not in the payload", x.Path, x.Build)
+		}
+	}
+	for b := range builds {
+		files, dirs := map[string]string{}, map[string]string{}
+		for _, x := range xs {
+			if x.Build != "" && x.Build != b {
+				continue
+			}
+			l := strings.ToLower(x.Path)
+			if o, ok := files[l]; ok {
+				return fmt.Errorf("extra payload: %s and %s are the same file for %s", o, x.Path, b)
+			}
+			files[l] = x.Path
+			for i := strings.LastIndex(l, `\`); i > 0; i = strings.LastIndex(l[:i], `\`) {
+				dirs[l[:i]] = x.Path
+			}
+		}
+		for d, by := range dirs {
+			if f, ok := files[d]; ok {
+				return fmt.Errorf("extra payload: %s is a file, but %s needs it as a folder", f, by)
+			}
+		}
+	}
+	return nil
+}
+
+// ExtraFor returns the extra payload's files for a build, in payload order, with their bytes.
+func (p *Payload) ExtraFor(build string) []Extra {
+	var out []Extra
+	for i, x := range p.Manifest.Extra {
+		if x.Build == "" || x.Build == build {
+			out = append(out, Extra{Path: x.Path, Build: x.Build, Data: p.ExtraData[i]})
+		}
+	}
+	return out
 }
 
 // Decode reads a tool payload at the start of b, checking every hash and PE Machine.
@@ -161,6 +269,17 @@ func Decode(b []byte) (*Payload, error) {
 			return nil, fmt.Errorf("tool payload file %s is not a %s file", f.Build, f.Build)
 		}
 		p.Data[f.Build] = d
+	}
+	for _, x := range m.Extra {
+		if x.Offset < 0 || x.Size < 0 || x.Offset+x.Size > int64(len(data)) || x.Offset+x.Size < x.Offset {
+			return nil, fmt.Errorf("tool payload file %s is outside the payload", x.Path)
+		}
+		d := data[x.Offset : x.Offset+x.Size]
+		sum := sha256.Sum256(d)
+		if hex.EncodeToString(sum[:]) != x.SHA256 {
+			return nil, fmt.Errorf("tool payload file %s: checksum does not match", x.Path)
+		}
+		p.ExtraData = append(p.ExtraData, d)
 	}
 	return p, nil
 }

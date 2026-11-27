@@ -77,7 +77,7 @@ func run(args []string, h host) int {
 	logf := func(format string, a ...any) {
 		fmt.Fprintf(logw, "%s %s\n", time.Now().Format("2006-01-02 15:04:05"), fmt.Sprintf(format, a...))
 	}
-	s := &toolsetup.Setup{Sys: h, P: p, Log: logf}
+	s := &toolsetup.Setup{Sys: h, P: p, Self: selfBytes, Log: logf}
 	logf("start: %s, arguments %q, yakbd %s, payload %v, ui %s", c.Action, args, m.Product.Version, m.Builds(), c.UI)
 	if len(c.Ignored) > 0 {
 		logf("properties accepted without effect: %s", strings.Join(c.Ignored, ", "))

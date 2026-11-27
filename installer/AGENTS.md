@@ -6,7 +6,8 @@ Layout installers (`yakbd installer`) and the tool's own `yakbd-setup.exe`. The 
 
     go test ./installer/...
     go run ./tools/buildstub      # after any change to a package compiled into the stub (root AGENTS.md)
-    go run ./tools/toolsetup -o DIR/yakbd-setup.exe   # without -o it writes into the repository root
+    go run ./tools/toolsetup -o DIR/yakbd-setup.exe   # without -o it writes into the repository root;
+                                                      # -builds, -extra [BUILD=]DIR: extra payload (docs/installer-cli.md §12.1)
                                                       # reproducible; releases: go run ./tools/release (docs/release.md)
 
 - Put every install decision (files per machine, KLID and Layout Id, value order, rollback, upgrade, repair,

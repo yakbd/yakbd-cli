@@ -56,7 +56,7 @@ a DLL always come from the same rules. All paths go through the model: `.klc` �
 | `installer/shape` | the Machine and shape check of one layout file per build (kbl windows-install.md §3): the tool's own DLL reader (`target/windows`, `pe`) must read it back as that build; run by `yakbd installer` on every file and by the stub before it copies; compiled into the stub |
 | `installer/stub` | the Windows program of every installer (`windows/386`, plain `syscall`): arguments (installer/cmdline), self-elevation, dialogs, log |
 | `installer/winhost` | the `System` of real Windows for both installer programs (plain `syscall`), plus elevation, dialogs, the `Global\YAKBD-Setup` lock, restart, PATH broadcast |
-| `installer/toolsetup`, `installer/toolstub`, `tools/toolsetup` | `yakbd-setup.exe`, the tool's own installer: payload with yakbd.exe x86/x64/arm64, install into Program Files + machine PATH + uninstall entry (docs/installer-cli.md §12), its program, and the reproducible build |
+| `installer/toolsetup`, `installer/toolstub`, `tools/toolsetup` | `yakbd-setup.exe`, the tool's own installer: payload with yakbd.exe x86/x64/arm64 and an optional extra payload (more files for the same folder, such as the graphical editor), install into Program Files + machine PATH + uninstall entry (docs/installer-cli.md §12, §12.1), its program, and the reproducible build |
 | `installer/stubbuild`, `tools/buildstub` | the one reproducible build of the stub, and the command that writes it into `installer/` |
 
 ## Rules the code keeps

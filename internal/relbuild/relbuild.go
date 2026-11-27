@@ -64,8 +64,32 @@ var WindowsBuilds = []string{toolsetup.BuildX86, toolsetup.BuildX64, toolsetup.B
 // (the uninstall entry's and the version resource's). It returns the installer and the yakbd.exe builds by build
 // name, the same bytes the installer carries.
 func Setup(root, version, release string) ([]byte, map[string][]byte, error) {
+	return SetupWith(root, SetupOptions{Version: version, Release: release})
+}
+
+// SetupOptions choose what SetupWith puts into yakbd-setup.exe.
+type SetupOptions struct {
+	Version string // the product version
+	Release string // written into ReleaseVar of yakbd.exe when set
+	// Builds are the builds of yakbd.exe it carries, a subset of WindowsBuilds in that order; nil: all of them. A
+	// machine whose build is missing gets exit code 1633 (docs/installer-cli.md §12).
+	Builds []string
+	// Extra is the extra payload (docs/installer-cli.md §12.1), in this order.
+	Extra []toolsetup.Extra
+}
+
+// SetupWith is Setup with the builds and the extra payload chosen.
+func SetupWith(root string, o SetupOptions) ([]byte, map[string][]byte, error) {
+	version, release := o.Version, o.Release
+	builds := o.Builds
+	if builds == nil {
+		builds = WindowsBuilds
+	}
 	exes := map[string][]byte{}
-	for _, b := range WindowsBuilds {
+	for _, b := range builds {
+		if WindowsArch[b] == "" {
+			return nil, nil, fmt.Errorf("unknown build %q (want x86, x64 or arm64)", b)
+		}
 		var err error
 		if exes[b], err = Build(root, "./cmd/yakbd", "windows", WindowsArch[b], false, release); err != nil {
 			return nil, nil, err
@@ -86,7 +110,7 @@ func Setup(root, version, release string) ([]byte, map[string][]byte, error) {
 	if stub, err = exeres.Add(stub, res); err != nil {
 		return nil, nil, err
 	}
-	pl, err := toolsetup.Encode(toolsetup.Manifest{Product: prod}, WindowsBuilds, exes)
+	pl, err := toolsetup.Encode(toolsetup.Manifest{Product: prod}, builds, exes, o.Extra)
 	if err != nil {
 		return nil, nil, err
 	}

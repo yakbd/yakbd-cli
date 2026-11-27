@@ -30,6 +30,7 @@ written forms must be byte-equal (the first read may be lossy; the second round 
 | `FuzzParse` | `installer/cmdline` | the argument list, joined by NUL | errors are `*Error`; the elevated copy's `ChildArgs` parse to the same action, repair mode, log and FORCE; no file access |
 | `FuzzDecode` | `installer/payload` | manifest JSON and file bytes | decoded raw and as a payload whose header and SHA-256 are made to match; decode → encode → decode is stable |
 | `FuzzFromExe` | `installer/payload` | installer bytes | `PEMachine`, `ImageEnd`, `FromExe` (what the installer does with its own file) |
+| `FuzzDecode` | `installer/toolsetup` | tool payload manifest JSON and file bytes | as `installer/payload`'s, with the extra payload: no decoded path that `CheckExtraPath` refuses; decode → encode → decode is stable |
 | `FuzzBuild` | `installer` | `.kbl.json` bytes | `yakbd installer`'s path: read, lower, compile all five builds, package, write the `setup.exe`; its payload decodes to the packaged builds |
 
 Seeds come from the repository's test data, read by glob at test time, so new corpus files are picked up: the
@@ -93,3 +94,6 @@ for the full 10 minutes. Executions are those of the last, clean run.
 
 After the interim VK-spelling change (it touched the `.klc` importer and the Windows build), `FuzzImport` and `FuzzBuild`
 ran again for 2 minutes each: 309 620 and 1 347 447 executions, no finding.
+
+toolsetup `FuzzDecode` (added 2026-11-27 with the extra payload, docs/installer-cli.md §12.1) ran 45 seconds with
+the default workers: 5 339 425 executions, no finding.

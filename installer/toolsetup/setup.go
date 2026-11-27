@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/yakbd/yakbd-cli/installer/cmdline"
@@ -38,10 +39,13 @@ type System interface {
 
 // Registry paths and record values.
 const (
-	Environment   = `HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment`
-	RecFile       = "YakbdToolFile"
-	RecPathAdded  = "YakbdPathAdded"
-	RecBuild      = "YakbdToolBuild"
+	Environment  = `HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment`
+	RecFile      = "YakbdToolFile"
+	RecPathAdded = "YakbdPathAdded"
+	RecBuild     = "YakbdToolBuild"
+	// RecExtra lists the installed files of the extra payload, relative to the folder, joined by "|" (a
+	// character no path has); written when there are any or were any.
+	RecExtra      = "YakbdToolExtraFiles"
 	ExeName       = "yakbd.exe"
 	InstallerName = "setup.exe"
 )
@@ -58,7 +62,9 @@ type Result struct {
 type Setup struct {
 	Sys System
 	P   *Payload
-	Log func(format string, args ...any)
+	// Self is the installer file's bytes when the caller has read them already; nil: Install reads SelfPath.
+	Self []byte
+	Log  func(format string, args ...any)
 }
 
 func (s *Setup) logf(format string, args ...any) {
@@ -136,8 +142,9 @@ func (s *Setup) readPath() (string, bool, bool) {
 	return v.Str, v.Type == setup.RegExpandSZ, ok
 }
 
-// pendingDeletion returns a PendingFileRenameOperations entry that deletes the target or its folder at restart.
+// pendingDeletion returns a PendingFileRenameOperations entry that deletes the folder or anything in it at restart.
 func (s *Setup) pendingDeletion(dir string) string {
+	d := strings.ToLower(strings.TrimRight(strings.ReplaceAll(dir, "/", `\`), `\`))
 	for _, v := range s.values(setup.SessionManager) {
 		if !strings.EqualFold(v.Name, "PendingFileRenameOperations") || v.Type != setup.RegMultiSZ {
 			continue
@@ -145,12 +152,110 @@ func (s *Setup) pendingDeletion(dir string) string {
 		parts := strings.Split(v.Str, "\x00")
 		for i := 0; i+1 < len(parts); i += 2 {
 			src := strings.TrimPrefix(parts[i], `\??\`)
-			if parts[i+1] == "" && (samePath(src, join(dir, ExeName)) || samePath(src, dir)) {
+			if l := strings.ToLower(strings.ReplaceAll(src, "/", `\`)); parts[i+1] == "" && (samePath(src, dir) || strings.HasPrefix(l, d+`\`)) {
 				return src
 			}
 		}
 	}
 	return ""
+}
+
+// extraRecord is the installed extra files of the uninstall entry's record.
+func extraRecord(arp map[string]setup.Value) []string {
+	v := arp[strings.ToLower(RecExtra)].Str
+	if v == "" {
+		return nil
+	}
+	return strings.Split(v, "|")
+}
+
+// place writes one file the way yakbd.exe is written: beside it, renamed over it, read back; when the file is in
+// use, the new bytes wait beside it and replace it at the next restart. fresh tells whether the file was not
+// there before (so that a rollback deletes it).
+func (s *Setup) place(path string, data []byte, res *Result) (fresh bool, err error) {
+	old, rerr := s.Sys.ReadFile(path)
+	if rerr == nil && bytes.Equal(old, data) {
+		s.logf("%s: already present and identical", path)
+		return false, nil
+	}
+	tmp := path + ".yakbd-tmp"
+	if err := s.Sys.WriteFile(tmp, data); err != nil {
+		return false, fmt.Errorf("cannot write %s: %v", tmp, err)
+	}
+	if err := s.Sys.Rename(tmp, path); err != nil {
+		_ = s.Sys.Remove(tmp)
+		if !errors.Is(err, setup.ErrInUse) {
+			return false, fmt.Errorf("cannot write %s: %v", path, err)
+		}
+		next := path + ".yakbd-new"
+		if err := s.Sys.WriteFile(next, data); err != nil {
+			return false, fmt.Errorf("cannot write %s: %v", next, err)
+		}
+		if err := s.Sys.MoveAtReboot(next, path); err != nil {
+			return false, fmt.Errorf("cannot schedule the replacement of %s: %v", path, err)
+		}
+		s.logf("%s is in use: replaced at the next restart", path)
+		res.Reboot = true
+		return false, nil
+	}
+	if back, err := s.Sys.ReadFile(path); err != nil || !bytes.Equal(back, data) {
+		return rerr != nil, fmt.Errorf("%s did not read back as written", path)
+	}
+	s.logf("wrote %s (%d bytes)", path, len(data))
+	return rerr != nil, nil
+}
+
+// removeFiles deletes files of the folder (relative paths, with what place may have left beside them), a file in
+// use at the next restart, then every folder that held them and is empty, deepest first; a folder that still holds
+// a file waiting for the restart is deleted after it.
+func (s *Setup) removeFiles(dir string, rel []string, res *Result) error {
+	folders := map[string]bool{}
+	for _, r := range rel {
+		p := join(dir, r)
+		for _, ext := range reservedSuffixes {
+			if err := s.Sys.Remove(p + ext); err == nil {
+				s.logf("%s deleted", p+ext)
+			}
+		}
+		if err := s.Sys.Remove(p); err != nil && !errors.Is(err, setup.ErrNotFound) {
+			if !errors.Is(err, setup.ErrInUse) {
+				return fmt.Errorf("cannot delete %s: %v", p, err)
+			}
+			if err := s.Sys.DeleteAtReboot(p); err != nil {
+				return fmt.Errorf("cannot schedule the deletion of %s: %v", p, err)
+			}
+			res.Reboot = true
+			s.logf("%s is in use: deleted at the next restart", p)
+		} else {
+			s.logf("%s deleted", p)
+		}
+		for i := strings.LastIndex(r, `\`); i > 0; i = strings.LastIndex(r[:i], `\`) {
+			folders[r[:i]] = true
+		}
+	}
+	var list []string
+	for f := range folders {
+		list = append(list, f)
+	}
+	// Deepest first: more parts first, then by name for a fixed order.
+	sort.Slice(list, func(i, j int) bool {
+		ni, nj := strings.Count(list[i], `\`), strings.Count(list[j], `\`)
+		if ni != nj {
+			return ni > nj
+		}
+		return list[i] < list[j]
+	})
+	for _, f := range list {
+		p := join(dir, f)
+		if err := s.Sys.RemoveDir(p); err != nil {
+			if res.Reboot {
+				_ = s.Sys.DeleteAtReboot(p)
+			}
+			continue
+		}
+		s.logf("%s deleted", p)
+	}
+	return nil
 }
 
 // Install installs, upgrades in place, or repairs the tool (docs/installer-cli.md §6, §12).
@@ -199,45 +304,55 @@ func (s *Setup) Install() (*Result, error) {
 	// 1. yakbd.exe: written beside, renamed over, read back; in use: replaced at the next restart.
 	exe := join(dir, ExeName)
 	data := s.P.Data[build]
-	old, rerr := s.Sys.ReadFile(exe)
-	switch {
-	case rerr == nil && bytes.Equal(old, data):
-		s.logf("%s: already present and identical", exe)
-	default:
-		tmp := exe + ".yakbd-tmp"
-		if err := s.Sys.WriteFile(tmp, data); err != nil {
-			return rollback(fmt.Errorf("cannot write %s: %v", tmp, err))
+	s.logf("yakbd.exe: the %s build", build)
+	fresh, err := s.place(exe, data, res)
+	if fresh {
+		undo = append(undo, func() { _ = s.Sys.Remove(exe) })
+	}
+	if err != nil {
+		return rollback(err)
+	}
+
+	// 1b. The extra payload for this build (§12.1), each file as yakbd.exe; its folders are created as needed.
+	extra := s.P.ExtraFor(build)
+	size := len(data)
+	made := map[string]bool{}
+	// folders returns the folders of a relative path not created yet in this run, shallowest first.
+	folders := func(rel string) []string {
+		var out []string
+		for i, c := range rel {
+			if f := strings.ToLower(rel[:i]); c == '\\' && !made[f] {
+				made[f] = true
+				out = append(out, join(dir, rel[:i]))
+			}
 		}
-		if err := s.Sys.Rename(tmp, exe); err != nil {
-			_ = s.Sys.Remove(tmp)
-			if !errors.Is(err, setup.ErrInUse) {
-				return rollback(fmt.Errorf("cannot write %s: %v", exe, err))
+		return out
+	}
+	for _, x := range extra {
+		p := join(dir, x.Path)
+		for _, sub := range folders(x.Path) {
+			if err := s.Sys.MkdirAll(sub); err != nil {
+				return rollback(fmt.Errorf("cannot create %s: %v", sub, err))
 			}
-			next := exe + ".yakbd-new"
-			if err := s.Sys.WriteFile(next, data); err != nil {
-				return rollback(fmt.Errorf("cannot write %s: %v", next, err))
-			}
-			if err := s.Sys.MoveAtReboot(next, exe); err != nil {
-				return rollback(fmt.Errorf("cannot schedule the replacement of %s: %v", exe, err))
-			}
-			s.logf("%s is in use: replaced at the next restart", exe)
-			res.Reboot = true
-		} else {
-			if rerr != nil {
-				undo = append(undo, func() { _ = s.Sys.Remove(exe) })
-			}
-			if back, err := s.Sys.ReadFile(exe); err != nil || !bytes.Equal(back, data) {
-				return rollback(fmt.Errorf("%s did not read back as written", exe))
-			}
-			s.logf("wrote %s (%s, %d bytes)", exe, build, len(data))
+			undo = append(undo, func() { _ = s.Sys.RemoveDir(sub) })
 		}
+		fresh, err := s.place(p, x.Data, res)
+		if fresh {
+			undo = append(undo, func() { _ = s.Sys.Remove(p) })
+		}
+		if err != nil {
+			return rollback(err)
+		}
+		size += len(x.Data)
 	}
 
 	// 2. The installer itself, for the uninstall entry.
 	inst := join(dir, InstallerName)
-	self, err := s.Sys.ReadFile(s.Sys.SelfPath())
-	if err != nil {
-		return rollback(fmt.Errorf("cannot read the installer itself: %v", err))
+	self := s.Self
+	if self == nil {
+		if self, err = s.Sys.ReadFile(s.Sys.SelfPath()); err != nil {
+			return rollback(fmt.Errorf("cannot read the installer itself: %v", err))
+		}
 	}
 	if !samePath(s.Sys.SelfPath(), inst) {
 		if err := s.Sys.WriteFile(inst, self); err != nil {
@@ -306,17 +421,54 @@ func (s *Setup) Install() (*Result, error) {
 			return rollback(fmt.Errorf("cannot write %s\\%s: %v", key, v[0], err))
 		}
 	}
-	if err := s.Sys.SetDWORD(key, "EstimatedSize", uint32((len(data)+len(self)+1023)/1024)); err != nil {
+	old := extraRecord(arp)
+	if len(extra) > 0 || len(old) > 0 {
+		var rel []string
+		for _, x := range extra {
+			rel = append(rel, x.Path)
+		}
+		if err := s.Sys.SetString(key, RecExtra, strings.Join(rel, "|"), false); err != nil {
+			return rollback(fmt.Errorf("cannot write %s\\%s: %v", key, RecExtra, err))
+		}
+	}
+	if err := s.Sys.SetDWORD(key, "EstimatedSize", uint32((size+len(self)+1023)/1024)); err != nil {
 		return rollback(fmt.Errorf("cannot write %s\\EstimatedSize: %v", key, err))
 	}
 	s.logf("uninstall entry %s written", key)
+
+	// 5. Extra files of the installed copy that this installer does not carry (an upgrade from another payload).
+	keep := map[string]bool{}
+	for _, x := range extra {
+		keep[strings.ToLower(x.Path)] = true
+	}
+	var stale []string
+	for _, r := range old {
+		if !keep[strings.ToLower(r)] && CheckExtraPath(r) == nil {
+			stale = append(stale, r)
+		}
+	}
+	if len(stale) > 0 {
+		s.logf("removing %d file(s) of the earlier installation that this installer does not carry", len(stale))
+		if err := s.removeFiles(dir, stale, res); err != nil {
+			s.logf("%v", err)
+			res.Notes = append(res.Notes, fmt.Sprintf("A file of the earlier installation could not be removed: %v", err))
+		}
+	}
 	if res.Reboot {
-		res.Notes = append(res.Notes, "yakbd.exe is in use; restart Windows to finish.")
+		res.Notes = append(res.Notes, inUseNote(len(extra)+len(old) > 0))
 	}
 	return res, nil
 }
 
-// Uninstall removes the tool: yakbd.exe, its PATH entry when this installer added it, the uninstall entry and
+// inUseNote is the note for a file replaced or deleted at the next restart.
+func inUseNote(extra bool) string {
+	if extra {
+		return "A file of yakbd (yakbd.exe or a file installed with it) is in use; restart Windows to finish."
+	}
+	return "yakbd.exe is in use; restart Windows to finish."
+}
+
+// Uninstall removes the tool: yakbd.exe, the extra files of its record, its PATH entry when this installer added it, the uninstall entry and
 // the folder (docs/installer-cli.md §12).
 func (s *Setup) Uninstall() (*Result, error) {
 	if !s.Sys.Elevated() {
@@ -351,6 +503,15 @@ func (s *Setup) Uninstall() (*Result, error) {
 		s.logf("%s is in use: deleted at the next restart", exe)
 	} else {
 		s.logf("%s deleted", exe)
+	}
+	var extra []string
+	for _, r := range extraRecord(arp) {
+		if CheckExtraPath(r) == nil { // never a path outside the folder, whatever the registry holds
+			extra = append(extra, r)
+		}
+	}
+	if err := s.removeFiles(dir, extra, res); err != nil {
+		return nil, err
 	}
 
 	if arp[strings.ToLower(RecPathAdded)].Str == "1" {
@@ -393,7 +554,11 @@ func (s *Setup) Uninstall() (*Result, error) {
 	}
 	_ = s.Sys.RemoveDir(strings.TrimSuffix(strings.TrimRight(dir, `\`), `\yakbd`)) // YAKBD, only when empty
 	if res.Reboot {
-		res.Notes = append(res.Notes, "yakbd.exe is in use; restart Windows to finish removing it.")
+		note := "yakbd.exe is in use; restart Windows to finish removing it."
+		if len(extra) > 0 {
+			note = "A file of yakbd (yakbd.exe or a file installed with it) is in use; restart Windows to finish removing it."
+		}
+		res.Notes = append(res.Notes, note)
 	}
 	return res, nil
 }

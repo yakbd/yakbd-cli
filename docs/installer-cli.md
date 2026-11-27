@@ -349,11 +349,64 @@ x86, x64 and arm64 builds of `yakbd.exe`. It takes the same command line and giv
   already in `Path` nothing is added and the record says so; uninstall removes only the entry the installer added.
 - **Uninstall entry** `...\Uninstall\{product code}` as §9, product code fixed:
   `{EBE1EAEC-C574-5473-8489-B3FF22FC6506}` (UUID version 5 of the namespace of docs/installer.md §7 and the
-  name `yakbd tool installer`: `installer.ToolProductCode`); record values `YakbdToolFile`, `YakbdPathAdded`.
+  name `yakbd tool installer`: `installer.ToolProductCode`); record values `YakbdToolFile`, `YakbdPathAdded`,
+  `YakbdToolBuild` and, with an extra payload, `YakbdToolExtraFiles` (§12.1).
 - **Upgrade, repair, downgrade** as §6; `yakbd.exe` in use (running) is replaced or deleted at the next restart,
   3010, and the restart rules of §5 apply.
 - **Built** by `go run ./tools/toolsetup -o yakbd-setup.exe` for tests and by the release workflow for releases (reproducible: fixed flags and environment, as the
-  layout stub; docs/release.md).
+  layout stub; docs/release.md). At a release tag, with the tool's own version and no other option, `tools/toolsetup`
+  writes that release's `yakbd-setup.exe` byte for byte.
+
+### 12.1 Extra payload: more files next to `yakbd.exe`
+
+A `yakbd-setup.exe` can carry an **extra payload**: files installed into the same folder as `yakbd.exe`, for example
+the graphical editor that ships with the tool. It is the same product (same product code, name and uninstall entry),
+so an installer with the extra payload and one without it replace each other in place, in both directions, by the
+rules of §6. Nothing else changes: command line, exit codes, PATH and uninstall entry are those of §12.
+
+- **Build it** from a checkout of this repository at the release tag of the CLI that is to ship:
+
+      go run ./tools/toolsetup -o yakbd-setup.exe -builds x64,arm64 -extra x64=DIR-x64 -extra arm64=DIR-arm64
+
+  `-extra DIR` adds every regular file below `DIR` (in name order, links refused) for every machine;
+  `-extra BUILD=DIR` for the machines of one build only (the same path may appear once per build). `-builds` limits
+  the builds of `yakbd.exe`; a machine whose build is missing gets 1633 and nothing changes, as in §12 (a payload
+  that exists only for x64 and arm64 is built with `-builds x64,arm64`). The command prints the SHA-256 of each
+  `yakbd.exe` it carries: with the tag's own version they equal the `yakbd.exe` in that release's
+  `yakbd-V-windows-*.zip` (whose sums are in `SHA256SUMS`), which is how a consumer shows the bundled CLI is the
+  released one. In Go, the same is `relbuild.SetupWith` with `SetupOptions{Builds, Extra}` (an internal package: it
+  is used from this repository's checkout, not imported).
+- **Product version**: the installer's version is the CLI's (`-version`, default the tool's own), because §6 compares
+  it with the installed one. A bundle of the same CLI version as the installed copy is a repair in place, which
+  writes every file that differs (so a newer editor with the same CLI goes over an older one, and an older one over a
+  newer one too).
+- **Paths** (`toolsetup.CheckExtraPath`, checked when the payload is written and when it is read): relative, with
+  backslashes; every part a plain name (not empty, `.` or `..`, none of `<>:"/|?*` or a control character, not ending
+  in a space or a dot); not `yakbd.exe` or `setup.exe` as the file or its top folder; not ending in `.yakbd-tmp` or
+  `.yakbd-new`. Per machine, no path twice (letter case ignored) and no file where another path needs a folder.
+- **Install**: after `yakbd.exe`, each file of the machine's build is written like `yakbd.exe` (beside it, renamed
+  over it, read back; an identical file is left alone; a file in use is replaced at the next restart, 3010), its
+  folders created as needed. The uninstall entry gets the record value `YakbdToolExtraFiles`: the installed paths
+  joined by `|`, written when there are extra files now or were before (an installer without the extra payload
+  writes no such value over a CLI-only install, so that its entry stays as before). Files of the earlier record that
+  this installer does not carry are deleted after the entry is written, with their folders when empty: installing
+  the CLI alone over a bundle removes the bundle's files. A fresh install that fails is rolled back, extra files and
+  folders included. `EstimatedSize` counts the extra files.
+- **Uninstall** deletes the recorded files (a file in use at the next restart, 3010), then their folders deepest first
+  when empty (a folder that still holds a waiting file at the restart, after it), then the rest as in §12. Any
+  `yakbd-setup.exe` of this version or later uninstalls a bundle, with or without the extra payload itself; one of
+  0.1.0-preview.1 knows no record and leaves the extra files.
+- **Refused like §12**: a pending deletion (an earlier uninstall waiting for the restart) of the folder or anything in
+  it stops the install with 1603, nothing changed.
+- **Size**: the installer reads itself once into memory and copies itself as `setup.exe` into the folder, so a
+  bundle takes its own size once more in the folder and in memory while it runs.
+- **No Start-menu shortcut**: the reference specification has no facts on shortcut files or the Start menu folders,
+  and this repository takes no Windows fact from elsewhere without a source; the extra payload installs files only.
+  A consumer that wants a shortcut has to wait for that fact (an open question).
+- **Not yet run on Windows**: the extra payload, and the `yakbd-setup.exe` of 0.1.0-preview.2 with it, are tested
+  only against the in-memory Windows of `installer/toolsetup` (`extra_test.go`: every machine, CLI-only and bundled
+  in both directions, older/newer refusals, changed file sets, files in use, rollback) and by `FuzzDecode`. The
+  Windows run of §12 (24 of 24) predates them.
 
 Windows test: `go run ./tools/clibundle -o DIR` writes the bundle (a layout installer and `yakbd-setup.exe`, three
 versions each, and `tools/clicheck`) that runs every switch combination of this contract a deployment tool sends, in

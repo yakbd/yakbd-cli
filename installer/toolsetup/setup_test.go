@@ -29,6 +29,9 @@ func newFake() *fake {
 	f := &fake{machine: payload.MachineAMD64, elevated: true, self: `C:\Users\t\Downloads\yakbd-setup.exe`,
 		files: map[string][]byte{}, dirs: map[string]bool{}, keys: map[string]map[string]setup.Value{}, inUse: map[string]bool{}}
 	f.files[strings.ToLower(f.self)] = []byte("MZ yakbd-setup itself")
+	for _, d := range []string{`c:\program files`, `c:\windows\temp`, `c:\users\t\downloads`} {
+		f.dirs[d] = true
+	}
 	f.keys[strings.ToLower(Environment)] = map[string]setup.Value{"path": {Name: "Path", Type: setup.RegExpandSZ, Str: `%SystemRoot%\system32;%SystemRoot%`}}
 	return f
 }
@@ -44,9 +47,20 @@ func (f *fake) ReadFile(p string) ([]byte, error) {
 	}
 	return nil, setup.ErrNotFound
 }
+
+// parentExists reports whether the folder of p exists (Windows creates no folder when it writes a file).
+func (f *fake) parentExists(p string) bool {
+	l := strings.ToLower(p)
+	i := strings.LastIndex(l, `\`)
+	return i > 0 && f.dirs[l[:i]]
+}
+
 func (f *fake) WriteFile(p string, d []byte) error {
 	if f.inUse[strings.ToLower(p)] {
 		return setup.ErrInUse
+	}
+	if !f.parentExists(p) {
+		return setup.ErrNotFound
 	}
 	f.files[strings.ToLower(p)] = append([]byte(nil), d...)
 	return nil
@@ -56,7 +70,7 @@ func (f *fake) Rename(from, to string) error {
 		return setup.ErrInUse
 	}
 	b, ok := f.files[strings.ToLower(from)]
-	if !ok {
+	if !ok || !f.parentExists(to) {
 		return setup.ErrNotFound
 	}
 	delete(f.files, strings.ToLower(from))
@@ -73,7 +87,16 @@ func (f *fake) Remove(p string) error {
 	delete(f.files, strings.ToLower(p))
 	return nil
 }
-func (f *fake) MkdirAll(p string) error { f.dirs[strings.ToLower(p)] = true; return nil }
+func (f *fake) MkdirAll(p string) error {
+	l := strings.ToLower(strings.TrimRight(p, `\`))
+	if _, ok := f.files[l]; ok {
+		return fmt.Errorf("%s is a file", p)
+	}
+	for ; strings.Contains(l, `\`); l = l[:strings.LastIndex(l, `\`)] {
+		f.dirs[l] = true
+	}
+	return nil
+}
 func (f *fake) RemoveDir(p string) error {
 	l := strings.ToLower(strings.TrimRight(p, `\`))
 	for k := range f.files {
@@ -176,7 +199,7 @@ func newSetup(t *testing.T, f *fake, version string, builds ...string) *Setup {
 	for _, b := range builds {
 		data[b] = pe(MachineOf[b], b+" "+version)
 	}
-	enc, err := Encode(Manifest{Product: Product{Name: "yakbd", Version: version, Publisher: "The YAKBD contributors", Code: code}}, builds, data)
+	enc, err := Encode(Manifest{Product: Product{Name: "yakbd", Version: version, Publisher: "The YAKBD contributors", Code: code}}, builds, data, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -325,7 +348,7 @@ func TestRefusals(t *testing.T) {
 
 func TestPayloadDamage(t *testing.T) {
 	data := map[string][]byte{BuildX64: pe(payload.MachineAMD64, "x")}
-	enc, err := Encode(Manifest{Product: Product{Name: "yakbd", Version: "1", Code: code}}, []string{BuildX64}, data)
+	enc, err := Encode(Manifest{Product: Product{Name: "yakbd", Version: "1", Code: code}}, []string{BuildX64}, data, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -333,7 +356,7 @@ func TestPayloadDamage(t *testing.T) {
 	if _, err := Decode(enc); err == nil {
 		t.Error("damage not found")
 	}
-	if _, err := Encode(Manifest{Product: Product{Name: "yakbd", Version: "1", Code: code}}, []string{BuildARM64}, map[string][]byte{BuildARM64: pe(payload.MachineAMD64, "x")}); err == nil {
+	if _, err := Encode(Manifest{Product: Product{Name: "yakbd", Version: "1", Code: code}}, []string{BuildARM64}, map[string][]byte{BuildARM64: pe(payload.MachineAMD64, "x")}, nil); err == nil {
 		t.Error("an x64 file accepted as arm64")
 	}
 }
