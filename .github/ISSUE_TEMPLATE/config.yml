@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: The .kbl.json format
+    url: https://github.com/yakbd/kbl-spec/issues
+    about: Questions about the format itself (fields, schema, validation rules) go to the specification's repository.
+  - name: How to contribute
+    url: https://github.com/yakbd/.github/blob/main/CONTRIBUTING.md
+    about: The organisation's contributing guide, with how to report a layout bug and the clean-room rule.

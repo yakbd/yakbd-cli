@@ -1,0 +1,146 @@
+# Release: builds every asset twice and compares, optionally signs yakbd-setup.exe through SignPath, attests the
+# build provenance, then creates the tag v<version> and a DRAFT release with the assets. A person publishes the draft.
+# How to run it and how to verify a release: docs/release.md.
+name: release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version without "v": the tool own version (internal/cli VersionString, e.g. 0.1.0-preview.1), or x.y.z-rehearsal.N'
+        required: true
+        type: string
+      sign:
+        description: 'Sign yakbd-setup.exe through SignPath (needs the repository variables and secret of docs/release.md)'
+        required: false
+        type: boolean
+        default: false
+concurrency:
+  group: release
+  cancel-in-progress: false
+permissions:
+  contents: read
+env:
+  VERSION: ${{ inputs.version }}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      setup-artifact-id: ${{ steps.setup-artifact.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.8' # exactly the version of installer/stub-386.version (docs/installer.md §6)
+          cache: false # a release build starts from nothing
+      - name: version and tag
+        run: |
+          go run ./tools/release -version "$VERSION" -check
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null; then
+            echo "::error::tag v$VERSION exists already"; exit 1
+          fi
+      - name: gofmt, vet, test
+        run: |
+          out="$(gofmt -l .)"
+          if [ -n "$out" ]; then echo "not gofmt-formatted:"; echo "$out"; exit 1; fi
+          go vet ./...
+          go test ./...
+      - name: committed installer stub is built from this source
+        run: |
+          go run ./tools/buildstub
+          git diff --exit-code --stat -- installer/stub-386.exe installer/stub-386.version
+      - name: build twice and compare (reproducible build)
+        run: |
+          go run ./tools/release -version "$VERSION" -o "$RUNNER_TEMP/dist"
+          # The second build: another folder, an empty build cache.
+          mkdir "$RUNNER_TEMP/src2"
+          git archive HEAD | tar -x -C "$RUNNER_TEMP/src2"
+          (cd "$RUNNER_TEMP/src2" && GOCACHE="$RUNNER_TEMP/gocache2" go run ./tools/release -version "$VERSION" -o "$RUNNER_TEMP/dist2" >/dev/null)
+          diff -r "$RUNNER_TEMP/dist" "$RUNNER_TEMP/dist2"
+          echo "two builds identical:" >> "$GITHUB_STEP_SUMMARY"
+          sed 's/^/    /' "$RUNNER_TEMP/dist/SHA256SUMS" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: ${{ runner.temp }}/dist/
+          if-no-files-found: error
+      - id: setup-artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: setup-unsigned
+          path: ${{ runner.temp }}/dist/yakbd-setup.exe
+          if-no-files-found: error
+
+  # Off by default. Turned on with the input sign once the SignPath Foundation project exists (docs/release.md §4):
+  # repository variables SIGNPATH_ORGANIZATION_ID, SIGNPATH_PROJECT_SLUG, SIGNPATH_SIGNING_POLICY_SLUG,
+  # SIGNPATH_ARTIFACT_CONFIGURATION_SLUG and the secret SIGNPATH_API_TOKEN. A person approves each request at SignPath.
+  sign:
+    needs: build
+    if: inputs.sign
+    runs-on: ubuntu-latest
+    steps:
+      - uses: signpath/github-action-submit-signing-request@v3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          artifact-configuration-slug: ${{ vars.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG }}
+          github-artifact-id: ${{ needs.build.outputs.setup-artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed
+      - uses: actions/upload-artifact@v4
+        with:
+          name: setup-signed
+          path: signed/yakbd-setup.exe
+          if-no-files-found: error
+
+  release:
+    needs: [build, sign]
+    if: always() && needs.build.result == 'success' && (needs.sign.result == 'success' || needs.sign.result == 'skipped')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # the tag and the draft release
+      id-token: write # attestation
+      attestations: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - if: inputs.sign
+        uses: actions/download-artifact@v4
+        with:
+          name: setup-signed
+          path: signed
+      - name: signed installer and SHA256SUMS
+        run: |
+          if [ -f signed/yakbd-setup.exe ]; then
+            cp signed/yakbd-setup.exe dist/yakbd-setup.exe
+          fi
+          cd dist
+          find . -maxdepth 1 -type f ! -name SHA256SUMS -printf '%f\n' | LC_ALL=C sort | xargs sha256sum > SHA256SUMS
+          cat SHA256SUMS
+      - name: attest build provenance
+        uses: actions/attest-build-provenance@v4
+        # Artifact attestations need a public repository on GitHub's Free plan; the private prototype tries and goes on.
+        continue-on-error: ${{ github.event.repository.private }}
+        with:
+          subject-path: 'dist/*'
+      - name: tag and draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git tag "v$VERSION" "$GITHUB_SHA"
+          git push origin "refs/tags/v$VERSION"
+          pre=""
+          SIGNED="yakbd-setup.exe is unsigned in this release"
+          if [ "${{ inputs.sign }}" = "true" ]; then SIGNED="yakbd-setup.exe is signed through SignPath Foundation"; fi
+          case "$VERSION" in *-*) pre="--prerelease" ;; esac
+          notes="yakbd $VERSION, built from $GITHUB_SHA by $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID.
+          Check a download with SHA256SUMS and gh attestation verify FILE -R $GITHUB_REPOSITORY: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/v$VERSION/docs/release.md
+          Code signing ($SIGNED): $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/v$VERSION/docs/code-signing-policy.md
+          The arm64 build of yakbd.exe is tested in emulation only."
+          gh release create "v$VERSION" dist/* --repo "$GITHUB_REPOSITORY" --draft $pre --verify-tag \
+            --title "yakbd $VERSION" \
+            --notes "$notes"

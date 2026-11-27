@@ -1,0 +1,23 @@
+// mode: -m
+KBD	yr2sge	"YAKBD test yr2sge"
+
+SHIFTSTATE
+
+0
+1
+2
+
+LAYOUT
+
+10	Q	SGCap	0060@	Q	-1
+-1	-1	0	00b4@	0100
+
+DEADKEY	0060
+
+0061	00e0
+
+DEADKEY	00b4
+
+0061	00e1
+
+ENDKBD

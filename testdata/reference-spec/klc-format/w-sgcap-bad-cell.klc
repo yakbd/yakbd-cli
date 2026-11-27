@@ -1,0 +1,15 @@
+// mode: -s
+KBD	yr2w14	"YAKBD test yr2w14"
+
+SHIFTSTATE
+
+0
+1
+2
+
+LAYOUT
+
+10	Q	SGCap	q	Q	-1
+-1	-1	0	xyz	0100
+
+ENDKBD

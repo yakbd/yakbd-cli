@@ -1,0 +1,16 @@
+// mode: -s
+KBD	yr2grp	"YAKBD test yr2grp"
+
+SHIFTSTATE
+
+0
+1
+2
+
+LAYOUT
+
+10	Q	0	q	Q	-1
+56	GROUPSHIFT
+e038	RGROUPSHIFT
+
+ENDKBD

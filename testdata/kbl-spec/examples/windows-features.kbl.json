@@ -1,0 +1,935 @@
+{
+  "$schema": "https://yakbd.github.io/kbl-spec/schema/0.1/kbl.schema.json",
+  "kbl": "0.1",
+  "metadata": {
+    "id": "fo-t-k0-kblwin",
+    "locales": [
+      "fo",
+      "ja"
+    ],
+    "name": "Windows feature tour (example)",
+    "localizedNames": {
+      "fo": "Windows-eginleikar (dømi)"
+    },
+    "description": "Example (d): a synthetic layout that uses every Windows-only feature the format holds: Shift Lock, LRM/RLM on Shift+Backspace, an extra AltGr-like modifier on right Ctrl (VK OEM_8), a Kana modifier and Kana lock (KANALOK), CAPLOK, SGCAPS, CAPLOKALTGR and GRPSELTAP, an Alt-only column, a Ctrl column, E0 and E1 scan codes, a Num Lock key, key names and dead-key names, a ligature, chained dead keys, CodeUnits outputs (a lone surrogate, a marker value), extra rows, a fully pinned targets.windows (modifier bits, ModNumber, tables, flags, keyboard type, version word, strings in two languages, version resource, registration), and NLS and dispatcher data that are carried but not compiled. Not a usable layout.",
+    "authors": [
+      {
+        "name": "The YAKBD contributors",
+        "url": "https://github.com/yakbd"
+      }
+    ],
+    "attribution": "YAKBD",
+    "layoutPattern": "QWERTY",
+    "indicator": "FO",
+    "version": "1.2.3",
+    "license": "MIT-0",
+    "copyright": "Copyright 2026 The YAKBD contributors",
+    "organization": "The YAKBD contributors",
+    "draft": "unconfirmed"
+  },
+  "settings": {
+    "capsLockOffBy": "shift",
+    "bidiMarksOnShiftBackspace": true
+  },
+  "positions": {
+    "Escape": {
+      "scanCode": "01",
+      "name": "Esc"
+    },
+    "Digit1": {
+      "scanCode": "02"
+    },
+    "Digit2": {
+      "scanCode": "03"
+    },
+    "Backspace": {
+      "scanCode": "0E",
+      "name": "Backspace"
+    },
+    "Tab": {
+      "scanCode": "0F",
+      "name": "Tab"
+    },
+    "KeyQ": {
+      "scanCode": "10"
+    },
+    "KeyE": {
+      "scanCode": "12"
+    },
+    "KeyO": {
+      "scanCode": "18"
+    },
+    "KeyU": {
+      "scanCode": "16"
+    },
+    "KeyG": {
+      "scanCode": "22"
+    },
+    "KeyK": {
+      "scanCode": "25"
+    },
+    "KeyL": {
+      "scanCode": "26"
+    },
+    "Enter": {
+      "scanCode": "1C",
+      "name": "Enter"
+    },
+    "ControlLeft": {
+      "scanCode": "1D",
+      "name": "Ctrl"
+    },
+    "KeyA": {
+      "scanCode": "1E"
+    },
+    "ShiftLeft": {
+      "scanCode": "2A",
+      "name": "Shift"
+    },
+    "ShiftRight": {
+      "scanCode": "36",
+      "name": "Right Shift"
+    },
+    "AltLeft": {
+      "scanCode": "38",
+      "name": "Alt"
+    },
+    "Space": {
+      "scanCode": "39",
+      "name": "Space"
+    },
+    "CapsLock": {
+      "scanCode": "3A",
+      "name": "Caps Lock"
+    },
+    "KanaMode": {
+      "scanCode": "70",
+      "name": "Kana"
+    },
+    "NumpadEnter": {
+      "scanCode": "E01C",
+      "name": "Num Enter"
+    },
+    "ControlRight": {
+      "scanCode": "E01D",
+      "name": "Right Ctrl"
+    },
+    "AltRight": {
+      "scanCode": "E038",
+      "name": "Right Alt"
+    },
+    "Pause": {
+      "scanCode": "E11D",
+      "name": "Pause"
+    },
+    "Numpad7": {
+      "scanCode": "47",
+      "name": "Num 7",
+      "numLock": true
+    }
+  },
+  "customModifiers": {
+    "level3": {
+      "kind": "held",
+      "positions": [
+        "ControlRight"
+      ],
+      "description": "Extra AltGr-style modifier on right Ctrl"
+    },
+    "kana": {
+      "kind": "held",
+      "positions": [
+        "KanaMode"
+      ]
+    },
+    "kanaLock": {
+      "kind": "lock",
+      "positions": [
+        "KanaMode"
+      ]
+    }
+  },
+  "hardware": {
+    "layers": [
+      {
+        "id": "base",
+        "modifiers": [
+          []
+        ],
+        "bindings": {
+          "KeyQ": "q",
+          "KeyE": "e",
+          "KeyO": "o",
+          "KeyU": "u",
+          "KeyG": "g",
+          "KeyK": "k",
+          "KeyL": "l",
+          "KeyA": "a",
+          "Digit1": "1",
+          "Space": " ",
+          "Numpad7": "7",
+          "Enter": "\r",
+          "Backspace": "\b",
+          "Tab": "\t",
+          "Escape": "\u001b",
+          "NumpadEnter": "\r",
+          "Digit2": {
+            "deadKey": "acute"
+          }
+        }
+      },
+      {
+        "id": "shift",
+        "modifiers": [
+          [
+            "shift"
+          ]
+        ],
+        "bindings": {
+          "KeyQ": "Q",
+          "KeyE": "E",
+          "KeyO": "O",
+          "KeyU": "U",
+          "KeyG": "G",
+          "KeyK": "K",
+          "KeyL": "L",
+          "KeyA": "A",
+          "Digit1": "!",
+          "Space": " ",
+          "Enter": "\r",
+          "Backspace": "\b",
+          "Tab": "\t",
+          "Escape": "\u001b",
+          "NumpadEnter": "\r",
+          "Digit2": {
+            "deadKey": "doubleAcute"
+          }
+        }
+      },
+      {
+        "id": "ctrl",
+        "modifiers": [
+          [
+            "ctrl"
+          ]
+        ],
+        "bindings": {
+          "Backspace": "",
+          "Enter": "\n",
+          "NumpadEnter": "\n",
+          "Escape": "\u001b"
+        }
+      },
+      {
+        "id": "altOnly",
+        "modifiers": [
+          [
+            "altL"
+          ]
+        ],
+        "bindings": {
+          "KeyA": "ª"
+        }
+      },
+      {
+        "id": "altgr",
+        "modifiers": [
+          [
+            "altR"
+          ]
+        ],
+        "bindings": {
+          "KeyO": "ø",
+          "KeyE": "ę",
+          "KeyL": "ł",
+          "KeyU": {
+            "utf16": [
+              "D800"
+            ]
+          },
+          "Digit1": "¡"
+        }
+      },
+      {
+        "id": "altgrShift",
+        "modifiers": [
+          [
+            "shift",
+            "altR"
+          ]
+        ],
+        "bindings": {
+          "KeyO": "Ø",
+          "KeyE": "Ę",
+          "KeyL": "Ł",
+          "Digit1": "¹"
+        }
+      },
+      {
+        "id": "caps",
+        "modifiers": [
+          [
+            "caps"
+          ]
+        ],
+        "bindings": {
+          "KeyQ": "Q",
+          "KeyE": "€",
+          "KeyO": "O",
+          "KeyU": "U",
+          "KeyG": "G",
+          "KeyK": "K",
+          "KeyL": "L",
+          "KeyA": "A"
+        }
+      },
+      {
+        "id": "capsShift",
+        "modifiers": [
+          [
+            "caps",
+            "shift"
+          ]
+        ],
+        "bindings": {
+          "KeyQ": "q",
+          "KeyE": "£",
+          "KeyO": "o",
+          "KeyU": "u",
+          "KeyG": "g",
+          "KeyK": "k",
+          "KeyL": "l",
+          "KeyA": "a"
+        }
+      },
+      {
+        "id": "capsAltgr",
+        "modifiers": [
+          [
+            "caps",
+            "altR"
+          ]
+        ],
+        "bindings": {
+          "KeyO": "Ø"
+        }
+      },
+      {
+        "id": "capsAltgrShift",
+        "modifiers": [
+          [
+            "caps",
+            "shift",
+            "altR"
+          ]
+        ],
+        "bindings": {
+          "KeyO": "ø"
+        }
+      },
+      {
+        "id": "level3",
+        "modifiers": [
+          [
+            "level3"
+          ]
+        ],
+        "bindings": {
+          "KeyA": "ə",
+          "KeyQ": "ʔ",
+          "KeyE": "ɛ"
+        }
+      },
+      {
+        "id": "kana",
+        "modifiers": [
+          [
+            "kana"
+          ]
+        ],
+        "bindings": {
+          "KeyA": "ち",
+          "KeyQ": "た",
+          "KeyE": "い",
+          "KeyK": "の",
+          "KeyL": "きゃ"
+        }
+      },
+      {
+        "id": "kanaShift",
+        "modifiers": [
+          [
+            "kana",
+            "shift"
+          ]
+        ],
+        "bindings": {
+          "KeyE": "ぃ"
+        }
+      },
+      {
+        "id": "kanaLock",
+        "modifiers": [
+          [
+            "kanaLock"
+          ]
+        ],
+        "bindings": {
+          "KeyK": "の"
+        }
+      }
+    ]
+  },
+  "deadKeys": {
+    "acute": {
+      "spacing": "´",
+      "name": "ACUTE ACCENT",
+      "entries": [
+        {
+          "base": "a",
+          "result": "á"
+        },
+        {
+          "base": "o",
+          "result": "ó"
+        },
+        {
+          "base": "e",
+          "result": "é"
+        },
+        {
+          "base": "E",
+          "result": "É"
+        },
+        {
+          "base": " ",
+          "result": "´"
+        },
+        {
+          "base": {
+            "deadKey": "acute"
+          },
+          "result": {
+            "deadKey": "doubleAcute"
+          }
+        },
+        {
+          "base": "u",
+          "result": {
+            "utf16": [
+              "F002"
+            ]
+          }
+        }
+      ]
+    },
+    "doubleAcute": {
+      "spacing": "˝",
+      "name": "DOUBLE ACUTE ACCENT",
+      "noMatch": "emitText",
+      "entries": [
+        {
+          "base": "o",
+          "result": "ő"
+        },
+        {
+          "base": "u",
+          "result": "ű"
+        },
+        {
+          "base": " ",
+          "result": "˝"
+        }
+      ]
+    }
+  },
+  "tests": [
+    {
+      "info": {
+        "name": "kblwin-test"
+      },
+      "suites": [
+        {
+          "name": "windows-features",
+          "tests": [
+            {
+              "name": "kana-lock",
+              "steps": [
+                {
+                  "keystroke": {
+                    "position": "KeyK",
+                    "locks": [
+                      "kanaLock"
+                    ]
+                  }
+                },
+                {
+                  "check": "の"
+                }
+              ]
+            },
+            {
+              "name": "level3",
+              "steps": [
+                {
+                  "keystroke": {
+                    "position": "KeyA",
+                    "modifiers": [
+                      "level3"
+                    ]
+                  }
+                },
+                {
+                  "check": "ə"
+                }
+              ]
+            },
+            {
+              "name": "sgcaps",
+              "steps": [
+                {
+                  "keystroke": {
+                    "position": "KeyE",
+                    "locks": [
+                      "caps"
+                    ]
+                  }
+                },
+                {
+                  "check": "€"
+                }
+              ]
+            },
+            {
+              "name": "bidi-marks",
+              "steps": [
+                {
+                  "keystroke": {
+                    "position": "Backspace",
+                    "modifiers": [
+                      "shiftR"
+                    ]
+                  }
+                },
+                {
+                  "check": "‏"
+                }
+              ]
+            },
+            {
+              "name": "chain",
+              "steps": [
+                {
+                  "keystroke": {
+                    "position": "Digit2"
+                  }
+                },
+                {
+                  "keystroke": {
+                    "position": "Digit2"
+                  }
+                },
+                {
+                  "keystroke": {
+                    "position": "KeyO"
+                  }
+                },
+                {
+                  "check": "ő"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "targets": {
+    "windows": {
+      "dllName": "kblwin",
+      "builds": [
+        "x64",
+        "wow64",
+        "x86"
+      ],
+      "localeFlags": {
+        "altGr": true,
+        "shiftLock": true,
+        "lrmRlm": true
+      },
+      "kbdVersion": 1,
+      "keyboardType": {
+        "type": 4,
+        "subType": 1
+      },
+      "modifiers": {
+        "bits": [
+          {
+            "vk": "SHIFT",
+            "bit": 1,
+            "component": "shift"
+          },
+          {
+            "vk": "CONTROL",
+            "bit": 2,
+            "component": "ctrl"
+          },
+          {
+            "vk": "MENU",
+            "bit": 4,
+            "component": "alt"
+          },
+          {
+            "vk": "KANA",
+            "bit": 8,
+            "component": "kana"
+          },
+          {
+            "vk": "OEM_8",
+            "bit": 16,
+            "component": "level3"
+          }
+        ],
+        "modNumber": [
+          0,
+          1,
+          2,
+          null,
+          3,
+          null,
+          4,
+          5,
+          6,
+          7,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          8
+        ],
+        "kanaLockComponent": "kanaLock"
+      },
+      "keys": {
+        "Escape": {
+          "vk": "ESCAPE"
+        },
+        "Digit1": {
+          "vk": "1"
+        },
+        "Digit2": {
+          "vk": "2"
+        },
+        "Backspace": {
+          "vk": "BACK"
+        },
+        "Tab": {
+          "vk": "TAB"
+        },
+        "KeyQ": {
+          "vk": "Q",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "KeyE": {
+          "vk": "E",
+          "attributes": [
+            "SGCAPS"
+          ]
+        },
+        "KeyO": {
+          "vk": "O",
+          "attributes": [
+            "CAPLOK",
+            "CAPLOKALTGR"
+          ]
+        },
+        "KeyU": {
+          "vk": "U",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "KeyG": {
+          "vk": "G",
+          "attributes": [
+            "CAPLOK",
+            "GRPSELTAP"
+          ]
+        },
+        "KeyK": {
+          "vk": "K",
+          "attributes": [
+            "CAPLOK",
+            "KANALOK"
+          ]
+        },
+        "KeyL": {
+          "vk": "L",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "Enter": {
+          "vk": "RETURN"
+        },
+        "ControlLeft": {
+          "vk": "LCONTROL"
+        },
+        "KeyA": {
+          "vk": "A",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "ShiftLeft": {
+          "vk": "LSHIFT"
+        },
+        "ShiftRight": {
+          "vk": "RSHIFT",
+          "scanCodeFlags": [
+            "ext"
+          ]
+        },
+        "AltLeft": {
+          "vk": "LMENU"
+        },
+        "Space": {
+          "vk": "SPACE"
+        },
+        "CapsLock": {
+          "vk": "CAPITAL"
+        },
+        "KanaMode": {
+          "vk": "KANA"
+        },
+        "NumpadEnter": {
+          "vk": "RETURN",
+          "scanCodeFlags": [
+            "ext"
+          ]
+        },
+        "ControlRight": {
+          "vk": "OEM_8",
+          "scanCodeFlags": [
+            "ext"
+          ]
+        },
+        "AltRight": {
+          "vk": "RMENU",
+          "scanCodeFlags": [
+            "ext"
+          ]
+        },
+        "Pause": {
+          "vk": "PAUSE"
+        },
+        "Numpad7": {
+          "vk": "HOME",
+          "scanCodeFlags": [
+            "numpad",
+            "special"
+          ]
+        }
+      },
+      "scanCodeTableSize": 127,
+      "tables": [
+        {
+          "width": 9,
+          "rows": [
+            "Escape",
+            "Digit1",
+            "Digit2",
+            "Backspace",
+            "Tab",
+            "KeyQ",
+            "KeyE",
+            "KeyU",
+            "KeyO",
+            "Enter",
+            "KeyA",
+            "KeyG",
+            "KeyK",
+            "KeyL",
+            "Space",
+            "Numpad7"
+          ]
+        },
+        {
+          "width": 1,
+          "rows": [
+            {
+              "vk": "SEPARATOR"
+            }
+          ]
+        }
+      ],
+      "extraRows": [
+        {
+          "vk": "SEPARATOR",
+          "cells": [
+            ","
+          ]
+        }
+      ],
+      "deadKeys": {
+        "acute": {
+          "character": "´"
+        },
+        "doubleAcute": {
+          "character": "˝"
+        }
+      },
+      "strings": {
+        "layoutName": {
+          "0409": "Windows feature tour (example)",
+          "0438": "Windows-eginleikar (dømi)"
+        },
+        "languageName": {
+          "0409": "Faroese",
+          "0438": "Føroyskt"
+        },
+        "localeName": "fo-FO"
+      },
+      "versionInfo": {
+        "fileVersion": "1.2.3.0",
+        "productVersion": "1.2.3.0",
+        "companyName": "The YAKBD contributors",
+        "legalCopyright": "Copyright 2026 The YAKBD contributors",
+        "fileDescription": "Windows feature tour (example)"
+      },
+      "registration": {
+        "klid": "a0000438",
+        "langId": "0438",
+        "layoutId": "00ff",
+        "layoutText": "Windows feature tour (example)",
+        "productCode": "{6F1C2A55-0B7E-4C1D-9E39-5A2D8C7B3F10}"
+      },
+      "install": {
+        "enableForUser": false,
+        "productName": "Windows feature tour (example)",
+        "productVersion": "0.1.0",
+        "publisher": "The YAKBD contributors"
+      },
+      "nls": {
+        "oemIdentifier": 0,
+        "layoutInformation": 0,
+        "vkToF": [
+          {
+            "vk": "CAPITAL",
+            "procType": 1,
+            "procCurrent": 0,
+            "procSwitch": 0,
+            "proc": [
+              {
+                "index": 0,
+                "param": 0
+              },
+              {
+                "index": 0,
+                "param": 0
+              },
+              {
+                "index": 0,
+                "param": 0
+              },
+              {
+                "index": 0,
+                "param": 0
+              },
+              {
+                "index": 0,
+                "param": 0
+              },
+              {
+                "index": 0,
+                "param": 0
+              },
+              {
+                "index": 0,
+                "param": 0
+              },
+              {
+                "index": 0,
+                "param": 0
+              }
+            ],
+            "procAlt": [
+              {
+                "index": 0,
+                "param": 0
+              },
+              {
+                "index": 0,
+                "param": 0
+              },
+              {
+                "index": 0,
+                "param": 0
+              },
+              {
+                "index": 0,
+                "param": 0
+              },
+              {
+                "index": 0,
+                "param": 0
+              },
+              {
+                "index": 0,
+                "param": 0
+              },
+              {
+                "index": 0,
+                "param": 0
+              },
+              {
+                "index": 0,
+                "param": 0
+              }
+            ]
+          }
+        ],
+        "mouseVKeys": []
+      },
+      "dispatcher": {
+        "tables": [
+          {
+            "dllName": "kblwin1.dll",
+            "type": 4,
+            "subType": 0
+          }
+        ],
+        "realDllFile": "kblwin1.dll"
+      },
+      "onLoss": {
+        "kinds": {
+          "windows.altOnlyLayer": "accept",
+          "windows.nlsNotCompiled": "accept",
+          "windows.dispatcherNotCompiled": "accept",
+          "windowsDefault.*": "warning"
+        }
+      }
+    },
+    "klc": {
+      "versionLine": "1.0",
+      "msklcEditorCompatible": false
+    },
+    "cldr": {
+      "carryInSpecial": true
+    }
+  },
+  "onLoss": {
+    "default": "warning",
+    "kinds": {
+      "cldr.customModifierDropped": "accept"
+    }
+  },
+  "extensions": {
+    "org.example.notes": {
+      "reviewed": false
+    }
+  }
+}

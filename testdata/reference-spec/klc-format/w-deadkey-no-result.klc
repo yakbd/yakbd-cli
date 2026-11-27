@@ -1,0 +1,19 @@
+// mode: -s
+KBD	yr2w17	"YAKBD test yr2w17"
+
+SHIFTSTATE
+
+0
+1
+2
+
+LAYOUT
+
+10	Q	0	0060@	Q	-1
+
+DEADKEY	0060
+
+0061
+0065	00e8
+
+ENDKBD

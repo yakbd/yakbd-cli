@@ -1,0 +1,2 @@
+go test fuzz v1
+[]byte("<keyboard3 locale=\"0\"><info name=\"0\"/><layers formId=\"touch\"><layer></layer></layers></keyboard3>")

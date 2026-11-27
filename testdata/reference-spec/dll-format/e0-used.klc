@@ -1,0 +1,15 @@
+// mode: -m
+KBD	yr2e0	"YAKBD test yr2e0"
+
+SHIFTSTATE
+
+0
+1
+2
+
+LAYOUT
+
+10	Q	0	q	Q	-1
+e035	OEM_2	0	002f	003f	-1
+
+ENDKBD

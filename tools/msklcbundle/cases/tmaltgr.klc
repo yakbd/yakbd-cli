@@ -1,0 +1,63 @@
+KBD	tmaltgr	"Test AltGr"
+
+LOCALENAME	"de-DE"
+
+LOCALEID	"00000407"
+
+VERSION	2.5
+
+SHIFTSTATE
+
+0
+1
+2
+3
+6
+7
+
+LAYOUT
+
+02	1	0	1	0021	-1	-1	00b9	00a1
+03	2	0	2	0022	-1	0000	00b2	-1
+08	7	0	7	002f	-1	-1	007b	-1
+09	8	0	8	0028	-1	-1	005b	-1
+0c	OEM_4	0	00df	003f	-1	001c	005c	1e9e
+10	Q	1	q	Q	0011	0011	0040	-1
+12	E	1	e	E	0005	0005	20ac	-1
+15	Z	1	z	Z	001a	001a	-1	-1
+2c	Y	1	y	Y	0019	0019	00bb	203a
+1a	OEM_1	1	00fc	00dc	001b	-1	-1	-1
+56	OEM_102	0	003c	003e	001c	-1	007c	-1
+39	SPACE	0	0020	0020	0020	-1	00a0	202f
+
+KEYNAME
+
+01	Esc
+0e	Rücktaste
+0f	Tab
+1c	Eingabe
+1d	Strg
+2a	Umschalt
+36	"Umschalt rechts"
+38	Alt
+39	Leertaste
+3a	Feststell
+
+KEYNAME_EXT
+
+1c	"Eingabe (Ziffernblock)"
+1d	"Strg rechts"
+38	AltGr
+53	Entf
+
+DESCRIPTIONS
+
+0407	Test AltGr
+0409	Test AltGr (English)
+
+LANGUAGENAMES
+
+0407	Deutsch (Deutschland)
+0409	German (Germany)
+
+ENDKBD

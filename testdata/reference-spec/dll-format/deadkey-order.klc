@@ -1,0 +1,29 @@
+// mode: -m
+KBD	yr2dko	"YAKBD test yr2dko"
+
+SHIFTSTATE
+
+0
+1
+2
+
+LAYOUT
+
+10	Q	0	00b4@	0060@	-1
+
+DEADKEY	00b4
+
+0065	00e9
+0061	00e1
+
+DEADKEY	0060
+
+0075	00f9
+0061	00e0
+
+DEADKEY	00b4
+
+006f	00f3
+0061	00c1
+
+ENDKBD

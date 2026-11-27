@@ -1,0 +1,2 @@
+go test fuzz v1
+[]byte("KBD 0 \"0\"\nSHIFTSTATE 0\n0\n2\nKEYNAME\n10 \"\"")

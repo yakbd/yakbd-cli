@@ -1,0 +1,85 @@
+{
+  "$schema": "https://yakbd.github.io/kbl-spec/schema/0.1/kbl.schema.json",
+  "kbl": "0.1",
+  "metadata": {
+    "id": "und",
+    "name": "DLL import shape (example)",
+    "attribution": "Example Vendor",
+    "copyright": "(c) 2026 The YAKBD contributors",
+    "description": "Example (e): the shape the DLL importer writes (section 11 of the Windows coverage document): useTableA false with every VK pinned, a scan code mapped to _none_ with flags, an extra modifier bit 40 (component bit40), a Kana lock from KANALOK rows, two pinned tables of the same width and an extra row of null cells, CompanyName kept as attribution only, no registration but the LANGID given to the importer. Not a usable layout.",
+    "provenance": {
+      "format": "windowsDll",
+      "source": "kbdshape.dll"
+    }
+  },
+  "positions": {
+    "ShiftLeft": { "scanCode": "2A" },
+    "KeyA": { "scanCode": "1E", "name": "A" },
+    "KeyB": { "scanCode": "30" },
+    "sc59": { "scanCode": "59" },
+    "sc5A": { "scanCode": "5A" },
+    "KanaMode": { "scanCode": "70" }
+  },
+  "customModifiers": {
+    "bit40": { "kind": "held", "positions": ["sc5A"] },
+    "kana": { "kind": "held", "positions": ["KanaMode"] },
+    "kanaLock": { "kind": "lock", "positions": ["KanaMode"] }
+  },
+  "hardware": {
+    "layers": [
+      { "id": "s0", "modifiers": [[]], "bindings": { "KeyA": "a", "KeyB": "b" } },
+      { "id": "s1", "modifiers": [["shift"]], "bindings": { "KeyA": "A", "KeyB": "B" } },
+      { "id": "s64", "modifiers": [["bit40"]], "bindings": { "KeyA": "æ" } },
+      { "id": "s8", "modifiers": [["kana"]], "bindings": { "KeyB": "コ" } },
+      { "id": "kanaLock", "modifiers": [["kanaLock"]], "bindings": { "KeyB": "コ" } }
+    ]
+  },
+  "targets": {
+    "windows": {
+      "dllName": "kbdshape",
+      "useTableA": false,
+      "localeFlags": { "altGr": false, "shiftLock": false, "lrmRlm": false },
+      "kbdVersion": 1,
+      "modifiers": {
+        "bits": [
+          { "vk": "SHIFT", "bit": 1, "component": "shift" },
+          { "vk": "KANA", "bit": 8, "component": "kana" },
+          { "vk": "OEM_8", "bit": 64, "component": "bit40" }
+        ],
+        "modNumber": [0, 1, null, null, null, null, null, null, 3, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 2],
+        "kanaLockComponent": "kanaLock"
+      },
+      "keys": {
+        "ShiftLeft": { "vk": "LSHIFT", "scanCodeFlags": [] },
+        "KeyA": { "vk": "A", "scanCodeFlags": [], "attributes": ["CAPLOK"] },
+        "KeyB": { "vk": "B", "scanCodeFlags": [], "attributes": ["KANALOK"] },
+        "sc59": { "vk": "_none_", "scanCodeFlags": ["ext"] },
+        "sc5A": { "vk": "OEM_8", "scanCodeFlags": [] },
+        "KanaMode": { "vk": "KANA", "scanCodeFlags": [] }
+      },
+      "scanCodeTableSize": 127,
+      "tables": [
+        { "width": 4, "rows": ["KeyB"] },
+        { "width": 2, "rows": [{ "vk": "OEM_1" }] },
+        { "width": 2, "rows": [{ "vk": "OEM_2" }] },
+        { "width": 3, "rows": ["KeyA"] }
+      ],
+      "extraRows": [
+        { "vk": "OEM_1", "cells": [null, null] },
+        { "vk": "OEM_2", "cells": ["/", "?"] }
+      ],
+      "strings": {
+        "layoutName": { "0409": "DLL import shape (example)" },
+        "languageName": { "0409": "English" },
+        "localeName": "en-US"
+      },
+      "versionInfo": {
+        "fileVersion": "1.0.0.0",
+        "productVersion": "1.0.0.0",
+        "legalCopyright": "(c) 2026 The YAKBD contributors",
+        "fileDescription": "DLL import shape (example)"
+      },
+      "registration": { "langId": "0409" }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+// mode: -s
+KBD	yr2w11	"YAKBD test yr2w11"
+
+SHIFTSTATE
+
+0
+1
+2
+
+LAYOUT
+
+10	0xdf	0	q	Q	-1
+
+ENDKBD

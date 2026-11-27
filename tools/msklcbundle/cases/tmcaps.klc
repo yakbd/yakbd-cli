@@ -1,0 +1,43 @@
+KBD	tmcaps	"Test caps forms"
+
+LOCALENAME	"en-US"
+
+LOCALEID	"00000409"
+
+VERSION	1.0
+
+SHIFTSTATE
+
+0
+1
+2
+6
+7
+
+LAYOUT
+
+10	Q	SGCap	q	Q	-1	0153	0152
+-1	-1	0	00e5	00c5
+11	W	SGCap	w	W	-1	-1	-1
+-1	-1	0	0175	0174
+12	E	4	e	E	-1	00e9	00c9
+13	R	5	r	R	-1	0159	0158
+14	T	0	t	T	-1	00fe	00de
+15	Y	1	y	Y	-1	00fd	-1
+16	U	SGCap	u	U	-1	00fa	00da
+-1	-1	0	00fc	-1
+1e	A	1	a	A	0001	00e6	00c6
+1f	S	4	s	S	-1	00df	1e9e
+27	OEM_1	SGCap	00f8	00d8	-1	-1	-1
+-1	-1	0	00f6	00d6
+39	SPACE	0	0020	0020	0020	-1	-1
+
+DESCRIPTIONS
+
+0409	Test caps forms
+
+LANGUAGENAMES
+
+0409	English (United States)
+
+ENDKBD

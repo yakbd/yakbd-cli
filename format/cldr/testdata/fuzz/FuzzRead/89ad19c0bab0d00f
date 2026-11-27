@@ -1,0 +1,2 @@
+go test fuzz v1
+[]byte("<keyboard3 locale=\"00\"><locales><locale/></locales><info name=\"0\"/></keyboard3>0")

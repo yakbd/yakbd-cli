@@ -1,0 +1,143 @@
+# Table A of targets/windows.md: the default virtual key and scan-code flags per position (rules vk, scanCodeFlags).
+# Sources: PUB = Microsoft Learn, "About Keyboard Input" (scan code of the key, section Scan codes)
+#   https://learn.microsoft.com/en-us/windows/win32/inputdev/about-keyboard-input
+#   joined by key with "Virtual-Key Codes" (the VK of that key; for VK_OEM_*: the US ANSI, or ISO, key it names)
+#   https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes  (read 2026-11-22; facts only)
+# wb = the reference specification, revision 10, windows-behaviour (and dll-format §4.5, §4.6) for the measured rows.
+# Flags: wb §3.1 / dll-format §4.5. VK names: targets/windows-vk-names.tsv. The tool generates its table from this file.
+position	scanCode	vk	flags	source
+Escape	01	ESCAPE	-	PUB
+Digit1	02	1	-	PUB
+Digit2	03	2	-	PUB
+Digit3	04	3	-	PUB
+Digit4	05	4	-	PUB
+Digit5	06	5	-	PUB
+Digit6	07	6	-	PUB
+Digit7	08	7	-	PUB
+Digit8	09	8	-	PUB
+Digit9	0A	9	-	PUB
+Digit0	0B	0	-	PUB
+Minus	0C	OEM_MINUS	-	PUB
+Equal	0D	OEM_PLUS	-	PUB
+Backspace	0E	BACK	-	PUB
+Tab	0F	TAB	-	PUB
+KeyQ	10	Q	-	PUB
+KeyW	11	W	-	PUB
+KeyE	12	E	-	PUB
+KeyR	13	R	-	PUB
+KeyT	14	T	-	PUB
+KeyY	15	Y	-	PUB
+KeyU	16	U	-	PUB
+KeyI	17	I	-	PUB
+KeyO	18	O	-	PUB
+KeyP	19	P	-	PUB
+BracketLeft	1A	OEM_4	-	PUB
+BracketRight	1B	OEM_6	-	PUB
+Enter	1C	RETURN	-	PUB
+ControlLeft	1D	LCONTROL	-	PUB
+KeyA	1E	A	-	PUB
+KeyS	1F	S	-	PUB
+KeyD	20	D	-	PUB
+KeyF	21	F	-	PUB
+KeyG	22	G	-	PUB
+KeyH	23	H	-	PUB
+KeyJ	24	J	-	PUB
+KeyK	25	K	-	PUB
+KeyL	26	L	-	PUB
+Semicolon	27	OEM_1	-	PUB
+Quote	28	OEM_7	-	PUB
+Backquote	29	OEM_3	-	PUB
+ShiftLeft	2A	LSHIFT	-	PUB
+Backslash	2B	OEM_5	-	PUB
+KeyZ	2C	Z	-	PUB
+KeyX	2D	X	-	PUB
+KeyC	2E	C	-	PUB
+KeyV	2F	V	-	PUB
+KeyB	30	B	-	PUB
+KeyN	31	N	-	PUB
+KeyM	32	M	-	PUB
+Comma	33	OEM_COMMA	-	PUB
+Period	34	OEM_PERIOD	-	PUB
+Slash	35	OEM_2	-	PUB
+ShiftRight	36	RSHIFT	ext	wb §3.1/§3.2
+NumpadMultiply	37	MULTIPLY	multiVk	wb §3.1/§3.2
+AltLeft	38	LMENU	-	PUB
+Space	39	SPACE	-	PUB
+CapsLock	3A	CAPITAL	-	PUB
+F1	3B	F1	-	PUB
+F2	3C	F2	-	PUB
+F3	3D	F3	-	PUB
+F4	3E	F4	-	PUB
+F5	3F	F5	-	PUB
+F6	40	F6	-	PUB
+F7	41	F7	-	PUB
+F8	42	F8	-	PUB
+F9	43	F9	-	PUB
+F10	44	F10	-	PUB
+NumLock	45	NUMLOCK	ext,multiVk	wb §3.1/§3.2
+ScrollLock	46	SCROLL	multiVk	wb §3.1/§3.2
+Numpad7	47	HOME	numpad,special	wb §3.1/§3.2
+Numpad8	48	UP	numpad,special	wb §3.1/§3.2
+Numpad9	49	PRIOR	numpad,special	wb §3.1/§3.2
+NumpadSubtract	4A	SUBTRACT	-	PUB
+Numpad4	4B	LEFT	numpad,special	wb §3.1/§3.2
+Numpad5	4C	CLEAR	numpad,special	wb §3.1/§3.2
+Numpad6	4D	RIGHT	numpad,special	wb §3.1/§3.2
+NumpadAdd	4E	ADD	-	PUB
+Numpad1	4F	END	numpad,special	wb §3.1/§3.2
+Numpad2	50	DOWN	numpad,special	wb §3.1/§3.2
+Numpad3	51	NEXT	numpad,special	wb §3.1/§3.2
+Numpad0	52	INSERT	numpad,special	wb §3.1/§3.2
+NumpadDecimal	53	DELETE	numpad,special	wb §3.1/§3.2
+SysRq	54	SNAPSHOT	-	PUB
+IntlBackslash	56	OEM_102	-	PUB
+F11	57	F11	-	PUB
+F12	58	F12	-	PUB
+F13	64	F13	-	PUB
+F14	65	F14	-	PUB
+F15	66	F15	-	PUB
+F16	67	F16	-	PUB
+F17	68	F17	-	PUB
+F18	69	F18	-	PUB
+F19	6A	F19	-	PUB
+F20	6B	F20	-	PUB
+F21	6C	F21	-	PUB
+F22	6D	F22	-	PUB
+F23	6E	F23	-	PUB
+F24	76	F24	-	PUB
+MediaTrackPrevious	E010	MEDIA_PREV_TRACK	ext	PUB
+MediaTrackNext	E019	MEDIA_NEXT_TRACK	ext	PUB
+NumpadEnter	E01C	RETURN	ext	PUB
+ControlRight	E01D	RCONTROL	ext	wb §3.1/§3.2
+AudioVolumeMute	E020	VOLUME_MUTE	ext	PUB
+MediaPlayPause	E022	MEDIA_PLAY_PAUSE	ext	PUB
+MediaStop	E024	MEDIA_STOP	ext	PUB
+AudioVolumeDown	E02E	VOLUME_DOWN	ext	PUB
+AudioVolumeUp	E030	VOLUME_UP	ext	PUB
+BrowserHome	E032	BROWSER_HOME	ext	PUB
+NumpadDivide	E035	DIVIDE	ext	PUB
+PrintScreen	E037	SNAPSHOT	ext	PUB
+AltRight	E038	RMENU	ext	wb §3.1/§3.2
+Break	E046	CANCEL	ext	wb §3.1/§3.2
+Home	E047	HOME	ext	PUB
+ArrowUp	E048	UP	ext	PUB
+PageUp	E049	PRIOR	ext	PUB
+ArrowLeft	E04B	LEFT	ext	PUB
+ArrowRight	E04D	RIGHT	ext	PUB
+End	E04F	END	ext	PUB
+ArrowDown	E050	DOWN	ext	PUB
+PageDown	E051	NEXT	ext	PUB
+Insert	E052	INSERT	ext	PUB
+Delete	E053	DELETE	ext	PUB
+MetaLeft	E05B	LWIN	ext	PUB
+MetaRight	E05C	RWIN	ext	PUB
+ContextMenu	E05D	APPS	ext	PUB
+Sleep	E05F	SLEEP	ext	PUB
+BrowserSearch	E065	BROWSER_SEARCH	ext	PUB
+BrowserFavorites	E066	BROWSER_FAVORITES	ext	PUB
+BrowserRefresh	E067	BROWSER_REFRESH	ext	PUB
+BrowserStop	E068	BROWSER_STOP	ext	PUB
+BrowserForward	E069	BROWSER_FORWARD	ext	PUB
+BrowserBack	E06A	BROWSER_BACK	ext	PUB
+LaunchMail	E06C	LAUNCH_MAIL	ext	PUB
+Pause	E11D	PAUSE	-	wb §3.1/§3.2

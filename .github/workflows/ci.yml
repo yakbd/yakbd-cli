@@ -1,0 +1,50 @@
+name: ci
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**.go'
+      - 'go.mod'
+      - '**/testdata/**'
+      - 'testdata/**'
+      - 'target/windows/vk/*.tsv'
+      - 'format/kbljson/schema/**'
+      - 'format/cldr/import/**'
+      - 'installer/stub-386.*'
+      - '.github/workflows/ci.yml'
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.8' # exactly the version of installer/stub-386.version (docs/installer.md §6)
+      - name: gofmt
+        run: |
+          out="$(gofmt -l .)"
+          if [ -n "$out" ]; then echo "not gofmt-formatted:"; echo "$out"; exit 1; fi
+      - name: go vet
+        run: go vet ./...
+      - name: go test
+        run: go test ./...
+      - name: committed installer stub is built from this source
+        # installer/stub-386.exe must equal a fresh build byte for byte (docs/installer.md §6), so the binary in the
+        # repository is provably the one this source and Go version make.
+        run: |
+          go run ./tools/buildstub
+          git diff --exit-code --stat -- installer/stub-386.exe installer/stub-386.version
+      - name: cross-build
+        run: |
+          for target in linux/amd64 linux/arm64 windows/amd64 windows/arm64 darwin/amd64 darwin/arm64; do
+            GOOS="${target%/*}" GOARCH="${target#*/}" go build -o /dev/null ./cmd/yakbd
+          done
+          for arch in amd64 386; do
+            GOOS=windows GOARCH=$arch go build -o /dev/null ./cmd/yakbd-wincheck
+          done

@@ -1,0 +1,19 @@
+// mode: -m
+KBD	yr2moda	"YAKBD test yr2moda"
+
+MODIFIERS
+
+OEM_8	KBDKANA
+
+SHIFTSTATE
+
+0
+1
+2
+8
+
+LAYOUT
+
+10	Q	0	q	Q	-1	0101
+
+ENDKBD

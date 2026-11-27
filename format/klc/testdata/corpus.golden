@@ -1,0 +1,46 @@
+dll-format/altgr-012-12.klc error:klc.shiftstate.bits@4
+dll-format/altgr-012-5.klc 
+dll-format/altgr-0123.klc 
+dll-format/altgr-0124.klc 
+dll-format/altgr-0126.klc 
+dll-format/base.klc 
+dll-format/deadkey-order.klc warning:klc.deadkey.merged@24 error:klc.deadkey.duplicate@27
+dll-format/e0-newvk.klc 
+dll-format/e0-same.klc 
+dll-format/e0-two.klc 
+dll-format/e0-unknown.klc 
+dll-format/e0-used.klc 
+dll-format/groupshift-build.klc error:klc.vk.unknown@13
+dll-format/groupshift.klc error:klc.vk.unknown@13 error:klc.vk.unknown@14
+dll-format/mod-kana.klc 
+dll-format/mod-number.klc error:klc.modifiers.bit@6 error:klc.shiftstate.bits@8
+dll-format/mod-roya-first.klc error:klc.shiftstate.bits@8
+dll-format/mod-two.klc error:klc.shiftstate.bits@9
+dll-format/sgcaps-dead-both.klc warning:klc.sgcap.atIsCharacter@13 warning:klc.sgcap.dead@12
+dll-format/sgcaps-dead-cont.klc warning:klc.sgcap.atIsCharacter@13
+dll-format/sgcaps-dead-cont2.klc warning:klc.sgcap.atIsCharacter@13
+dll-format/sgcaps-dead-cont3.klc warning:klc.sgcap.atIsCharacter@13 error:klc.cell.invalid@13
+dll-format/sgcaps-dead-cont4.klc error:klc.cell.invalid@13
+dll-format/sgcaps-dead-main.klc warning:klc.sgcap.dead@12
+dll-format/sgcaps-dead-shift.klc warning:klc.sgcap.dead@12
+dll-format/sgcaps-plain.klc 
+klc-format/w-deadkey-no-result.klc error:klc.deadkey.entry@16
+klc-format/w-descriptions-no-text.klc warning:klc.text.empty@16
+klc-format/w-keyname-no-name.klc error:klc.keyname.name@16
+klc-format/w-languagenames-no-text.klc warning:klc.text.empty@16
+klc-format/w-ligature-badchar.klc error:klc.cell.invalid@16 error:klc.ligature.missing@12
+klc-format/w-ligature-column.klc error:klc.ligature.column@16
+klc-format/w-ligature-dead.klc error:klc.cell.invalid@16 error:klc.ligature.missing@12
+klc-format/w-ligature-nested.klc error:klc.cell.invalid@16 error:klc.ligature.missing@12
+klc-format/w-ligature-one.klc error:klc.ligature.form@16 error:klc.ligature.missing@12
+klc-format/w-ligature-six.klc error:klc.ligature.length@16 error:klc.ligature.missing@12
+klc-format/w-ligature-utf32.klc error:klc.cell.invalid@16 error:klc.ligature.missing@12
+klc-format/w-modifiers-no-bit-eof.klc error:klc.modifiers.entry@16 warning:klc.endkbd.missing@0
+klc-format/w-modifiers-no-bit.klc error:klc.modifiers.bit@6
+klc-format/w-sgcap-bad-cell.klc error:klc.cell.invalid@13
+klc-format/w-shiftstate-66.klc error:klc.shiftstate.count@4 error:klc.shiftstate.bits@4
+klc-format/w-vk-hex.klc 
+klc-format/w-vk-other-letter.klc 
+klc-format/w-vk-unknown.klc error:klc.vk.unknown@12
+vm/kbdtst.klc 
+vm/wbt1.klc 

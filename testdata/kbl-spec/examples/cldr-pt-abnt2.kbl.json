@@ -1,0 +1,859 @@
+{
+  "$schema": "https://yakbd.github.io/kbl-spec/schema/0.1/kbl.schema.json",
+  "kbl": "0.1",
+  "metadata": {
+    "id": "pt-t-k0-abnt2",
+    "locales": [
+      "pt"
+    ],
+    "name": "Portuguese (Brazil) (ABNT2)",
+    "version": "0.0.0",
+    "license": "Unicode-3.0",
+    "description": "Example (c): CLDR release-49 keyboards/3.0/pt-t-k0-abnt2.xml converted by hand, with its imports keys-Zyyy-punctuation.xml and keys-Zyyy-currency.xml inlined (only the keys are kept; implied keys are not repeated), the implied form abnt2 inlined, and its test file pt-t-k0-abnt2-test.xml converted. The five dead keys are CLDR markers without transforms, as in the source (which has a TODO for them); they are kept as markers, not converted to deadKeys. A Windows build needs targets.windows.registration.langId (D30) and a virtual key for IntlRo, which has no default (D29); the source gives neither. Data under the Unicode License v3 (see NOTICE).",
+    "copyright": "Copyright © 1991-2026 Unicode, Inc.",
+    "provenance": {
+      "source": "keyboards/3.0/pt-t-k0-abnt2.xml (CLDR release-49)",
+      "format": "cldr",
+      "cldrConformsTo": 45,
+      "cldrImports": [
+        "cldr:45/keys-Zyyy-punctuation.xml",
+        "cldr:45/keys-Zyyy-currency.xml"
+      ]
+    }
+  },
+  "settings": {
+    "capsLockFallback": false
+  },
+  "positions": {
+    "Backquote": {
+      "scanCode": "29"
+    },
+    "Digit1": {
+      "scanCode": "02"
+    },
+    "Digit2": {
+      "scanCode": "03"
+    },
+    "Digit3": {
+      "scanCode": "04"
+    },
+    "Digit4": {
+      "scanCode": "05"
+    },
+    "Digit5": {
+      "scanCode": "06"
+    },
+    "Digit6": {
+      "scanCode": "07"
+    },
+    "Digit7": {
+      "scanCode": "08"
+    },
+    "Digit8": {
+      "scanCode": "09"
+    },
+    "Digit9": {
+      "scanCode": "0A"
+    },
+    "Digit0": {
+      "scanCode": "0B"
+    },
+    "Minus": {
+      "scanCode": "0C"
+    },
+    "Equal": {
+      "scanCode": "0D"
+    },
+    "KeyQ": {
+      "scanCode": "10"
+    },
+    "KeyW": {
+      "scanCode": "11"
+    },
+    "KeyE": {
+      "scanCode": "12"
+    },
+    "KeyR": {
+      "scanCode": "13"
+    },
+    "KeyT": {
+      "scanCode": "14"
+    },
+    "KeyY": {
+      "scanCode": "15"
+    },
+    "KeyU": {
+      "scanCode": "16"
+    },
+    "KeyI": {
+      "scanCode": "17"
+    },
+    "KeyO": {
+      "scanCode": "18"
+    },
+    "KeyP": {
+      "scanCode": "19"
+    },
+    "BracketLeft": {
+      "scanCode": "1A"
+    },
+    "BracketRight": {
+      "scanCode": "1B"
+    },
+    "KeyA": {
+      "scanCode": "1E"
+    },
+    "KeyS": {
+      "scanCode": "1F"
+    },
+    "KeyD": {
+      "scanCode": "20"
+    },
+    "KeyF": {
+      "scanCode": "21"
+    },
+    "KeyG": {
+      "scanCode": "22"
+    },
+    "KeyH": {
+      "scanCode": "23"
+    },
+    "KeyJ": {
+      "scanCode": "24"
+    },
+    "KeyK": {
+      "scanCode": "25"
+    },
+    "KeyL": {
+      "scanCode": "26"
+    },
+    "Semicolon": {
+      "scanCode": "27"
+    },
+    "Quote": {
+      "scanCode": "28"
+    },
+    "Backslash": {
+      "scanCode": "2B"
+    },
+    "IntlBackslash": {
+      "scanCode": "56"
+    },
+    "KeyZ": {
+      "scanCode": "2C"
+    },
+    "KeyX": {
+      "scanCode": "2D"
+    },
+    "KeyC": {
+      "scanCode": "2E"
+    },
+    "KeyV": {
+      "scanCode": "2F"
+    },
+    "KeyB": {
+      "scanCode": "30"
+    },
+    "KeyN": {
+      "scanCode": "31"
+    },
+    "KeyM": {
+      "scanCode": "32"
+    },
+    "Comma": {
+      "scanCode": "33"
+    },
+    "Period": {
+      "scanCode": "34"
+    },
+    "Slash": {
+      "scanCode": "35"
+    },
+    "IntlRo": {
+      "scanCode": "73"
+    },
+    "Space": {
+      "scanCode": "39"
+    }
+  },
+  "forms": {
+    "abnt2": {
+      "rows": [
+        [
+          "Backquote",
+          "Digit1",
+          "Digit2",
+          "Digit3",
+          "Digit4",
+          "Digit5",
+          "Digit6",
+          "Digit7",
+          "Digit8",
+          "Digit9",
+          "Digit0",
+          "Minus",
+          "Equal"
+        ],
+        [
+          "KeyQ",
+          "KeyW",
+          "KeyE",
+          "KeyR",
+          "KeyT",
+          "KeyY",
+          "KeyU",
+          "KeyI",
+          "KeyO",
+          "KeyP",
+          "BracketLeft",
+          "BracketRight"
+        ],
+        [
+          "KeyA",
+          "KeyS",
+          "KeyD",
+          "KeyF",
+          "KeyG",
+          "KeyH",
+          "KeyJ",
+          "KeyK",
+          "KeyL",
+          "Semicolon",
+          "Quote",
+          "Backslash"
+        ],
+        [
+          "IntlBackslash",
+          "KeyZ",
+          "KeyX",
+          "KeyC",
+          "KeyV",
+          "KeyB",
+          "KeyN",
+          "KeyM",
+          "Comma",
+          "Period",
+          "Slash",
+          "IntlRo"
+        ],
+        [
+          "Space"
+        ]
+      ]
+    }
+  },
+  "displays": {
+    "entries": [
+      {
+        "output": [
+          {
+            "marker": "acute"
+          }
+        ],
+        "display": "´"
+      },
+      {
+        "output": [
+          {
+            "marker": "grave"
+          }
+        ],
+        "display": "`"
+      },
+      {
+        "output": [
+          {
+            "marker": "umlaut"
+          }
+        ],
+        "display": "¨"
+      },
+      {
+        "output": [
+          {
+            "marker": "caret"
+          }
+        ],
+        "display": "^"
+      },
+      {
+        "output": [
+          {
+            "marker": "tilde"
+          }
+        ],
+        "display": "~"
+      }
+    ]
+  },
+  "keys": {
+    "amp": {
+      "output": "&"
+    },
+    "apos": {
+      "output": "'"
+    },
+    "asterisk": {
+      "output": "*"
+    },
+    "at": {
+      "output": "@"
+    },
+    "backslash": {
+      "output": "\\"
+    },
+    "bang": {
+      "output": "!"
+    },
+    "caret": {
+      "output": "^"
+    },
+    "close-angle": {
+      "output": ">"
+    },
+    "close-curly": {
+      "output": "}"
+    },
+    "close-paren": {
+      "output": ")"
+    },
+    "close-square": {
+      "output": "]"
+    },
+    "colon": {
+      "output": ":"
+    },
+    "comma": {
+      "output": ","
+    },
+    "degree": {
+      "output": "°"
+    },
+    "double-quote": {
+      "output": "\""
+    },
+    "equal": {
+      "output": "="
+    },
+    "grave": {
+      "output": "`"
+    },
+    "hash": {
+      "output": "#"
+    },
+    "hyphen": {
+      "output": "-"
+    },
+    "micro": {
+      "output": "µ"
+    },
+    "not": {
+      "output": "¬"
+    },
+    "open-angle": {
+      "output": "<"
+    },
+    "open-curly": {
+      "output": "{"
+    },
+    "open-paren": {
+      "output": "("
+    },
+    "open-square": {
+      "output": "["
+    },
+    "percent": {
+      "output": "%"
+    },
+    "period": {
+      "output": "."
+    },
+    "pipe": {
+      "output": "|"
+    },
+    "plus": {
+      "output": "+"
+    },
+    "question": {
+      "output": "?"
+    },
+    "section": {
+      "output": "§"
+    },
+    "semi-colon": {
+      "output": ";"
+    },
+    "slash": {
+      "output": "/"
+    },
+    "tilde": {
+      "output": "~"
+    },
+    "underscore": {
+      "output": "_"
+    },
+    "dollar": {
+      "output": "$"
+    },
+    "euro": {
+      "output": "€"
+    },
+    "pound": {
+      "output": "£"
+    },
+    "yen": {
+      "output": "¥"
+    },
+    "cruzeiro": {
+      "output": "₢"
+    },
+    "cent": {
+      "output": "¢"
+    },
+    "d-acute": {
+      "output": [
+        {
+          "marker": "acute"
+        }
+      ]
+    },
+    "d-grave": {
+      "output": [
+        {
+          "marker": "grave"
+        }
+      ]
+    },
+    "d-umlaut": {
+      "output": [
+        {
+          "marker": "umlaut"
+        }
+      ]
+    },
+    "d-caret": {
+      "output": [
+        {
+          "marker": "caret"
+        }
+      ]
+    },
+    "d-tilde": {
+      "output": [
+        {
+          "marker": "tilde"
+        }
+      ]
+    },
+    "c-cedilla": {
+      "output": "ç"
+    },
+    "C-cedilla": {
+      "output": "Ç"
+    },
+    "super-1": {
+      "output": "¹"
+    },
+    "super-2": {
+      "output": "²"
+    },
+    "super-3": {
+      "output": "³"
+    },
+    "ordinal-feminine": {
+      "output": "ª"
+    },
+    "ordinal-masculine": {
+      "output": "º"
+    }
+  },
+  "hardware": {
+    "formId": "abnt2",
+    "layers": [
+      {
+        "modifiers": [
+          []
+        ],
+        "bindings": {
+          "Backquote": {
+            "key": "apos"
+          },
+          "Digit1": "1",
+          "Digit2": "2",
+          "Digit3": "3",
+          "Digit4": "4",
+          "Digit5": "5",
+          "Digit6": "6",
+          "Digit7": "7",
+          "Digit8": "8",
+          "Digit9": "9",
+          "Digit0": "0",
+          "Minus": {
+            "key": "hyphen"
+          },
+          "Equal": {
+            "key": "equal"
+          },
+          "KeyQ": "q",
+          "KeyW": "w",
+          "KeyE": "e",
+          "KeyR": "r",
+          "KeyT": "t",
+          "KeyY": "y",
+          "KeyU": "u",
+          "KeyI": "i",
+          "KeyO": "o",
+          "KeyP": "p",
+          "BracketLeft": {
+            "key": "d-acute"
+          },
+          "BracketRight": {
+            "key": "open-square"
+          },
+          "KeyA": "a",
+          "KeyS": "s",
+          "KeyD": "d",
+          "KeyF": "f",
+          "KeyG": "g",
+          "KeyH": "h",
+          "KeyJ": "j",
+          "KeyK": "k",
+          "KeyL": "l",
+          "Semicolon": {
+            "key": "c-cedilla"
+          },
+          "Quote": {
+            "key": "d-tilde"
+          },
+          "Backslash": {
+            "key": "close-square"
+          },
+          "IntlBackslash": {
+            "key": "backslash"
+          },
+          "KeyZ": "z",
+          "KeyX": "x",
+          "KeyC": "c",
+          "KeyV": "v",
+          "KeyB": "b",
+          "KeyN": "n",
+          "KeyM": "m",
+          "Comma": {
+            "key": "comma"
+          },
+          "Period": {
+            "key": "period"
+          },
+          "Slash": {
+            "key": "semi-colon"
+          },
+          "IntlRo": {
+            "key": "slash"
+          },
+          "Space": " "
+        }
+      },
+      {
+        "modifiers": [
+          [
+            "shift"
+          ]
+        ],
+        "bindings": {
+          "Backquote": {
+            "key": "double-quote"
+          },
+          "Digit1": {
+            "key": "bang"
+          },
+          "Digit2": {
+            "key": "at"
+          },
+          "Digit3": {
+            "key": "hash"
+          },
+          "Digit4": {
+            "key": "dollar"
+          },
+          "Digit5": {
+            "key": "percent"
+          },
+          "Digit6": {
+            "key": "d-umlaut"
+          },
+          "Digit7": {
+            "key": "amp"
+          },
+          "Digit8": {
+            "key": "asterisk"
+          },
+          "Digit9": {
+            "key": "open-paren"
+          },
+          "Digit0": {
+            "key": "close-paren"
+          },
+          "Minus": {
+            "key": "underscore"
+          },
+          "Equal": {
+            "key": "plus"
+          },
+          "KeyQ": "Q",
+          "KeyW": "W",
+          "KeyE": "E",
+          "KeyR": "R",
+          "KeyT": "T",
+          "KeyY": "Y",
+          "KeyU": "U",
+          "KeyI": "I",
+          "KeyO": "O",
+          "KeyP": "P",
+          "BracketLeft": {
+            "key": "d-grave"
+          },
+          "BracketRight": {
+            "key": "open-curly"
+          },
+          "KeyA": "A",
+          "KeyS": "S",
+          "KeyD": "D",
+          "KeyF": "F",
+          "KeyG": "G",
+          "KeyH": "H",
+          "KeyJ": "J",
+          "KeyK": "K",
+          "KeyL": "L",
+          "Semicolon": {
+            "key": "C-cedilla"
+          },
+          "Quote": {
+            "key": "d-caret"
+          },
+          "Backslash": {
+            "key": "close-curly"
+          },
+          "IntlBackslash": {
+            "key": "pipe"
+          },
+          "KeyZ": "Z",
+          "KeyX": "X",
+          "KeyC": "C",
+          "KeyV": "V",
+          "KeyB": "B",
+          "KeyN": "N",
+          "KeyM": "M",
+          "Comma": {
+            "key": "open-angle"
+          },
+          "Period": {
+            "key": "close-angle"
+          },
+          "Slash": {
+            "key": "colon"
+          },
+          "IntlRo": {
+            "key": "question"
+          },
+          "Space": " "
+        }
+      },
+      {
+        "modifiers": [
+          [
+            "altR"
+          ]
+        ],
+        "bindings": {
+          "Digit1": {
+            "key": "super-1"
+          },
+          "Digit2": {
+            "key": "super-2"
+          },
+          "Digit3": {
+            "key": "super-3"
+          },
+          "Digit4": {
+            "key": "pound"
+          },
+          "Digit5": {
+            "key": "cent"
+          },
+          "Digit6": {
+            "key": "not"
+          },
+          "Equal": {
+            "key": "section"
+          },
+          "KeyQ": {
+            "key": "slash"
+          },
+          "KeyW": {
+            "key": "question"
+          },
+          "KeyE": {
+            "key": "degree"
+          },
+          "BracketRight": {
+            "key": "ordinal-feminine"
+          },
+          "Backslash": {
+            "key": "ordinal-masculine"
+          },
+          "KeyC": {
+            "key": "cruzeiro"
+          },
+          "IntlRo": {
+            "key": "degree"
+          },
+          "Space": " "
+        }
+      }
+    ]
+  },
+  "tests": [
+    {
+      "info": {
+        "name": "pt-test",
+        "author": "Team Keyboard",
+        "keyboard": "pt-t-k0-abnt2.xml"
+      },
+      "repertoires": [
+        {
+          "name": "latn-repertoire",
+          "chars": "[a-z A-Z 0-9 !\\u0022#$%\\u0026\\[\\]\\{\\}=\\-|~_\\u0020\\u003c>,./?`@\\+\\*çÇ]",
+          "type": "simple"
+        },
+        {
+          "name": "currency-and-symbols",
+          "chars": "[₢ ° ¹²³ § ¬ ªº]"
+        }
+      ],
+      "suites": [
+        {
+          "name": "tests",
+          "tests": [
+            {
+              "name": "test1",
+              "startContext": "",
+              "steps": [
+                {
+                  "keystroke": {
+                    "key": "n"
+                  }
+                },
+                {
+                  "keystroke": {
+                    "key": "m"
+                  }
+                },
+                {
+                  "keystroke": {
+                    "key": "comma"
+                  }
+                },
+                {
+                  "keystroke": {
+                    "key": "period"
+                  }
+                },
+                {
+                  "keystroke": {
+                    "key": "slash"
+                  }
+                },
+                {
+                  "check": "nm,./"
+                }
+              ]
+            },
+            {
+              "name": "test2",
+              "startContext": "",
+              "steps": [
+                {
+                  "keystroke": {
+                    "key": "open-square"
+                  }
+                },
+                {
+                  "keystroke": {
+                    "key": "8"
+                  }
+                },
+                {
+                  "keystroke": {
+                    "key": "9"
+                  }
+                },
+                {
+                  "keystroke": {
+                    "key": "0"
+                  }
+                },
+                {
+                  "keystroke": {
+                    "key": "pipe"
+                  }
+                },
+                {
+                  "check": "[890|"
+                }
+              ]
+            },
+            {
+              "name": "test3",
+              "startContext": "",
+              "steps": [
+                {
+                  "keystroke": {
+                    "key": "slash"
+                  }
+                },
+                {
+                  "keystroke": {
+                    "key": "semi-colon"
+                  }
+                },
+                {
+                  "keystroke": {
+                    "key": "backslash"
+                  }
+                },
+                {
+                  "keystroke": {
+                    "key": "C-cedilla"
+                  }
+                },
+                {
+                  "keystroke": {
+                    "key": "c-cedilla"
+                  }
+                },
+                {
+                  "keystroke": {
+                    "key": "8"
+                  }
+                },
+                {
+                  "keystroke": {
+                    "key": "ordinal-feminine"
+                  }
+                },
+                {
+                  "check": "/;\\Çç8ª"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "targets": {
+    "cldr": {
+      "conformsTo": 45
+    }
+  }
+}

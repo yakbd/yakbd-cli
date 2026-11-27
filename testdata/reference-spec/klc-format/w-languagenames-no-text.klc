@@ -1,0 +1,18 @@
+// mode: -s
+KBD	yr2w29	"YAKBD test yr2w29"
+
+SHIFTSTATE
+
+0
+1
+2
+
+LAYOUT
+
+10	Q	0	q	Q	-1
+
+LANGUAGENAMES
+
+0409
+
+ENDKBD

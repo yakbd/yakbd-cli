@@ -1,0 +1,18 @@
+// mode: -s
+KBD	yr2w20	"YAKBD test yr2w20"
+
+SHIFTSTATE
+
+0
+1
+2
+
+LAYOUT
+
+10	Q	0	%%	Q	-1
+
+LIGATURE
+
+Q	0	0061	0062	0063	0064	0065	0066
+
+ENDKBD

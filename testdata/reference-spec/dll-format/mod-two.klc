@@ -1,0 +1,21 @@
+// mode: -m
+KBD	yr2modc	"YAKBD test yr2modc"
+
+MODIFIERS
+
+OEM_8	KBDKANA
+OEM_102	KBDGRPSELTAP
+
+SHIFTSTATE
+
+0
+1
+2
+8
+16
+
+LAYOUT
+
+10	Q	0	q	Q	-1	0101	0113
+
+ENDKBD

@@ -1,0 +1,16 @@
+// mode: -m
+KBD	yr2e0t	"YAKBD test yr2e0t"
+
+SHIFTSTATE
+
+0
+1
+2
+
+LAYOUT
+
+10	Q	0	q	Q	-1
+e038	RMENU
+e01d	RCONTROL
+
+ENDKBD
