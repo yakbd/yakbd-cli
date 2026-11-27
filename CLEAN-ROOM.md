@@ -267,3 +267,14 @@ its MSKLC observations nor its notes on public sources were opened. Public sourc
 SignPath Foundation's terms (https://signpath.org/terms); Microsoft's pages on Smart App Control (support FAQ,
 overview, and its code-signing guidance), SmartScreen reputation, User Account Control, and the `Unblock-File`,
 `Get-FileHash` and `Get-AuthenticodeSignature` cmdlets and SignTool.
+
+## Extra payload of yakbd-setup.exe and the report file (2026-11-27)
+
+The extra payload (docs/installer-cli.md §12.1) uses only facts §12 already used: files written into the install
+folder, delayed replacement and deletion at restart, the uninstall entry. The reference specification (revision 10)
+was searched for facts on Start-menu shortcuts and shortcut files: its specification documents have none, and the
+only matches, three lines of its notes on public sources, are about the Ctrl shortcuts a layout's virtual keys
+trigger, not about shortcut files; nothing was taken, and no shortcut is made. The report file
+(docs/report-file.md) locates entries by JSON Pointer, RFC 6901 (https://www.rfc-editor.org/rfc/rfc6901: the
+`/` syntax and the `~0`/`~1` escapes, which the schema validator already used). The release workflow's `--latest`
+publish step is from the GitHub CLI's own help (`gh release create --help`, `gh release edit --help`).

@@ -206,10 +206,12 @@ func (s *Setup) place(path string, data []byte, res *Result) (fresh bool, err er
 }
 
 // removeFiles deletes files of the folder (relative paths, with what place may have left beside them), a file in
-// use at the next restart, then every folder that held them and is empty, deepest first; a folder that still holds
-// a file waiting for the restart is deleted after it.
-func (s *Setup) removeFiles(dir string, rel []string, res *Result) error {
+// use at the next restart, then every folder that held them and is empty, deepest first. With laterFolders (an
+// uninstall, which empties every folder it recorded), a folder that still holds one of these files waiting for the
+// restart is deleted after it; an upgrade never schedules a folder, which may hold files it keeps.
+func (s *Setup) removeFiles(dir string, rel []string, res *Result, laterFolders bool) error {
 	folders := map[string]bool{}
+	waiting := map[string]bool{} // folders holding a file deleted at the restart
 	for _, r := range rel {
 		p := join(dir, r)
 		for _, ext := range reservedSuffixes {
@@ -226,6 +228,9 @@ func (s *Setup) removeFiles(dir string, rel []string, res *Result) error {
 			}
 			res.Reboot = true
 			s.logf("%s is in use: deleted at the next restart", p)
+			for i := strings.LastIndex(r, `\`); i > 0; i = strings.LastIndex(r[:i], `\`) {
+				waiting[r[:i]] = true
+			}
 		} else {
 			s.logf("%s deleted", p)
 		}
@@ -248,7 +253,7 @@ func (s *Setup) removeFiles(dir string, rel []string, res *Result) error {
 	for _, f := range list {
 		p := join(dir, f)
 		if err := s.Sys.RemoveDir(p); err != nil {
-			if res.Reboot {
+			if laterFolders && waiting[f] {
 				_ = s.Sys.DeleteAtReboot(p)
 			}
 			continue
@@ -449,7 +454,7 @@ func (s *Setup) Install() (*Result, error) {
 	}
 	if len(stale) > 0 {
 		s.logf("removing %d file(s) of the earlier installation that this installer does not carry", len(stale))
-		if err := s.removeFiles(dir, stale, res); err != nil {
+		if err := s.removeFiles(dir, stale, res, false); err != nil {
 			s.logf("%v", err)
 			res.Notes = append(res.Notes, fmt.Sprintf("A file of the earlier installation could not be removed: %v", err))
 		}
@@ -510,7 +515,7 @@ func (s *Setup) Uninstall() (*Result, error) {
 			extra = append(extra, r)
 		}
 	}
-	if err := s.removeFiles(dir, extra, res); err != nil {
+	if err := s.removeFiles(dir, extra, res, true); err != nil {
 		return nil, err
 	}
 

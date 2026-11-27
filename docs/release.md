@@ -40,9 +40,10 @@ arm64 build of `yakbd.exe` has so far been tested on Windows on ARM in emulation
    - **sign** (only with `sign`, §4);
    - **release**: puts the signed installer in place when there is one, writes `SHA256SUMS`, creates the build
      provenance attestation for every file (`actions/attest-build-provenance`), pushes the tag `vV` on the built
-     commit and creates the draft release with all files. A preview (`x.y.z-preview.N`) is a normal release, marked
-     as the latest (maintainer decision: a GitHub pre-release is not shown as the release on the repository page,
-     and the previews are what people should download). A rehearsal (`-rehearsal.N`) and any other suffix are marked as a pre-release.
+     commit and creates the draft release with all files. A preview (`x.y.z-preview.N`) is a normal release, not a
+     pre-release (maintainer decision: a GitHub pre-release is not shown as the release on the repository page, and
+     the previews are what people should download); it is made the latest release when it is published (step 4). A
+     rehearsal (`-rehearsal.N`) and any other suffix are marked as a pre-release.
 4. Check the draft (files, notes), then publish it, as the latest release for a preview or final version:
 
        gh release edit vV -R yakbd/yakbd-cli --draft=false --latest

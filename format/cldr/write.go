@@ -327,13 +327,13 @@ func (wr *writer) prepareDeadKeys() {
 			from, ok1 := deadValue(e.Base)
 			to, ok2 := deadValue(e.Result)
 			if !ok1 || !ok2 {
-				wr.lost("cldr.windowsOnlyDropped", fmt.Sprintf("/deadKeys/%s/entries/%d", id, i), nil, "a CodeUnits dead-key entry has no CLDR form")
+				wr.lost("cldr.windowsOnlyDropped", fmt.Sprintf("/deadKeys/%s/entries/%d", model.Escape(id), i), nil, "a CodeUnits dead-key entry has no CLDR form")
 				continue
 			}
 			g.Transforms = append(g.Transforms, model.Transform{From: tag + from, To: &to})
 		}
 		if dk.Spacing.Units != nil {
-			wr.lost("cldr.windowsOnlyDropped", "/deadKeys/"+id+"/spacing", nil, "a CodeUnits spacing has no CLDR form")
+			wr.lost("cldr.windowsOnlyDropped", "/deadKeys/"+model.Escape(id)+"/spacing", nil, "a CodeUnits spacing has no CLDR form")
 		}
 		spacing := patternText(dk.Spacing.Text)
 		switch dk.NoMatch {
@@ -695,7 +695,7 @@ func (wr *writer) keys() {
 			a = append(a, kv{"width", strconv.FormatFloat(*k.Width, 'f', -1, 64)})
 		}
 		if k.Function != "" && k.Output == nil && k.DeadKey == "" && !k.Gap && k.LayerID == "" {
-			wr.lost("cldr.windowsOnlyDropped", "/keys/"+id+"/function", nil, "key %s has only a function, which CLDR cannot express", id)
+			wr.lost("cldr.windowsOnlyDropped", "/keys/"+model.Escape(id)+"/function", nil, "key %s has only a function, which CLDR cannot express", id)
 			a = append(a, kv{"gap", "true"})
 		}
 		w.tag("key", a, true)
@@ -767,12 +767,12 @@ func (wr *writer) forms() {
 	w.tag("forms", nil, false)
 	for _, id := range custom {
 		f := l.Forms[id]
-		wr.lost("cldr.customForm", "/forms/"+id, nil, "form %s is not one of CLDR's implied forms", id)
+		wr.lost("cldr.customForm", "/forms/"+model.Escape(id), nil, "form %s is not one of CLDR's implied forms", id)
 		w.tag("form", []kv{{"id", id}}, false)
 		for i, r := range f.Rows {
 			sc, ok := wr.scanRow(r)
 			if !ok {
-				wr.lost("cldr.positionNotInForm", fmt.Sprintf("/forms/%s/rows/%d", id, i), nil, "a position of form %s has no scan code", id)
+				wr.lost("cldr.positionNotInForm", fmt.Sprintf("/forms/%s/rows/%d", model.Escape(id), i), nil, "a position of form %s has no scan code", id)
 				continue
 			}
 			w.tag("scanCodes", []kv{{"codes", strings.Join(sc, " ")}}, true)

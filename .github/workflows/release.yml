@@ -133,9 +133,10 @@ jobs:
         run: |
           git tag "v$VERSION" "$GITHUB_SHA"
           git push origin "refs/tags/v$VERSION"
-          # A preview (x.y.z-preview.N) is a normal release marked latest: the repository page does not show a pre-release
-          # as its release. A rehearsal and any other suffix stay pre-releases (docs/release.md §2).
-          mark="--latest"
+          # A preview (x.y.z-preview.N) is a normal release, not a pre-release: the repository page does not show a
+          # pre-release as its release. A rehearsal and any other suffix stay pre-releases. The latest mark is
+          # given when the draft is published (gh release edit --draft=false --latest, docs/release.md §2).
+          mark=""
           SIGNED="yakbd-setup.exe is unsigned in this release"
           if [ "${{ inputs.sign }}" = "true" ]; then SIGNED="yakbd-setup.exe is signed through SignPath Foundation"; fi
           case "$VERSION" in *-rehearsal.*) mark="--prerelease" ;; *-preview.*) ;; *-*) mark="--prerelease" ;; esac

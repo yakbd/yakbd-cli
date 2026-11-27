@@ -11,12 +11,18 @@ func Pointer(tokens ...string) string {
 	var b strings.Builder
 	for _, t := range tokens {
 		b.WriteByte('/')
-		if strings.ContainsAny(t, "~/") {
-			t = strings.ReplaceAll(strings.ReplaceAll(t, "~", "~0"), "/", "~1")
-		}
-		b.WriteString(t)
+		b.WriteString(Escape(t))
 	}
 	return b.String()
+}
+
+// Escape writes one reference token of a JSON pointer: "~" as "~0", "/" as "~1". Ids (key, flick, form, layer and
+// dead-key ids, SPEC §2.5) may hold both.
+func Escape(t string) string {
+	if strings.ContainsAny(t, "~/") {
+		t = strings.ReplaceAll(strings.ReplaceAll(t, "~", "~0"), "/", "~1")
+	}
+	return t
 }
 
 // BindingPointer is the JSON pointer of binding b of position pos: /hardware/layers/<i>/bindings/<pos> of the

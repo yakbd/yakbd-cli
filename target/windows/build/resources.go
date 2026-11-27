@@ -25,7 +25,7 @@ func (b *lowerer) drops() {
 		// layers (CLDR fr.xml: super-2).
 		for _, id := range sortedKeys(l.Keys) {
 			if k := l.Keys[id]; len(k.LongPressKeyIDs) > 0 || len(k.MultiTapKeyIDs) > 0 {
-				b.lost("general.touchDropped", "/keys/"+id, "long-press and multi-tap choices are not part of a Windows layout")
+				b.lost("general.touchDropped", "/keys/"+model.Escape(id), "long-press and multi-tap choices are not part of a Windows layout")
 				break
 			}
 		}

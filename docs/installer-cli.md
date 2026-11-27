@@ -389,8 +389,9 @@ rules of §6. Nothing else changes: command line, exit codes, PATH and uninstall
   folders created as needed. The uninstall entry gets the record value `YakbdToolExtraFiles`: the installed paths
   joined by `|`, written when there are extra files now or were before (an installer without the extra payload
   writes no such value over a CLI-only install, so that its entry stays as before). Files of the earlier record that
-  this installer does not carry are deleted after the entry is written, with their folders when empty: installing
-  the CLI alone over a bundle removes the bundle's files. A fresh install that fails is rolled back, extra files and
+  this installer does not carry are deleted after the entry is written, with their folders when empty (a file in use
+  at the next restart; its folder is never scheduled, since it may hold files that stay): installing the CLI alone
+  over a bundle removes the bundle's files. A fresh install that fails is rolled back, extra files and
   folders included. `EstimatedSize` counts the extra files.
 - **Uninstall** deletes the recorded files (a file in use at the next restart, 3010), then their folders deepest first
   when empty (a folder that still holds a waiting file at the restart, after it), then the rest as in §12. Any

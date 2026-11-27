@@ -26,17 +26,17 @@ func (b *lowerer) deadCharacters() {
 			ch = *w.Character
 		} else {
 			defaulted = append(defaulted, id)
-			ch = b.nfcText(ch, "/deadKeys/"+id+"/spacing")
+			ch = b.nfcText(ch, "/deadKeys/"+model.Escape(id)+"/spacing")
 		}
 		units = ch.UTF16()
 		c := ch
 		b.pin.DeadKeys[id] = &model.WindowsDeadKey{Character: &c}
 		if len(units) != 1 {
-			b.lost("windows.deadCharacterInvalid", "/deadKeys/"+id, "dead key %s: the dead character must be one unit, it has %d", id, len(units))
+			b.lost("windows.deadCharacterInvalid", "/deadKeys/"+model.Escape(id), "dead key %s: the dead character must be one unit, it has %d", id, len(units))
 			continue
 		}
 		if o, ok := owner[units[0]]; ok {
-			b.lost("windows.deadCharacterCollision", "/deadKeys/"+id, "dead keys %s and %s have the same dead character %04X", o, id, units[0])
+			b.lost("windows.deadCharacterCollision", "/deadKeys/"+model.Escape(id), "dead keys %s and %s have the same dead character %04X", o, id, units[0])
 			continue
 		}
 		owner[units[0]] = id

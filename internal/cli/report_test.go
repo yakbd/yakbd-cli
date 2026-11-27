@@ -69,7 +69,91 @@ func reportCorpus(t *testing.T, dir string) []string {
 	if len(files) < 40 {
 		t.Fatalf("corpus of %d files", len(files))
 	}
-	return files
+	return append(files, brokenCorpus(t, dir)...)
+}
+
+// brokenCorpus are schema-valid files with errors and losses of the model checks and the Windows build: an
+// unresolved dead key, a dead-key entry twice, a pinned VK that does not exist, a dead key whose id needs escaping
+// in a pointer ("a/b~c"), a binding that names no key.
+func brokenCorpus(t *testing.T, dir string) []string {
+	b, err := os.ReadFile(example)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var out []string
+	for i, c := range []struct {
+		want string // a kind the file must give
+		edit func(doc map[string]any)
+	}{
+		{"general.unresolvedReference", func(doc map[string]any) { layer(doc, 0)["KeyQ"] = map[string]any{"deadKey": "nope"} }},
+		{"general.duplicateDeadKeyEntry", func(doc map[string]any) {
+			dk := doc["deadKeys"].(map[string]any)["acute"].(map[string]any)
+			dk["entries"] = append(dk["entries"].([]any), dk["entries"].([]any)[0])
+		}},
+		{"windows.vkMissing", func(doc map[string]any) {
+			tw := targetsWindows(doc)
+			tw["keys"] = map[string]any{"KeyA": map[string]any{"vk": "NOPE"}}
+		}},
+		{"windows.deadCharacterInvalid", func(doc map[string]any) {
+			dks := doc["deadKeys"].(map[string]any)
+			dks["a/b~c"] = dks["acute"]
+			delete(dks, "acute")
+			rename(doc, "acute", "a/b~c")
+			targetsWindows(doc)["deadKeys"] = map[string]any{"a/b~c": map[string]any{"character": "´´"}}
+		}},
+		{"general.unresolvedReference", func(doc map[string]any) { layer(doc, 1)["KeyW"] = map[string]any{"key": "nokey"} }},
+	} {
+		var doc map[string]any
+		if err := json.Unmarshal(b, &doc); err != nil {
+			t.Fatal(err)
+		}
+		c.edit(doc)
+		js, _ := json.MarshalIndent(doc, "", "  ")
+		p := filepath.Join(dir, fmt.Sprintf("broken%d.kbl.json", i))
+		if err := os.WriteFile(p, js, 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if _, _, stderr := run("validate", "-windows", "-q", p); strings.Contains(stderr, "kbl.schema") || !strings.Contains(stderr, c.want) {
+			t.Fatalf("broken file %d: want schema-valid with %s:\n%s", i, c.want, stderr)
+		}
+		out = append(out, p)
+	}
+	return out
+}
+
+func layer(doc map[string]any, i int) map[string]any {
+	return doc["hardware"].(map[string]any)["layers"].([]any)[i].(map[string]any)["bindings"].(map[string]any)
+}
+
+func targetsWindows(doc map[string]any) map[string]any {
+	ts, _ := doc["targets"].(map[string]any)
+	if ts == nil {
+		ts = map[string]any{}
+		doc["targets"] = ts
+	}
+	tw, _ := ts["windows"].(map[string]any)
+	if tw == nil {
+		tw = map[string]any{}
+		ts["windows"] = tw
+	}
+	return tw
+}
+
+// rename replaces every {"deadKey": from} of the document by {"deadKey": to}.
+func rename(v any, from, to string) {
+	switch x := v.(type) {
+	case map[string]any:
+		if s, ok := x["deadKey"].(string); ok && s == from {
+			x["deadKey"] = to
+		}
+		for _, c := range x {
+			rename(c, from, to)
+		}
+	case []any:
+		for _, c := range x {
+			rename(c, from, to)
+		}
+	}
 }
 
 // TestReportPointers is the contract of docs/report-file.md §3-§4 over the whole corpus and every command that reads a
@@ -113,8 +197,8 @@ func TestReportPointers(t *testing.T) {
 			for _, e := range r.Entries {
 				w := e.Where
 				id := fmt.Sprintf("%s %s: %s %s", filepath.Base(in), args[0], e.Kind, e.Message)
-				if strings.HasPrefix(w.Path, "/") {
-					t.Errorf("%s: path %q is a pointer into the input but not where.pointer", id, w.Path)
+				if w.Path != "" && !outputLabel.MatchString(w.Path) {
+					t.Errorf("%s: path %q is not a label of the output (a place in the input must be where.pointer)", id, w.Path)
 				}
 				if w.Pointer == nil {
 					if e.Class == "defaulted" {
@@ -262,3 +346,7 @@ func TestReportOtherInputs(t *testing.T) {
 		}
 	}
 }
+
+// outputLabel are the where.path values of a .kbl.json input (docs/report-file.md §3): parts of the DLL
+// (target/windows/validate.go, compile.go, decode.go), builds, and the installer's machine kinds.
+var outputLabel = regexp.MustCompile(`^(DLL|MODIFIERS|DEADKEY|LIGATURE|pusVSCtoVK|E0|E1|key names|fLocaleFlags|table [0-9]+( row [0-9]+)?|x86|x64|wow64|arm64x?|amd64)$`)

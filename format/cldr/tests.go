@@ -105,7 +105,7 @@ func WriteTests(tf *model.TestFile) ([]byte, *loss.Report) {
 				}
 			}
 			if hardware {
-				lost(r, "general.testsDropped", loss.Where{Path: "tests"}, map[string]any{"test": t.Name},
+				lost(r, "general.testsDropped", loss.Where{Path: "/tests"}, map[string]any{"test": t.Name},
 					"test %s presses positions, which CLDR test files cannot express", t.Name)
 				continue
 			}

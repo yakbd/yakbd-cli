@@ -81,7 +81,7 @@ func (c *checker) run() {
 	l := c.l
 	// Keys and their references.
 	for _, id := range sortedIDs(l.Keys) {
-		k, path := l.Keys[id], "/keys/"+id
+		k, path := l.Keys[id], "/keys/"+Escape(id)
 		if k.DeadKey != "" {
 			c.dead(k.DeadKey, path+"/deadKey")
 		}
@@ -109,7 +109,7 @@ func (c *checker) run() {
 	}
 	for _, id := range sortedIDs(l.Flicks) {
 		for i, s := range l.Flicks[id].Segments {
-			c.key(s.KeyID, fmt.Sprintf("/flicks/%s/segments/%d", id, i))
+			c.key(s.KeyID, fmt.Sprintf("/flicks/%s/segments/%d", Escape(id), i))
 		}
 	}
 	// Positions: unique scan codes.
@@ -127,7 +127,7 @@ func (c *checker) run() {
 	for _, id := range sortedIDs(l.Forms) {
 		for _, row := range l.Forms[id].Rows {
 			for _, p := range row {
-				c.position(p, "/forms/"+id)
+				c.position(p, "/forms/"+Escape(id))
 			}
 		}
 	}
@@ -189,7 +189,7 @@ func (c *checker) run() {
 		for i, e := range l.DeadKeys[id].Entries {
 			for _, v := range []Value{e.Base, e.Result} {
 				if v.Kind == ValueDeadKey {
-					c.dead(v.DeadKey, fmt.Sprintf("/deadKeys/%s/entries/%d", id, i))
+					c.dead(v.DeadKey, fmt.Sprintf("/deadKeys/%s/entries/%d", Escape(id), i))
 				}
 			}
 		}
@@ -213,7 +213,7 @@ func (c *checker) run() {
 			c.position(p, "/targets/windows/keys/"+p)
 		}
 		for _, d := range sortedIDs(t.Windows.DeadKeys) {
-			c.dead(d, "/targets/windows/deadKeys/"+d)
+			c.dead(d, "/targets/windows/deadKeys/"+Escape(d))
 		}
 		for i, tb := range t.Windows.Tables {
 			for _, r := range tb.Rows {

@@ -305,3 +305,33 @@ func TestExtraDamage(t *testing.T) {
 		t.Error("damage not found")
 	}
 }
+
+// TestExtraStaleInUse: an upgrade whose dropped file is in use deletes it at the restart but never schedules its
+// folder, which holds a file the upgrade keeps; the next install is not refused for a pending folder deletion.
+func TestExtraStaleInUse(t *testing.T) {
+	f := newFake()
+	a := []Extra{{Path: `lib\keep.dll`, Data: []byte("k")}, {Path: `lib\old.dll`, Data: []byte("o")}, {Path: `other\x.dll`, Data: []byte("x")}}
+	b := []Extra{{Path: `lib\keep.dll`, Data: []byte("k")}, {Path: `other\x.dll`, Data: []byte("x")}}
+	if _, err := newBundled(t, f, "0.2.0", a).Install(); err != nil {
+		t.Fatal(err)
+	}
+	f.inUse[dir+`\lib\old.dll`] = true
+	f.inUse[dir+`\other\x.dll`] = true
+	r, err := newBundled(t, f, "0.3.0", b).Install()
+	if err != nil || !r.Reboot {
+		t.Fatalf("%+v %v", r, err)
+	}
+	if got := strings.Join(f.atReboot, ";"); got != "delete "+dir+`\lib\old.dll` {
+		t.Errorf("at the restart: %s", got)
+	}
+	// The restart happened: the file is gone, nothing else waits.
+	delete(f.inUse, dir+`\lib\old.dll`)
+	delete(f.files, dir+`\lib\old.dll`)
+	f.atReboot = nil
+	if _, err := newBundled(t, f, "0.3.0", b).Install(); err != nil {
+		t.Fatal(err)
+	}
+	if f.files[dir+`\lib\keep.dll`] == nil || !f.dirs[dir+`\lib`] {
+		t.Error("the kept file or its folder is gone")
+	}
+}

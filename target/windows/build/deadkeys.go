@@ -26,7 +26,7 @@ func (b *lowerer) deadKeys() {
 		if !ok {
 			continue
 		}
-		path := "/deadKeys/" + id
+		path := "/deadKeys/" + model.Escape(id)
 		for i, e := range dk.Entries {
 			ep := fmt.Sprintf("%s/entries/%d", path, i)
 			if b.norm {

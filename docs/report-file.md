@@ -80,8 +80,9 @@ There are no line or column numbers for `.kbl.json` input; a file that is not va
 Each choice a default rule of the Windows target makes (the spec's `targets/windows.md` and
 `targets/windows-install.md`) is one entry of class `defaulted`, kind `windowsDefault.<rule>`, severity `accept`
 (`-strict-defaults` makes them errors). It points at the member the rule fills, which is where `yakbd pin` writes
-the value, so `missing` is `true`. A rule that fills several members points at the deepest object that holds all of
-them and lists their pointers in `detail.fields`:
+the value; `missing` is `true` unless that member (or, for several members, the object that holds them) is in the
+file already. A rule that fills several members points at the deepest object that holds all of them and lists their
+pointers in `detail.fields`:
 
 | rule | `pointer` | `detail.fields` |
 |---|---|---|
