@@ -77,7 +77,7 @@ Removing a draft that will not be published, with its tag:
 **With release immutability on** (GitHub Docs, "Immutable releases" and "Managing releases in a repository", read
 2026-11-27): immutability applies when a release is published, not to drafts. A failed run leaves at most the pushed
 tag `vV` (if it failed after the tag step) or the tag and an unpublished draft; neither is immutable, and both are
-removed with the command above (the docs do not discuss drafts explicitly; tested here without immutability). Once a
+removed with the command above (the docs do not discuss drafts explicitly; tested here with immutability on, 2026-11-27: the rehearsal draft `v0.1.0-rehearsal.7` and its tag were deleted with that command, and the tag was gone). Once a
 release is published, its tag cannot be moved or deleted while the release exists, and after deleting the release the
 tag name can never be used again, so a mistake found after publishing means a new version.
 
