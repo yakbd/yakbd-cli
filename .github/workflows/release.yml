@@ -111,7 +111,8 @@ jobs:
           ls -l m
           lipo -archs m/yakbd | tee archs.txt
           grep -qw x86_64 archs.txt && grep -qw arm64 archs.txt
-          lipo -verify_arch m/yakbd x86_64 arm64
+          lipo m/yakbd -verify_arch x86_64 arm64
+          lipo m/yakbd -detailed_info
           codesign --verify --verbose --arch arm64 m/yakbd
           test "$(m/yakbd version)" = "yakbd $VERSION"
           if arch -x86_64 /usr/bin/true 2>/dev/null; then
