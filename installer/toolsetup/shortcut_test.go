@@ -2,6 +2,7 @@ package toolsetup
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -218,4 +219,39 @@ func TestShortcutEncodeRefusals(t *testing.T) {
 	if _, err := Encode(Manifest{Product: Product{Name: "yakbd", Version: "1", Code: code}, Shortcuts: []Shortcut{{Name: "E", Target: "YAKBD-GUI.EXE"}}}, allBuilds, allData, x); err != nil {
 		t.Error(err)
 	}
+}
+
+// TestShortcutReadBack: a shortcut that is not there after it was reported saved, or that points elsewhere, fails a
+// fresh install with 1603 and rolls everything back; a repair that meets one fails with 1603 too, and says why.
+func TestShortcutReadBack(t *testing.T) {
+	for _, bad := range []func(f *fake){
+		func(f *fake) { f.linkLost = `\YAKBD Viewer.lnk` },
+		func(f *fake) { f.linkWrong = `\YAKBD Editor.lnk` },
+	} {
+		f := newFake()
+		before := f.snapshot()
+		bad(f)
+		var logged []string
+		s := newWithShortcuts(t, f, "0.2.0", editor("1"), editorShortcuts)
+		s.Log = func(format string, a ...any) { logged = append(logged, fmt.Sprintf(format, a...)) }
+		_, err := s.Install()
+		wantCode(t, err, cmdline.InstallFailure)
+		if err == nil || !strings.Contains(err.Error(), "did not read back as written") {
+			t.Errorf("error %v", err)
+		}
+		if !strings.Contains(strings.Join(logged, "\n"), "rolling back") {
+			t.Error("the failure was not logged")
+		}
+		if after := f.snapshot(); after != before {
+			t.Errorf("rollback left:\n%s", after)
+		}
+	}
+	f := newFake()
+	s := newWithShortcuts(t, f, "0.2.0", editor("1"), editorShortcuts)
+	if _, err := s.Install(); err != nil {
+		t.Fatal(err)
+	}
+	f.linkLost = `\YAKBD Editor.lnk`
+	_, err := s.Install()
+	wantCode(t, err, cmdline.InstallFailure)
 }

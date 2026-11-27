@@ -287,7 +287,9 @@ and `installer/winhost/shortcut_windows.go` rest on public sources only, read 20
   with CoCreateInstance of CLSID_ShellLink in process for IShellLink, its Set methods, then QueryInterface for
   IPersistFile and Save; COM must be initialized first; the shortcut's name is its file name, `.lnk`);
   IShellLinkW (https://learn.microsoft.com/en-us/windows/win32/api/shobjidl_core/nn-shobjidl_core-ishelllinkw) and
-  IShellLinkW::SetIconLocation (`.../nf-shobjidl_core-ishelllinkw-seticonlocation`); IPersistFile::Save
+  IShellLinkW::SetIconLocation (`.../nf-shobjidl_core-ishelllinkw-seticonlocation`) and GetPath
+  (`.../nf-shobjidl_core-ishelllinkw-getpath`: flags, MAX_PATH, S_FALSE for no path); IPersistFile::Load
+  (https://learn.microsoft.com/en-us/windows/win32/api/objidl/nf-objidl-ipersistfile-load); IPersistFile::Save
   (https://learn.microsoft.com/en-us/windows/win32/api/objidl/nf-objidl-ipersistfile-save: absolute path,
   fRemember); CoInitializeEx (https://learn.microsoft.com/en-us/windows/win32/api/combaseapi/nf-combaseapi-coinitializeex:
   S_FALSE, RPC_E_CHANGED_MODE, balancing CoUninitialize); CoCreateInstance
@@ -301,7 +303,8 @@ and `installer/winhost/shortcut_windows.go` rest on public sources only, read 20
   IPersist and IPersistFile are from Microsoft's own generated Rust bindings: the `windows` crate 0.61.3
   (`src/Windows/Win32/UI/Shell/mod.rs`: `IShellLinkW_Vtbl`, `define_interface!(IShellLinkW, ...)`, `ShellLink`;
   `src/Windows/Win32/System/Com/mod.rs`: `IPersist_Vtbl`, `IPersistFile_Vtbl`, `define_interface!(IPersistFile, ...)`,
-  `CLSCTX_INPROC_SERVER`, `COINIT_APARTMENTTHREADED`, `COINIT_DISABLE_OLE1DDE`) and `windows-core` 0.61.2
+  `CLSCTX_INPROC_SERVER`, `COINIT_APARTMENTTHREADED`, `COINIT_DISABLE_OLE1DDE`, `STGM_READ`; `Foundation`:
+  `MAX_PATH`) and `windows-core` 0.61.2
   (`src/unknown.rs`: `IUnknown_Vtbl`), downloaded from crates.io (MIT OR Apache-2.0; NOTICE §1). Only those ids,
   positions and constants were taken; no code.
 - Go: the standard library's `syscall` package (`SyscallN`, and `LazyProc.Call`'s `//go:uintptrescapes`, the

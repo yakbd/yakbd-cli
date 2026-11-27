@@ -37,9 +37,11 @@ type System interface {
 	BroadcastEnvironment() error
 	// CommonPrograms is the common Start-menu Programs folder, FOLDERID_CommonPrograms (docs/installer-cli.md §12.2).
 	CommonPrograms() (string, error)
-	// CreateShortcut writes the shortcut file lnk (replacing one that is there) pointing at target, with target's
-	// first icon and the working folder dir (docs/installer-cli.md §12.2).
+	// CreateShortcut writes the shortcut file lnk pointing at target, with target's first icon and the working folder
+	// dir (docs/installer-cli.md §12.2); an error unless the file was saved.
 	CreateShortcut(lnk, target, dir string) error
+	// ReadShortcut reads a shortcut file back: its target and working folder.
+	ReadShortcut(lnk string) (target, dir string, err error)
 }
 
 // Registry paths and record values.
@@ -414,13 +416,21 @@ func (s *Setup) Install() (*Result, error) {
 		if rerr == nil {
 			_ = s.Sys.Remove(lnk) // written anew, not saved over (the sources do not say that Save replaces a file)
 		}
-		if err := s.Sys.CreateShortcut(lnk, join(dir, sc.Target), dir); err != nil {
-			return rollback(fmt.Errorf("cannot create the shortcut %s: %v", lnk, err))
-		}
 		if rerr != nil {
 			undo = append(undo, func() { _ = s.Sys.Remove(lnk) })
 		}
-		s.logf("shortcut %s -> %s written", lnk, sc.Target)
+		want := join(dir, sc.Target)
+		if err := s.Sys.CreateShortcut(lnk, want, dir); err != nil {
+			return rollback(fmt.Errorf("cannot create the shortcut %s: %v", lnk, err))
+		}
+		// Read back, as place reads back a file: the shortcut exists and points where it should.
+		if t, d, err := s.Sys.ReadShortcut(lnk); err != nil || !samePath(t, want) || !samePath(d, dir) {
+			if err == nil {
+				err = fmt.Errorf("it points at %q in %q, want %q in %q", t, d, want, dir)
+			}
+			return rollback(fmt.Errorf("the shortcut %s did not read back as written: %v", lnk, err))
+		}
+		s.logf("shortcut %s -> %s written and read back", lnk, sc.Target)
 	}
 
 	// 2. The installer itself, for the uninstall entry.

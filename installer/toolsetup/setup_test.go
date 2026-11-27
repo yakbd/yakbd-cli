@@ -25,6 +25,8 @@ type fake struct {
 	broadcast int
 	noProgs   bool   // CommonPrograms fails
 	linkFail  string // CreateShortcut fails for a shortcut file ending in this
+	linkLost  string // CreateShortcut reports success but writes nothing, for a file ending in this
+	linkWrong string // CreateShortcut stores another target, for a file ending in this
 }
 
 func newFake() *fake {
@@ -178,7 +180,26 @@ func (f *fake) CreateShortcut(lnk, target, dir string) error {
 	if _, ok := f.files[strings.ToLower(target)]; !ok {
 		return fmt.Errorf("target %s missing", target)
 	}
+	switch {
+	case f.linkLost != "" && strings.HasSuffix(lnk, f.linkLost):
+		return nil // reported as saved, but no file (what the read-back must catch)
+	case f.linkWrong != "" && strings.HasSuffix(lnk, f.linkWrong):
+		target = strings.Replace(target, `C:\Program Files\`, `C:\Program Files (x86)\`, 1)
+	}
 	return f.WriteFile(lnk, []byte("lnk "+target+" | "+dir))
+}
+
+// ReadShortcut reads back what CreateShortcut stored.
+func (f *fake) ReadShortcut(lnk string) (string, string, error) {
+	b, err := f.ReadFile(lnk)
+	if err != nil {
+		return "", "", err
+	}
+	t, d, ok := strings.Cut(strings.TrimPrefix(string(b), "lnk "), " | ")
+	if !ok {
+		return "", "", fmt.Errorf("not a shortcut")
+	}
+	return t, d, nil
 }
 
 const progsDir = `C:\ProgramData\Microsoft\Windows\Start Menu\Programs`

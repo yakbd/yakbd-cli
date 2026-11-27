@@ -432,7 +432,10 @@ desktop programs do, for example to the graphical editor:
   shortcuts now or were before (as `YakbdToolExtraFiles`). It holds names, not paths: uninstall and upgrade delete
   only `NAME.lnk` in the common Programs folder for each valid name, whatever else the registry holds.
 - **Install, repair**: after the extra files, each shortcut is written anew (an earlier file of that name is deleted
-  first), so a repair brings back a deleted or changed shortcut. A fresh install that fails deletes the shortcuts it
+  first), so a repair brings back a deleted or changed shortcut. Only `S_OK` from `IPersistFile::Save` counts (its
+  `S_FALSE` means not saved), and each shortcut is then read back (`IPersistFile::Load`, `IShellLinkW::GetPath`
+  and `GetWorkingDirectory`): a missing file, or another target or working folder, fails the run with 1603, logged
+  (a fresh install is rolled back). A fresh install that fails deletes the shortcuts it
   made (rollback, with the files). Shortcuts of the earlier record that this installer does not make (another set, or
   an installer without the extra payload) are deleted after the entry is written; one in use at the next restart.
 - **Uninstall** deletes the recorded shortcuts first, then the files as in §12.1.
