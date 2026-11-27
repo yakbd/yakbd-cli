@@ -1,4 +1,4 @@
-# Release: builds every asset twice and compares, optionally signs yakbd-setup.exe through SignPath, attests the
+# Release: builds every asset twice and compares, runs the macOS binary on a Mac, optionally signs yakbd-setup.exe through SignPath, attests the
 # build provenance, then creates the tag v<version> and a DRAFT release with the assets. A person publishes the draft.
 # How to run it and how to verify a release: docs/release.md.
 name: release
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version without "v": the tool own version (internal/cli VersionString, e.g. 0.1.0-preview.2), or x.y.z-rehearsal.N'
+        description: 'Version without "v": the tool own version (internal/cli VersionString, e.g. 0.1.0-preview.3), or x.y.z-rehearsal.N'
         required: true
         type: string
       sign:
@@ -94,9 +94,37 @@ jobs:
           path: signed/yakbd-setup.exe
           if-no-files-found: error
 
+  # The universal macOS binary is written in Go on Linux (tools/release/macho.go); this job runs it on a Mac: lipo
+  # names both slices, the arm64 slice's signature verifies, and the binary prints the version (natively on arm64, and
+  # on x86-64 through Rosetta 2 when the runner has it).
+  macos:
+    needs: build
+    runs-on: macos-15
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - name: run the universal binary
+        run: |
+          mkdir m && tar -xzf "dist/yakbd-$VERSION-macos.tar.gz" -C m
+          ls -l m
+          lipo -archs m/yakbd | tee archs.txt
+          grep -qw x86_64 archs.txt && grep -qw arm64 archs.txt
+          lipo -verify_arch m/yakbd x86_64 arm64
+          codesign --verify --verbose --arch arm64 m/yakbd
+          test "$(m/yakbd version)" = "yakbd $VERSION"
+          if arch -x86_64 /usr/bin/true 2>/dev/null; then
+            test "$(arch -x86_64 m/yakbd version)" = "yakbd $VERSION"
+            echo "x86_64 slice ran through Rosetta 2" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::warning::Rosetta 2 is not available on this runner: the x86_64 slice was not run"
+          fi
+          echo "macOS: $(sw_vers -productVersion), $(uname -m): yakbd $VERSION from the universal binary" >> "$GITHUB_STEP_SUMMARY"
+
   release:
-    needs: [build, sign]
-    if: always() && needs.build.result == 'success' && (needs.sign.result == 'success' || needs.sign.result == 'skipped')
+    needs: [build, sign, macos]
+    if: always() && needs.build.result == 'success' && needs.macos.result == 'success' && (needs.sign.result == 'success' || needs.sign.result == 'skipped')
     runs-on: ubuntu-latest
     permissions:
       contents: write # the tag and the draft release

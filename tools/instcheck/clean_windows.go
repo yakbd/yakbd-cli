@@ -6,16 +6,14 @@ package main
 //
 //	clean-install    the files match SHA256SUMS; yakbd-setup.exe /quiet /norestart; the uninstall entry
 //	clean-use        yakbd on PATH prints the release version; convert, validate -windows, installer with that
-//	                 yakbd; the layout installer installs, the layout types, it uninstalls; the x64 zip's
-//	                 yakbd.exe runs without installing
+//	                 yakbd; the layout installer installs, the layout types, it uninstalls; the installed
+//	                 yakbd.exe is the x64 build inside the release's yakbd-setup.exe
 //	clean-uninstall  yakbd-setup.exe /x: entry, PATH entry and folder gone
 
 import (
-	"archive/zip"
 	"bytes"
 	"crypto/sha256"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -24,6 +22,7 @@ import (
 	"github.com/yakbd/yakbd-cli/installer"
 	"github.com/yakbd/yakbd-cli/installer/payload"
 	"github.com/yakbd/yakbd-cli/installer/setup"
+	"github.com/yakbd/yakbd-cli/installer/toolsetup"
 )
 
 var cleanPhases = []string{"clean-install", "clean-use", "clean-uninstall"}
@@ -50,7 +49,7 @@ func (c *checker) clean(phase string) bool {
 	case "clean-use":
 		c.cleanOnPath()
 		c.cleanLayoutFlow()
-		c.cleanZip()
+		c.cleanPayload()
 	case "clean-uninstall":
 		c.cleanUninstall()
 	default:
@@ -84,8 +83,8 @@ func (c *checker) cleanAssets() {
 		}
 		n++
 	}
-	if n < 2 {
-		s.failf("only %d of the bundle's files are in SHA256SUMS", n)
+	if n < 1 {
+		s.failf("none of the bundle's files is in SHA256SUMS")
 	}
 	s.notef("%d files checked, version %s", n, c.cleanVersion())
 	s.end()
@@ -216,43 +215,34 @@ func lastLine(s string) string {
 	return s
 }
 
-// cleanZip: yakbd.exe from the x64 zip runs where it is unzipped.
-func (c *checker) cleanZip() {
-	s := c.begin("clean-zip-yakbd-runs-without-install")
+// cleanPayload: the installed yakbd.exe is the x64 build inside ci\yakbd-setup.exe, and the installer copy beside it
+// is ci\yakbd-setup.exe (the release has no separate Windows archive of yakbd.exe since 0.1.0-preview.3).
+func (c *checker) cleanPayload() {
+	s := c.begin("clean-installed-yakbd-is-the-release-build")
 	defer s.end()
-	name := "yakbd-" + c.cleanVersion() + "-windows-x64.zip"
-	r, err := zip.OpenReader(c.ci(name))
+	b, err := os.ReadFile(c.ci("yakbd-setup.exe"))
 	if err != nil {
 		s.failf("%v", err)
 		return
 	}
-	defer r.Close()
-	dir := filepath.Join(c.res, "zip")
-	_ = os.MkdirAll(dir, 0o755)
-	var got []string
-	for _, f := range r.File {
-		got = append(got, f.Name)
-		rc, err := f.Open()
-		if err != nil {
-			s.failf("%v", err)
-			return
-		}
-		var buf bytes.Buffer
-		_, err = io.Copy(&buf, rc)
-		rc.Close()
-		if err == nil {
-			err = os.WriteFile(filepath.Join(dir, filepath.Base(f.Name)), buf.Bytes(), 0o755)
-		}
-		if err != nil {
-			s.failf("%v", err)
-			return
-		}
+	p, err := toolsetup.FromExe(b)
+	if err != nil {
+		s.failf("payload of ci\\yakbd-setup.exe: %v", err)
+		return
 	}
-	out, err := exec.Command(filepath.Join(dir, "yakbd.exe"), "version").CombinedOutput()
-	if want := "yakbd " + c.cleanVersion(); err != nil || strings.TrimSpace(string(out)) != want {
-		s.failf("yakbd.exe version: %v %q, want %q", err, bytes.TrimSpace(out), want)
+	got, err := os.ReadFile(filepath.Join(toolDir(), "yakbd.exe"))
+	if err != nil {
+		s.failf("%v", err)
+		return
 	}
-	s.notef("zip holds %s", strings.Join(got, ", "))
+	if !bytes.Equal(got, p.Data[toolsetup.BuildX64]) {
+		s.failf("the installed yakbd.exe is not the x64 build of the installer's payload")
+	}
+	if copyOf, err := os.ReadFile(filepath.Join(toolDir(), "setup.exe")); err != nil || !bytes.Equal(copyOf, b) {
+		s.failf("setup.exe in the folder is not ci\\yakbd-setup.exe (%v)", err)
+	}
+	h := sha256.Sum256(got)
+	s.notef("yakbd.exe x64 %x, builds %s", h[:6], strings.Join(p.Manifest.Builds(), ", "))
 }
 
 func (c *checker) cleanUninstall() {

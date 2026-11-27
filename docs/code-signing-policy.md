@@ -16,7 +16,8 @@ Foundation's, so Windows shows "SignPath Foundation" as the publisher.
 
 Not signed:
 
-- the `yakbd.exe` zips and the Linux and macOS binaries of a release;
+- the `yakbd.exe` inside `yakbd-setup.exe` (only the installer file is signed) and the Linux and macOS archives of a
+  release;
 - the layout installers (`<dll name>-setup.exe`) that `yakbd installer` writes. They are built by the authors of
   the layouts on their own machines, not by this project, and are never signed with this project's certificate.
   An author can sign their own: [`windows-security-prompts.md`](windows-security-prompts.md) §4.

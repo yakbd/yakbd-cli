@@ -22,9 +22,9 @@ From the [releases](https://github.com/yakbd/yakbd-cli/releases) of this reposit
 
 - **Windows**: `yakbd-setup.exe` installs `yakbd.exe` for the PC's architecture into Program Files and puts it on
   the PATH (for an unattended install, `yakbd-setup.exe /quiet /norestart` from an elevated prompt; uninstall
-  under "Installed apps"). Or take the zip for your architecture and run `yakbd.exe` from wherever you unzip
-  it; it needs no installation. Windows may warn about either: [`docs/windows-security-prompts.md`](docs/windows-security-prompts.md).
-- **Linux and macOS**: the `yakbd` binary for your system.
+  under "Installed apps"). Windows may warn about it: [`docs/windows-security-prompts.md`](docs/windows-security-prompts.md).
+- **Linux and macOS**: `yakbd-<version>-linux-amd64.tar.gz`, `-linux-arm64.tar.gz` or `-macos.tar.gz` (one
+  universal binary for Intel and Apple silicon Macs); each holds `yakbd`, `LICENSE` and `NOTICE`.
 - **Check the download** against the release's `SHA256SUMS` file and its build provenance attestation
   ([`docs/release.md`](docs/release.md)).
 

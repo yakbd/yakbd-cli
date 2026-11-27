@@ -25,11 +25,11 @@ import (
 )
 
 // Version of the tool: the numbers (what DLL and installer version resources carry, which hold four numbers) and the
-// pre-release suffix of a semantic version; VersionString joins them ("0.1.0-preview.2").
+// pre-release suffix of a semantic version; VersionString joins them ("0.1.0-preview.3").
 var Version = [4]uint16{0, 1, 0, 0}
 
 // PreRelease is the semantic-version pre-release suffix after "-", or empty for a final release.
-const PreRelease = "preview.2"
+const PreRelease = "preview.3"
 
 // VersionString is the tool's semantic version, major.minor.patch[-pre-release].
 func VersionString() string {
@@ -41,7 +41,7 @@ func VersionString() string {
 }
 
 // Release is the release version a release build writes here with -X (docs/release.md), for example
-// "0.1.0-preview.2"; empty in every other build. `yakbd version` prints it when set.
+// "0.1.0-preview.3"; empty in every other build. `yakbd version` prints it when set.
 var Release string
 
 // Exit codes.

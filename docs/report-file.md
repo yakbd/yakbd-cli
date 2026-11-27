@@ -20,7 +20,7 @@ corpus and the CLDR keyboards (each converted to `.kbl.json` first).
 ```json
 {
   "format": 1,
-  "tool": { "name": "yakbd", "version": "0.1.0-preview.2" },
+  "tool": { "name": "yakbd", "version": "0.1.0-preview.3" },
   "command": "validate",
   "input": { "file": "minimal-qwerty.kbl.json", "format": "kbl.json" },
   "entries": [

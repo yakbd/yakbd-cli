@@ -18,15 +18,14 @@ func writeClean(out, assets string) error {
 	if _, err := os.Stat(out); err == nil {
 		return fmt.Errorf("%s exists", out)
 	}
-	zips, _ := filepath.Glob(filepath.Join(assets, "yakbd-*-windows-x64.zip"))
-	if len(zips) != 1 {
-		return fmt.Errorf("%s: want one yakbd-V-windows-x64.zip, found %d", assets, len(zips))
+	version, err := releaseVersion(filepath.Join(assets, "SHA256SUMS"))
+	if err != nil {
+		return err
 	}
-	version := strings.TrimSuffix(strings.TrimPrefix(filepath.Base(zips[0]), "yakbd-"), "-windows-x64.zip")
 	if err := os.MkdirAll(filepath.Join(out, "ci"), 0o755); err != nil {
 		return err
 	}
-	for _, f := range []string{"yakbd-setup.exe", filepath.Base(zips[0]), "SHA256SUMS"} {
+	for _, f := range []string{"yakbd-setup.exe", "SHA256SUMS"} {
 		b, err := os.ReadFile(filepath.Join(assets, f))
 		if err != nil {
 			return err
@@ -69,10 +68,29 @@ func writeClean(out, assets string) error {
 	return nil
 }
 
+// releaseVersion is the version V of a release's SHA256SUMS: the one line naming yakbd-V-macos.tar.gz.
+func releaseVersion(sums string) (string, error) {
+	b, err := os.ReadFile(sums)
+	if err != nil {
+		return "", err
+	}
+	var found []string
+	for _, l := range strings.Split(string(b), "\n") {
+		_, name, ok := strings.Cut(strings.TrimSpace(l), "  ")
+		if v, isMac := strings.CutSuffix(strings.TrimPrefix(name, "yakbd-"), "-macos.tar.gz"); ok && isMac && strings.HasPrefix(name, "yakbd-") {
+			found = append(found, v)
+		}
+	}
+	if len(found) != 1 {
+		return "", fmt.Errorf("%s: want one line for yakbd-V-macos.tar.gz, found %d", sums, len(found))
+	}
+	return found[0], nil
+}
+
 // cleanFiles are the files the driver and the clean-* phases of tools/instcheck open.
 func cleanFiles(version string) []string {
 	return []string{"drive.ps1", "run-phase.ps1", "instcheck.exe", "kbdtst.klc", "ci/yakbd-setup.exe", "ci/SHA256SUMS",
-		"ci/VERSION.txt", "ci/yakbd-" + version + "-windows-x64.zip"}
+		"ci/VERSION.txt"}
 }
 
 var driveCleanPS1 = strings.Replace(strings.Replace(strings.Replace(driveHead, "round 5b driver", "clean-machine release driver", 1),
@@ -109,7 +127,7 @@ collects C:\yk\results into host-results\legC\ (next to drive.ps1 when Windows c
 10 minutes.
 
 ci\ holds the release files exactly as downloaded from the workflow's draft release (BUILT-FROM.txt: run and
-commit): yakbd-setup.exe, the x64 zip, SHA256SUMS. Nothing in ci\ was built on another machine.
+commit): yakbd-setup.exe and SHA256SUMS. Nothing in ci\ was built on another machine.
 
 Result lines (summary.txt):
   clean-assets-match-sha256sums           the ci\ files have the hashes of SHA256SUMS
@@ -122,7 +140,9 @@ Result lines (summary.txt):
                                           kbdtst.klc, compile -emit-expectations
   clean-layout-installs-types-uninstalls  kbdtst-setup.exe /quiet /norestart: installed and enabled; the layout
                                           types every expectation line; /x /quiet removes it (0 or 3010)
-  clean-zip-yakbd-runs-without-install    yakbd.exe unzipped from the x64 zip prints "yakbd __VERSION__"
+  clean-installed-yakbd-is-the-release-build
+                                          the installed yakbd.exe is the x64 build inside ci\yakbd-setup.exe, and
+                                          setup.exe beside it is ci\yakbd-setup.exe (the release has no Windows zip)
   clean-setup-uninstall-leaves-nothing    ci\yakbd-setup.exe /x /quiet /norestart: exit 0; entry, Path entry and
                                           folder gone
 

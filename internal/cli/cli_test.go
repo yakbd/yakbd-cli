@@ -36,7 +36,7 @@ func TestCommands(t *testing.T) {
 	}{
 		{"no args", nil, ExitUsage, "", "usage"},
 		{"unknown", []string{"frob"}, ExitUsage, "", "unknown command"},
-		{"version", []string{"version"}, ExitOK, "yakbd 0.1.0-preview.2", ""},
+		{"version", []string{"version"}, ExitOK, "yakbd 0.1.0-preview.3", ""},
 		{"validate klc", []string{"validate", kbdtst}, ExitOK, "valid", "default(s) used"},
 		{"validate kbl", []string{"validate", example}, ExitOK, "valid", ""},
 		{"validate strict", []string{"validate", "-windows", "-strict-defaults", example}, ExitError, "", "error (defaulted)"},

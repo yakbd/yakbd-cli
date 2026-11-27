@@ -3,8 +3,8 @@
 Windows checks programs you download before it runs them. This page says what you can expect to see for the two
 kinds of program yakbd gives you, and what you can do about it:
 
-- `yakbd-setup.exe`, the installer of the yakbd tool itself, and the `yakbd.exe` zips, downloaded from the
-  [releases](https://github.com/yakbd/yakbd-cli/releases) of this repository;
+- `yakbd-setup.exe`, the installer of the yakbd tool itself, downloaded from the
+  [releases](https://github.com/yakbd/yakbd-cli/releases) of this repository, and the `yakbd.exe` it installs;
 - the layout installers (`<dll name>-setup.exe`) that `yakbd installer` writes for a layout. These are unsigned.
 
 Statements below are marked **[measured]** when we tested them on Windows, and otherwise give the Microsoft page
@@ -38,12 +38,12 @@ signing certificate right after that release, so signing starts with a later rel
 |---|---|---|---|
 | `yakbd-setup.exe` once signed (a later release, see [`code-signing-policy.md`](code-signing-policy.md)) | expected to run, as it is signed by a trusted certificate authority (not yet tested) | expected: may warn while the certificate is new, naming SignPath Foundation as the publisher | expected: grey prompt, publisher SignPath Foundation |
 | `yakbd-setup.exe` of the 0.1 preview, and every layout installer | **blocked** **[measured]**: an unsigned program in the Downloads folder was blocked, with and without the download mark | "Windows protected your PC", with "Run anyway" | yellow prompt, no verified publisher |
-| `yakbd.exe` from a zip | unsigned, so treated like any unsigned program: expect it to be blocked | as for any unsigned download: "Windows protected your PC" | none: `yakbd.exe` needs no administrator rights |
+| `yakbd.exe`, installed by `yakbd-setup.exe` | unsigned, so treated like any unsigned program: expect it to be blocked (not yet tested) | not shown: it is not a download | none: `yakbd.exe` needs no administrator rights |
 
 Smart App Control checks every program it starts, not only downloads
 ([SmartScreen reputation for apps](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/smartscreen-reputation)).
 Only `yakbd-setup.exe` will be signed, so with Smart App Control on, the `yakbd.exe` it installs is expected to be
-blocked like the one from the zip; this has not been tested yet.
+blocked like any unsigned program; this has not been tested yet.
 
 The layout DLL itself is not stopped by Smart App Control: an unsigned layout DLL, installed by hand, loaded and
 typed with Smart App Control on **[measured]**. Only the installer program is affected.
@@ -62,10 +62,9 @@ provenance attestation that ties each file to the source and the workflow run th
 The GitHub CLI checks the attestation with `gh attestation verify`. The exact steps for both checks are in
 [`release.md`](release.md).
 
-**Use yakbd without an installer.** The release also has a zip of `yakbd.exe` for each Windows architecture. Unzip
-it anywhere and run `yakbd.exe` from a terminal; it changes nothing on the PC and needs no administrator rights.
-To build layouts you do not need Windows at all: the Linux and macOS builds of `yakbd` write the same layout
-installers.
+**Build layouts without Windows.** You do not need Windows, or `yakbd.exe`, to build a layout: the Linux and macOS
+builds of `yakbd` (the release's `.tar.gz` files, which also run in WSL) write the same layout installers. Only the
+layout installer then runs on Windows.
 
 **Run a file you trust.**
 
