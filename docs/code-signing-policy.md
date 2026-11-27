@@ -47,8 +47,9 @@ Not signed:
   builds every binary twice and compares the hashes.
 - **Started by hand.** The workflow runs only when a maintainer starts it for a version; it has no automatic
   trigger.
-- **Signed only after approval.** The signing step sends the built `yakbd-setup.exe` to SignPath (the programs
-  nested in it are signed in the same request). An approver
+- **Signed only after approval.** The release workflow sends what it built to SignPath: the project's own programs
+  first, then `yakbd-setup.exe` assembled around the signed programs (the workflow change for the nested programs
+  comes with enabling signing, [`release.md`](release.md) §4). An approver
   checks that the request comes from the release workflow of this repository for the intended version, and approves
   it in SignPath. Every release is approved by hand.
 - **Published unchanged.** The release is published with its assets and tag frozen (an immutable GitHub

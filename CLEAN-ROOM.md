@@ -304,4 +304,15 @@ and `installer/winhost/shortcut_windows.go` rest on public sources only, read 20
   `CLSCTX_INPROC_SERVER`, `COINIT_APARTMENTTHREADED`, `COINIT_DISABLE_OLE1DDE`) and `windows-core` 0.61.2
   (`src/unknown.rs`: `IUnknown_Vtbl`), downloaded from crates.io (MIT OR Apache-2.0; NOTICE §1). Only those ids,
   positions and constants were taken; no code.
-- Go documentation: `syscall.SyscallN`, `runtime.LockOSThread`, the `//go:uintptrescapes` directive (cmd/compile).
+- Go: the standard library's `syscall` package (`SyscallN`, and `LazyProc.Call`'s `//go:uintptrescapes`, the
+  pattern `comCall` follows) and `runtime.LockOSThread`, from general knowledge of Go, no page read for them.
+
+## Release archives and the universal macOS binary (2026-11-27)
+
+`tools/release/macho.go` writes the universal ("fat") Mach-O layout as Go's own reader expects it: Go 1.26.8
+`src/debug/macho/fat.go` (`NewFatFile`, `FatArchHeader`: big-endian magic `MagicFat`, slice count, five uint32
+fields per slice), read 2026-11-27. The 16 KiB slice alignment is our choice; that the result is accepted by
+Apple's tools and runs was measured on a GitHub `macos-15` arm64 runner, release workflow run 46021005907
+(rehearsal) and 46021784416 (0.1.0-preview.3): `lipo -archs`/`-verify_arch` name both slices, `codesign --verify`
+accepts the arm64 slice (the Go linker's ad-hoc signature, kept unchanged in the slice), and `yakbd version` ran.
+The tar and gzip archives use Go's `archive/tar` and `compress/gzip` only.
