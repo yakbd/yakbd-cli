@@ -124,7 +124,7 @@ func run(args []string) int {
 	}
 	if *phase == "all" {
 		c.all()
-	} else if !c.plant(*phase) && !c.clean(*phase) && !c.reenablePhase(*phase, res) && !c.arm64(*phase, res) && !c.realUser(*phase, res) && !c.signin(*phase, res) {
+	} else if !c.plant(*phase) && !c.clean(*phase) && !c.suite(*phase) && !c.reenablePhase(*phase, res) && !c.arm64(*phase, res) && !c.realUser(*phase, res) && !c.signin(*phase, res) {
 		fmt.Println("unknown phase", *phase)
 		return 2
 	}

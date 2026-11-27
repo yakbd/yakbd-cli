@@ -319,3 +319,26 @@ Apple's tools and runs was measured on a GitHub `macos-15` arm64 runner, release
 (rehearsal) and 46021784416 (0.1.0-preview.3): `lipo -archs`/`-verify_arch` name both slices, `codesign --verify`
 accepts the arm64 slice (the Go linker's ad-hoc signature, kept unchanged in the slice), and `yakbd version` ran.
 The tar and gzip archives use Go's `archive/tar` and `compress/gzip` only.
+
+## The two YAKBD installers and their wizard (2026-11-27)
+
+The components, the decisions, the earlier layout's takeover and the settings rules (docs/installer-cli.md §12) use
+only facts the earlier installer already used (files, delayed replacement, the uninstall entry, the machine PATH),
+the shortcut facts above, and the earlier installer's own record and the three published installers' payloads
+(read with this repository's reader). Public sources read 2026-11-27, facts only:
+- Microsoft Learn: Enabling Visual Styles (https://learn.microsoft.com/en-us/windows/win32/controls/cookbook-overview:
+  the Common Controls 6 manifest dependency, which the installers' manifest already had); IsDialogMessageW
+  (https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-isdialogmessagew: keyboard selection in any
+  window with controls, DM_GETDEFID); WM_DPICHANGED (https://learn.microsoft.com/en-us/windows/win32/hidpi/wm-dpichanged:
+  the suggested rectangle, SetWindowPos, scaling by DPI/96); GetDpiForWindow
+  (https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getdpiforwindow: Windows 10 1607 and later,
+  so the wizard falls back to 96 DPI before it); RegDeleteTreeW
+  (https://learn.microsoft.com/en-us/windows/win32/api/winreg/nf-winreg-regdeletetreew: subkeys and values of the
+  named key; whether the key itself goes is not said, so RegDeleteKeyW follows and a missing key counts as done);
+  semantic version precedence, https://semver.org §11.
+- The other functions the wizard and the settings removal call (window class and window creation, the message
+  loop, control messages, fonts, InitCommonControlsEx, AdjustWindowRectEx(ForDpi), SystemParametersInfoW,
+  RtlMoveMemory, RegOpenKeyExW, RegQueryInfoKeyW, RegDeleteKeyW): their signatures, the constants' values (DC_HASDEFID
+  among them) and the structures' field order from Microsoft's `windows` crate 0.61.3 (already downloaded for the
+  shortcut work; NOTICE §1); their Learn pages were not read for this work. No code was taken.
+- Go documentation: `compress/flate` (DEFLATE, RFC 1951) for the payload's compression.

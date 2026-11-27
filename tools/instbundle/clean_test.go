@@ -44,8 +44,8 @@ func TestCleanDryRun(t *testing.T) {
 		return
 	}
 	assets := t.TempDir()
-	sums := "aa  yakbd-9.9.9-rehearsal.1-linux-amd64.tar.gz\nbb  yakbd-9.9.9-rehearsal.1-macos.tar.gz\ncc  yakbd-setup.exe\n"
-	for f, c := range map[string]string{"yakbd-setup.exe": "x", "SHA256SUMS": sums} {
+	sums := "aa  yakbd-9.9.9-rehearsal.1-linux-amd64.tar.gz\nbb  yakbd-9.9.9-rehearsal.1-macos.tar.gz\ncc  yakbd-cli-setup.exe\n"
+	for f, c := range map[string]string{"yakbd-cli-setup.exe": "x", "SHA256SUMS": sums} {
 		if err := os.WriteFile(filepath.Join(assets, f), []byte(c), 0o644); err != nil {
 			t.Fatal(err)
 		}

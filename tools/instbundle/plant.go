@@ -33,7 +33,7 @@ func writePlant(out string) error {
 	if err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(out, "yakbd-setup.exe"), setup, 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(out, "yakbd-cli-setup.exe"), setup, 0o644); err != nil {
 		return err
 	}
 	if err := prefixInstaller(filepath.Join(out, "kbdxx-prefix-setup.exe")); err != nil {
@@ -258,7 +258,7 @@ Result lines (results\w11plant.txt, copied into summary.txt):
                                             uninstall entry there, no marker
   plant-double-click-cleanup                kbdxx-setup.exe /x /quiet from the same folder (elevated): removed, no marker
   plant-quiet-loads-no-planted-dll          kbdxx-setup.exe /quiet and /x /quiet, elevated: exit 0, no marker
-  plant-toolsetup-loads-no-planted-dll      yakbd-setup.exe /quiet and /x /quiet: the same
+  plant-toolsetup-loads-no-planted-dll      yakbd-cli-setup.exe /quiet and /x /quiet: the same
   plant-prefix-installer-before-the-fix     kbdxx-prefix-setup.exe, the same layout built by the tool before the fix
                                             (commit 2063f05, which loaded user32, ole32 and wtsapi32 by bare name):
                                             always PASS; the note lists the planted DLLs it loaded (expected: some),
@@ -274,7 +274,7 @@ Exit code: summary.txt ends with "w11plant: N passed, M failed". BUILT-FROM.txt 
 // plantFiles are the bundle files the driver and every plant-* phase of tools/instcheck open (plantNeeds in
 // tools/instcheck/plant_windows.go names the same per phase); writePlant checks that each one was written.
 var plantFiles = []string{"drive.ps1", "run-phase.ps1", "instcheck.exe", "instcheck-32.exe", "plant-marker.dll",
-	"kbdxx-setup.exe", "yakbd-setup.exe", "kbdxx-prefix-setup.exe"}
+	"kbdxx-setup.exe", "yakbd-cli-setup.exe", "kbdxx-prefix-setup.exe"}
 
 func checkPlantBundle(out string) error {
 	for _, f := range plantFiles {

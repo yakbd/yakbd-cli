@@ -10,15 +10,15 @@ For version `V` (for example `0.1.0-preview.3`; the tag is `vV`):
 
 | file | what it is |
 |---|---|
-| `yakbd-setup.exe` | the Windows installer: one 32-bit program carrying `yakbd.exe` for x86, x64 and arm64; it installs the one for the PC into Program Files and adds it to the PATH ([`installer-cli.md`](installer-cli.md) §12) |
+| `yakbd-cli-setup.exe` | the Windows installer of YAKBD CLI: one 32-bit program carrying `yakbd.exe` for x86, x64 and arm64; it installs the one for the PC into `Program Files\YAKBD\CLI` and, by default, adds it to the PATH ([`installer-cli.md`](installer-cli.md) §12). The editor's release has `yakbd-gui-setup.exe`, made from this release with the same tool |
 | `yakbd-V-linux-amd64.tar.gz`, `yakbd-V-linux-arm64.tar.gz` | `yakbd` for Linux on x86-64 or ARM64, `LICENSE`, `NOTICE` |
 | `yakbd-V-macos.tar.gz` | `yakbd` for macOS as one universal binary (x86-64 and arm64 slices, each the plain Go build), `LICENSE`, `NOTICE` |
 | `SHA256SUMS` | the SHA-256 of every other file, in the format of `sha256sum` |
 
 Every archive unpacks into the current folder (`tar -xzf FILE`) with `yakbd` executable. There is no Windows archive
-of `yakbd.exe` (maintainer decision, from 0.1.0-preview.3 on): `yakbd-setup.exe` is the Windows download, and the
-`yakbd.exe` it installs is the release build. To check that a `yakbd-setup.exe` made with an extra payload carries
-the released `yakbd.exe`, see [`installer-cli.md`](installer-cli.md) §12.1. Up to 0.1.0-preview.2 a release had
+of `yakbd.exe` (maintainer decision, from 0.1.0-preview.3 on): `yakbd-cli-setup.exe` is the Windows download, and the
+`yakbd.exe` it installs is the release build. To check that the editor's `yakbd-gui-setup.exe` carries the released
+`yakbd.exe`, see [`installer-cli.md`](installer-cli.md) §12.1. Up to 0.1.0-preview.2 a release had
 zips of `yakbd.exe` and four bare Linux and macOS binaries instead of the archives.
 
 The universal macOS binary is joined in Go (`tools/release/macho.go`: the universal-binary header Go's `debug/macho`
@@ -97,32 +97,32 @@ the files depend only on the source and the Go version (the workflow uses the Go
 **Checksum.** Download `SHA256SUMS` with the file. Linux and macOS: `sha256sum -c --ignore-missing SHA256SUMS`
 (macOS: `shasum -a 256 -c --ignore-missing SHA256SUMS`). Windows PowerShell:
 
-    (Get-FileHash .\yakbd-setup.exe).Hash.ToLower()     # must equal the line for yakbd-setup.exe in SHA256SUMS
+    (Get-FileHash .\yakbd-cli-setup.exe).Hash.ToLower()     # must equal the line for yakbd-cli-setup.exe in SHA256SUMS
 
 **Build provenance.** Every file of a release has an attestation that names the repository, the workflow and the
 commit that built it. With the [GitHub CLI](https://cli.github.com):
 
-    gh attestation verify yakbd-setup.exe -R yakbd/yakbd-cli
+    gh attestation verify yakbd-cli-setup.exe -R yakbd/yakbd-cli
 
 It succeeds only for a file built by a workflow of `yakbd/yakbd-cli`; the output names the workflow file and the
 commit. Add `--signer-workflow yakbd/yakbd-cli/.github/workflows/release.yml` to require the release workflow.
 
-**Signature** (once signing has started, §4): `Get-AuthenticodeSignature .\yakbd-setup.exe` shows `Valid` and the
+**Signature** (once signing has started, §4): `Get-AuthenticodeSignature .\yakbd-cli-setup.exe` shows `Valid` and the
 signer SignPath Foundation.
 
 ## 4. Signing
 
-`yakbd-setup.exe` and the `yakbd.exe` builds nested in it are to be signed, through [SignPath Foundation](https://signpath.org), which signs open-source
+`yakbd-cli-setup.exe` and the `yakbd.exe` builds nested in it are to be signed, through [SignPath Foundation](https://signpath.org), which signs open-source
 projects for free with its own certificate; the policy is [`code-signing-policy.md`](code-signing-policy.md). It is
 **not enabled yet**: SignPath Foundation signs a project only after it has released the files it is asked to
-sign, so the first releases ship `yakbd-setup.exe` unsigned.
+sign, so the first releases ship `yakbd-cli-setup.exe` unsigned.
 
-The workflow is ready for it: with the input `sign` on, the job `sign` sends the unsigned `yakbd-setup.exe` (as a
+The workflow is ready for it: with the input `sign` on, the job `sign` sends the unsigned `yakbd-cli-setup.exe` (as a
 workflow artifact) to SignPath with `signpath/github-action-submit-signing-request@v3`, waits until a person has
 approved the request at SignPath, and passes the signed file to the release job, which puts it in the release and
 computes `SHA256SUMS` and the attestation over it. That job signs the installer file only: the `yakbd.exe` builds
 travel inside the installer's own payload format, which a signing service cannot open, so signing them as well means
-signing the builds first and assembling `yakbd-setup.exe` around the signed files (the payload's hashes then cover
+signing the builds first and assembling `yakbd-cli-setup.exe` around the signed files (the payload's hashes then cover
 the signed bytes). That change comes with enabling signing. To enable it, once the SignPath project exists:
 
 | repository setting | kind | value |
@@ -131,12 +131,12 @@ the signed bytes). That change comes with enabling signing. To enable it, once t
 | `SIGNPATH_ORGANIZATION_ID` | variable | the SignPath organization id |
 | `SIGNPATH_PROJECT_SLUG` | variable | the project slug (the project is named after this repository's product, `yakbd`) |
 | `SIGNPATH_SIGNING_POLICY_SLUG` | variable | the signing policy, e.g. `release-signing` |
-| `SIGNPATH_ARTIFACT_CONFIGURATION_SLUG` | variable | the artifact configuration that signs `yakbd-setup.exe` inside the artifact zip |
+| `SIGNPATH_ARTIFACT_CONFIGURATION_SLUG` | variable | the artifact configuration that signs `yakbd-cli-setup.exe` inside the artifact zip |
 
 and run the workflow with `sign` on. In SignPath, connect the project to this repository as a trusted build system
 (GitHub-hosted runners only) and let only the `release` workflow on `main` submit requests.
 
 Signing appends the signature and also changes the header (its checksum and certificate table entry), so a rebuild
-(§2) matches the unsigned `yakbd-setup.exe` only. The unsigned file stays available as the artifact
+(§2) matches the unsigned `yakbd-cli-setup.exe` only. The unsigned file stays available as the artifact
 `setup-unsigned` of the workflow run; every other file of the release is never signed and matches a rebuild
 directly.

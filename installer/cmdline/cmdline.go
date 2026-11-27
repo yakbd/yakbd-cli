@@ -1,5 +1,5 @@
 // Package cmdline is the command line and the exit codes of every installer program yakbd makes: the layout
-// installers (installer/stub) and the tool's own yakbd-setup.exe (installer/toolstub). It follows msiexec's
+// installers (installer/stub) and the YAKBD installers yakbd-cli-setup.exe and yakbd-gui-setup.exe (installer/toolstub). It follows msiexec's
 // command line and Windows Installer's exit codes (docs/installer-cli.md, which cites the Microsoft pages each rule
 // comes from): a deployment tool that knows how to drive an .msi drives these .exe files the same way. The package
 // is pure (standard library only, no Windows calls), so that the whole contract is tested on any OS; it is

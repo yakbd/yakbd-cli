@@ -86,6 +86,8 @@ var guestPhases = map[string][]string{
 	"w11plant": plantPhases,
 	// Clean-machine check of a release (clean_windows.go).
 	"w11clean": cleanPhases,
+	// The two YAKBD installers (suite_windows.go), after the clean-machine checks.
+	"w11suite": append(append([]string(nil), cleanPhases...), suitePhases...),
 }
 
 // realUser runs a real-user phase; false when the phase is not one of them.

@@ -9,5 +9,5 @@ import (
 )
 
 func main() {
-	os.Exit(run(os.Args[1:], winhost.New()))
+	os.Exit(run(os.Args[1:], &win{winhost.New()}))
 }

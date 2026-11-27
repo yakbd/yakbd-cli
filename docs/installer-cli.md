@@ -1,8 +1,9 @@
 # Installer command line: msiexec-compatible
 
 Owner decision (2026-11-26): MSI is abandoned, for yakbd itself and for the installers it makes. Every installer
-program yakbd makes, the layout installers (`<name>-setup.exe`, docs/installer.md) and the tool's own
-`yakbd-setup.exe` (§12), takes **msiexec's command line and gives Windows Installer's exit codes**, so that anything
+program yakbd makes, the layout installers (`<name>-setup.exe`, docs/installer.md) and the YAKBD installers
+`yakbd-cli-setup.exe` and `yakbd-gui-setup.exe` (§12), takes **msiexec's command line and gives Windows Installer's
+exit codes**, so that anything
 that drives an `.msi` (a person at a prompt, winget, Intune, Configuration Manager, a script) drives these `.exe`
 files the same way: silent install and uninstall, repair, upgrade behaviour, restarts, logging, exit codes.
 
@@ -242,7 +243,7 @@ refused as a foreign file, 1603).
   `iwearucmopvx*` are therefore accepted without changing the content; `!` (flush every line) is what the program
   does anyway: each line is written straight to the file.
 - **Default (the MsiLogging analogue).** Without `/l`, the program logs anyway, appending to
-  `%TEMP%\yakbd-<dll name>-setup.log` (layout) or `%TEMP%\yakbd-setup.log` (tool). Windows Installer logs by default
+  `%TEMP%\yakbd-<dll name>-setup.log` (layout) or `%TEMP%\yakbd-setup.log` (the YAKBD installers). Windows Installer logs by default
   only when a package sets `MsiLogging` (then to a random `MSI*.LOG` in `%TEMP%`) or the `Logging` machine policy is
   set [LOG]; ours behave like a package with `MsiLogging` set, under a fixed name, so that a support person finds
   the file. The `Logging` policy is not read (it is Windows Installer's).
@@ -252,7 +253,7 @@ refused as a foreign file, 1603).
 
 Windows Installer refuses a second installation while one is executing, with 1618, and marks the executing phase
 with the `_MSIExecute` mutex [MUTEX]. Ours hold a machine-wide mutex `Global\YAKBD-Setup` while they change the
-machine (the elevated part: files, registry, uninstall entry), in every layout installer and in `yakbd-setup.exe`. A
+machine (the elevated part: files, registry, uninstall entry), in every layout installer and in the YAKBD installers. A
 second yakbd installer that finds it held exits with 1618 and changes nothing; [CM] retries such a code ("Fast
 Retry"), [INTUNE] has a "Retry" code type, winget maps 1618 to `installInProgress` for MSI types [WINGET-SRC].
 **Our choice**: `_MSIExecute` itself is neither taken nor checked. [MUTEX] gives neither its namespace nor a way to
@@ -333,136 +334,189 @@ is now `/f`; `/enable`/`/noenable` are `ENABLE=1`/`ENABLE=0`; `/force` is `FORCE
 returns 0, not the old 6. Repair and uninstall of a product that is not installed return 1605 (a repair used to
 install it fresh). An older installer over a newer version returns 1638 (it used to downgrade).
 
-## 12. The tool's own installer, `yakbd-setup.exe`
+## 12. The YAKBD installers, `yakbd-cli-setup.exe` and `yakbd-gui-setup.exe`
 
-One 32-bit program (the same reason as docs/installer.md §2: it starts on x86, x64 and ARM64 Windows) carrying the
-x86, x64 and arm64 builds of `yakbd.exe`. It takes the same command line and gives the same codes (`ENABLE`,
-`SIGNIN` and `FORCE` are accepted and ignored).
+Two installers, both made by this repository's `tools/toolsetup` and both one 32-bit program (the same reason as
+docs/installer.md §2: it starts on x86, x64 and ARM64 Windows):
 
-- **Files**: `yakbd.exe` of the machine's architecture (x86, x64 or arm64 by IsWow64Process2, inst §2.2; no
-  fallback: a machine without its build gets 1633) into `%ProgramW6432%\YAKBD\yakbd\` (the native Program Files:
-  a 32-bit process sees `ProgramFiles` as the x86 folder and `ProgramW6432` as the native one [ENV] WOW64
-  Implementation Details; on 32-bit Windows `ProgramFiles`), and a copy of the installer as `setup.exe` next to it.
-- **PATH**: the folder is appended to the machine `Path`
-  (`HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment`, the value's type kept, REG_EXPAND_SZ when
-  new), and `WM_SETTINGCHANGE` with `"Environment"` is broadcast with `SendMessageTimeout` [ENV]. When the folder is
-  already in `Path` nothing is added and the record says so; uninstall removes only the entry the installer added.
-- **Uninstall entry** `...\Uninstall\{product code}` as §9, product code fixed:
-  `{EBE1EAEC-C574-5473-8489-B3FF22FC6506}` (UUID version 5 of the namespace of docs/installer.md §7 and the
-  name `yakbd tool installer`: `installer.ToolProductCode`); record values `YakbdToolFile`, `YakbdPathAdded`,
-  `YakbdToolBuild` and, with an extra payload, `YakbdToolExtraFiles` (§12.1) and `YakbdToolShortcuts` (§12.2).
-- **Upgrade, repair, downgrade** as §6; `yakbd.exe` in use (running) is replaced or deleted at the next restart,
-  3010, and the restart rules of §5 apply.
-- **Built** by `go run ./tools/toolsetup -o yakbd-setup.exe` for tests and by the release workflow for releases (reproducible: fixed flags and environment, as the
-  layout stub; docs/release.md). At a release tag, with the tool's own version and no other option, `tools/toolsetup`
-  writes that release's `yakbd-setup.exe` byte for byte.
+- **`yakbd-cli-setup.exe`**, the CLI release's installer: the component **YAKBD CLI**, `yakbd.exe` for x86, x64 and
+  arm64 with `LICENSE` and `NOTICE`;
+- **`yakbd-gui-setup.exe`**, the editor release's installer: the components **YAKBD Editor** (x64 and arm64) and
+  **YAKBD CLI**, built from the tagged CLI with the editor's files (§12.1).
 
-### 12.1 Extra payload: more files next to `yakbd.exe`
+They are one product: one Installed apps entry "YAKBD", and either installer adds, upgrades, keeps or removes what
+the other installed. They take msiexec's command line and give its exit codes (§1 to §8; `ENABLE`, `SIGNIN` and
+`FORCE` are accepted and ignored), plus their own properties (§12.3). Without a `/q` option they show a wizard
+(§12.5); `/quiet` without properties does exactly what the wizard's boxes do as they start.
 
-A `yakbd-setup.exe` can carry an **extra payload**: files installed into the same folder as `yakbd.exe`, for example
-the graphical editor that ships with the tool. It is the same product (same product code, name and uninstall entry),
-so an installer with the extra payload and one without it replace each other in place, in both directions, by the
-rules of §6. Nothing else changes: command line, exit codes, PATH and uninstall entry are those of §12.
+### 12.1 Payload
 
-- **Build it** from a checkout of this repository at the release tag of the CLI that is to ship:
+The payload (`installer/toolsetup`, format 2) lists the components, each with its version, the builds it installs
+on and its files (paths relative to the component's folder; a file for one build or for all), the installer's PATH
+default, Start-menu shortcuts and the editor's per-user settings. Every file is stored compressed (DEFLATE, RFC 1951,
+Go's `compress/flate` at its best compression; reproducible for a given Go version) with its size and SHA-256; the
+installer inflates and checks every file of the machine's build before it changes anything (1620 when one does not
+match). The manifest is checked on reading: plain relative paths only, a size no DEFLATE stream can exceed refused,
+every shortcut target a file of its component, every settings location inside the user's own settings (§12.3).
 
-      go run ./tools/toolsetup -o yakbd-setup.exe -builds x64,arm64 -extra x64=DIR-x64 -extra arm64=DIR-arm64
+- **CLI**: `go run ./tools/toolsetup [-o yakbd-cli-setup.exe] [-version V] [-builds x64,arm64]`. At a release tag,
+  with the tool's own version and no other option, it writes that release's `yakbd-cli-setup.exe` byte for byte.
+- **Editor**: from a checkout of this repository at the CLI's release tag,
 
-  `-extra DIR` adds every regular file below `DIR` (in name order, links refused) for every machine;
-  `-extra BUILD=DIR` for the machines of one build only (the same path may appear once per build). `-builds` limits
-  the builds of `yakbd.exe`; a machine whose build is missing gets 1633 and nothing changes, as in §12 (a payload
-  that exists only for x64 and arm64 is built with `-builds x64,arm64`). The command prints the SHA-256 of each
-  `yakbd.exe` it carries. To show that the bundled CLI is the released one, a consumer runs the same command
-  without `-extra` and `-shortcut` (and without `-builds`): at the tag, with the tag's own version, it writes that
-  release's `yakbd-setup.exe` byte for byte (its sum is in `SHA256SUMS`), and it prints the same `yakbd.exe` sums as
-  the bundled run. In Go, the same is `relbuild.SetupWith` with `SetupOptions{Builds, Extra}` (an internal package: it
-  is used from this repository's checkout, not imported).
-- **Product version**: the installer's version is the CLI's (`-version`, default the tool's own), because §6 compares
-  it with the installed one. A bundle of the same CLI version as the installed copy is a repair in place, which
-  writes every file that differs (so a newer editor with the same CLI goes over an older one, and an older one over a
-  newer one too).
-- **Paths** (`toolsetup.CheckExtraPath`, checked when the payload is written and when it is read): relative, with
-  backslashes; every part a plain name (not empty, `.` or `..`, none of `<>:"/|?*` or a control character, not ending
-  in a space or a dot); not `yakbd.exe` or `setup.exe` as the file or its top folder; not ending in `.yakbd-tmp` or
-  `.yakbd-new`. Per machine, no path twice (letter case ignored) and no file where another path needs a folder.
-- **Install**: after `yakbd.exe`, each file of the machine's build is written like `yakbd.exe` (beside it, renamed
-  over it, read back; an identical file is left alone; a file in use is replaced at the next restart, 3010), its
-  folders created as needed. The uninstall entry gets the record value `YakbdToolExtraFiles`: the installed paths
-  joined by `|`, written when there are extra files now or were before (an installer without the extra payload
-  writes no such value over a CLI-only install, so that its entry stays as before). Files of the earlier record that
-  this installer does not carry are deleted after the entry is written, with their folders when empty (a file in use
-  at the next restart; its folder is never scheduled, since it may hold files that stay): installing the CLI alone
-  over a bundle removes the bundle's files. A fresh install that fails is rolled back, extra files and
-  folders included. `EstimatedSize` counts the extra files.
-- **Uninstall** deletes the recorded files (a file in use at the next restart, 3010), then their folders deepest first
-  when empty (a folder that still holds a waiting file at the restart, after it), then the rest as in §12. Any
-  `yakbd-setup.exe` of this version or later uninstalls a bundle, with or without the extra payload itself; one of
-  0.1.0-preview.1 knows no record and leaves the extra files.
-- **Refused like §12**: a pending deletion (an earlier uninstall waiting for the restart) of the folder or anything in
-  it stops the install with 1603, nothing changed.
-- **Size**: the installer reads itself once into memory and copies itself as `setup.exe` into the folder, so a
-  bundle takes its own size once more in the folder and in memory while it runs.
-- **Start-menu shortcuts** to files of the extra payload: §12.2.
-- **Tested** against the in-memory Windows of `installer/toolsetup` (`extra_test.go`: every machine, CLI-only and
-  bundled in both directions, older/newer refusals, changed file sets, files in use, rollback) and by `FuzzDecode`.
-  **Verified on Windows** (2026-11-27, Windows 11 x64, the release draft of 0.1.0-preview.2 from commit 5316eee and
-  `tools/toolsetup -extra x64=DIR` at that commit, four payload files: an exe, a DLL and two files in sub folders):
-  the bundle installs them next to `yakbd.exe`, the plain `yakbd-setup.exe` over it removes them with one entry left,
-  the bundle again puts them back, and its `/x /quiet` leaves no file, folder, entry or Path entry; 4 of 4, after
-  the 7 clean-machine checks of the draft (docs/release.md §3) and the upgrade from the published 0.1.0-preview.1.
+      go run ./tools/toolsetup -editor x64=DIR-x64 -editor arm64=DIR-arm64 -editor-json editor.json
 
-### 12.2 Start-menu shortcuts to the extra payload
+  writes `yakbd-gui-setup.exe`: every regular file below each folder (name order, links refused) is the editor's
+  file for machines of that build, installed below `Editor\` at its path below the folder (the editor's Qt files
+  in its own subfolder, which the editor finds without PATH). `editor.json` is the editor's declaration, data the
+  editor's release supplies:
 
-A `yakbd-setup.exe` with an extra payload can make shortcuts in the Start menu for all users, as installers of
-desktop programs do, for example to the graphical editor:
+      {"version": "0.1.0-preview.3",
+       "shortcuts": [{"name": "YAKBD Editor", "target": "yakbd-gui.exe"}],
+       "userData": [{"kind": "key", "path": "HKCU\\Software\\YAKBD\\YAKBD Editor", "parentIfEmpty": true},
+                    {"kind": "dir", "path": "%LOCALAPPDATA%\\YAKBD\\YAKBD Editor", "parentIfEmpty": true}]}
 
-    go run ./tools/toolsetup -o yakbd-setup.exe -builds x64,arm64 -extra x64=DIR-x64 -extra arm64=DIR-arm64 \
-        -shortcut "YAKBD Editor=yakbd-gui.exe"
+  The command prints the SHA-256 of each `yakbd.exe` it carries. To show that the bundled CLI is the released one,
+  run the same command without `-editor`: it writes the release's `yakbd-cli-setup.exe` byte for byte (its sum is in
+  `SHA256SUMS`) and prints the same `yakbd.exe` sums. In Go: `relbuild.SetupWith` with `SetupOptions{Editor}`.
+- **Product version** (the version resource): the editor's when the installer carries it, else the CLI's.
 
-- **What is made**: for `-shortcut NAME=PATH`, the file `NAME.lnk` in the common Start-menu Programs folder
-  (FOLDERID_CommonPrograms, by default `%ALLUSERSPROFILE%\Microsoft\Windows\Start Menu\Programs` [KF]),
-  pointing at `PATH` in the install folder (`PATH` is a path of the extra payload, slashes allowed on the command
-  line), with that file's first icon, the install folder as its working folder, and `NAME` as its description. It is a
-  Shell link made with the Shell's own link object and saved as a file [SL], not a file written by our code.
-  `NAME` follows the rules of one part of an extra payload path (§12.1; no `\` or `|`), at most 200 characters,
-  each name once (letter case ignored); the payload is refused otherwise, or when `PATH` is not one of its files.
-- **Per machine**: a machine gets a shortcut only when its build of the extra payload carries `PATH`; a machine
-  whose architecture has no extra payload gets none (and nothing in the record).
-- **Record**: the uninstall entry's value `YakbdToolShortcuts`, the names joined by `|`, written when there are
-  shortcuts now or were before (as `YakbdToolExtraFiles`). It holds names, not paths: uninstall and upgrade delete
-  only `NAME.lnk` in the common Programs folder for each valid name, whatever else the registry holds.
-- **Install, repair**: after the extra files, each shortcut is written anew (an earlier file of that name is deleted
-  first), so a repair brings back a deleted or changed shortcut. Only `S_OK` from `IPersistFile::Save` counts (its
-  `S_FALSE` means not saved), and each shortcut is then read back (`IPersistFile::Load`, `IShellLinkW::GetPath`
-  and `GetWorkingDirectory`): a missing file, or another target or working folder, fails the run with 1603, logged
-  (a fresh install is rolled back). A fresh install that fails deletes the shortcuts it
-  made (rollback, with the files). Shortcuts of the earlier record that this installer does not make (another set, or
-  an installer without the extra payload) are deleted after the entry is written; one in use at the next restart.
-- **Uninstall** deletes the recorded shortcuts first, then the files as in §12.1.
-- **No AppUserModelID**: a shortcut can carry one (the `System.AppUserModel.ID` property through `IPropertyStore`
-  [AUMID]), but Windows treats it as optional and the program must then set the same ID on its own windows; the
-  installer sets none, and the system's own choice applies.
-- **Installers that know no shortcuts**: one of 0.1.0-preview.2 run over a bundle with shortcuts counts as the same
-  version (a repair, §6) and deletes the extra files but leaves the shortcuts and their record value; any later
-  `yakbd-setup.exe` then removes them. Its uninstall (`/x`) deletes the entry and leaves the shortcuts, pointing at
-  nothing; delete them by hand, or install and uninstall a current `yakbd-setup.exe`.
-- **Not yet run on Windows** when written: the decisions are tested against the in-memory Windows of
-  `installer/toolsetup` (`shortcut_test.go`); the link object calls are in `installer/winhost/shortcut_windows.go`.
+### 12.2 On disk and in the registry
 
-[KF] KNOWNFOLDERID, https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid ;
-SHGetKnownFolderPath, https://learn.microsoft.com/en-us/windows/win32/api/shlobj_core/nf-shlobj_core-shgetknownfolderpath .
-[SL] Shell Links, https://learn.microsoft.com/en-us/windows/win32/shell/links ; IShellLinkW and its Set methods,
-https://learn.microsoft.com/en-us/windows/win32/api/shobjidl_core/nn-shobjidl_core-ishelllinkw ; IPersistFile::Save,
-https://learn.microsoft.com/en-us/windows/win32/api/objidl/nf-objidl-ipersistfile-save ; CoInitializeEx and
-CoCreateInstance, https://learn.microsoft.com/en-us/windows/win32/api/combaseapi/ . The order of the interfaces'
-methods and the class and interface ids: CLEAN-ROOM.md.
+- **Folders** in the native Program Files (`%ProgramW6432%` for this 32-bit program on 64-bit Windows, [ENV] WOW64
+  Implementation Details): `YAKBD\CLI\` (`yakbd.exe` of the machine's build by IsWow64Process2, inst §2.2, no
+  fallback; `LICENSE`, `NOTICE`), `YAKBD\Editor\` (the editor's files), and `YAKBD\setup.exe`, the copy of an
+  installer the entry runs. The copy is the installer that ran last, unless that one lacks a component that stays
+  (the CLI installer over CLI + editor keeps the editor installer's copy, which can change the editor).
+- **PATH**: only `YAKBD\CLI` is put on the machine `Path` (`HKLM\SYSTEM\CurrentControlSet\Control\Session
+  Manager\Environment`, the value's type kept, REG_EXPAND_SZ when new; `WM_SETTINGCHANGE` "Environment" broadcast
+  [ENV]). Removing the CLI always removes its entry (it would point at nothing).
+- **Uninstall entry** `...\Uninstall\{F257BACA-1D4A-509F-9245-821ACEAAA3CC}` (UUID version 5 of the namespace of
+  docs/installer.md §7 and `YAKBD installers`: `installer.SuiteProductCode`): `DisplayName` "YAKBD",
+  `DisplayVersion` the editor's version when the editor is installed, else the CLI's; `Publisher`,
+  `InstallLocation` (the `YAKBD` folder), `DisplayIcon`, `UninstallString` `"…\setup.exe" /x {code}` (the uninstall
+  wizard), `QuietUninstallString` (with `/quiet /norestart`), `ModifyPath` `"…\setup.exe" /i {code}` (the wizard to
+  change components and PATH), `EstimatedSize`, and the record: `YakbdComponents` (`CLI` or `CLI,Editor`),
+  `YakbdCLIVersion`, `YakbdCLIFiles`, `YakbdEditorVersion`, `YakbdEditorFiles` (paths joined by `|`), `YakbdBuild`,
+  `YakbdPathAdded`, `YakbdShortcuts`, `YakbdUserData` (the editor's settings declaration, so that any installer can
+  remove them). Every path read back from the record is checked again; nothing outside the folders, the common
+  Programs folder and the user's settings is ever named.
+- **Files** are written beside, renamed over and read back; a file in use is replaced or deleted at the next restart
+  (3010; §5's restart rules). A first installation that fails is rolled back; one over an installed YAKBD stops
+  where it failed (as §6). A pending deletion of the folder (an uninstall waiting for the restart) refuses with 1603.
+
+### 12.3 What a run does: components, versions, PATH, settings
+
+**Properties** (taken before the msiexec parsing; letter case of names and components ignored):
+
+| property | meaning |
+|---|---|
+| `ADDLOCAL=CLI`, `=Editor`, `=CLI,Editor` | the components to have installed, besides the installed ones; `ALL` or absent: every component the installer carries for the machine |
+| `REMOVE=Editor` | remove the editor, keep the CLI; `REMOVE=ALL` (as `/x`) removes everything |
+| `ADDTOPATH=0`, `=1` | YAKBD CLI on the machine PATH; absent: the current state (an installed CLI keeps its PATH choice, an existing entry stays), else the installer's default: on for `yakbd-cli-setup.exe`, off for `yakbd-gui-setup.exe`, on when the earlier layout had it |
+| `REMOVEUSERDATA=0`, `=1` | with the editor's removal, also remove the starting user's editor settings (default 0) |
+
+**Decision** (`toolsetup.Decide`, one function for the wizard and the command line): the components afterwards are
+the installed ones plus `ADDLOCAL` (or the defaults), minus `REMOVE`; `/x` removes all. Then, per component this
+installer carries: not installed or in the earlier layout → install; this installer's version newer (semantic
+version precedence, so `0.1.0-preview.3` is newer than `0.1.0-preview.2`) → upgrade; the same → repair (every
+differing file written again); older → **kept**, with a note ("YAKBD CLI 0.1.0-preview.4 is installed, newer than
+this installer's 0.1.0-preview.3; it is kept."; exit 0). A component this installer does not carry stays as it is.
+
+**Refused, nothing changed**: the editor without the CLI (`REMOVE=CLI` with the editor staying, `ADDLOCAL=Editor`
+on a machine without the CLI) → 1639; the editor on 32-bit Windows → 1639 ("YAKBD Editor needs 64-bit Windows");
+the editor from `yakbd-cli-setup.exe` → 1639; a machine without a CLI build → 1633; `/x` or `/f` with nothing
+installed → 1605; the CLI installer over the earlier layout with the editor (it cannot move the editor) → 1603,
+naming `yakbd-gui-setup.exe`. Each refusal is a log line.
+
+**Settings**: the editor's per-user settings are the payload's declaration (`HKCU\Software\…` keys and
+`%LOCALAPPDATA%\…`/`%APPDATA%\…` folders; a parent marked `parentIfEmpty` goes when empty afterwards). They are the
+starting user's: the first, unelevated process checks and removes them after the elevated copy succeeded, never the
+elevated copy (which may be another account); `REMOVEUSERDATA` is not passed to it.
+
+**Elevation**: as §4. The first process runs the wizard (or reads the properties), then starts its elevated copy
+with `/qn` and the request as properties (`ADDLOCAL`, `REMOVE`, `ADDTOPATH`); the copy writes its notes for the
+first process.
+
+### 12.4 Start-menu shortcut
+
+When the editor is installed, `YAKBD Editor.lnk` in the common Start-menu Programs folder (FOLDERID_CommonPrograms,
+by default `%ALLUSERSPROFILE%\Microsoft\Windows\Start Menu\Programs` [KF]) points at `Editor\yakbd-gui.exe`, with
+its icon and `Editor\` as working folder, made with the Shell's link object [SL]: written anew on every install or
+repair (an earlier file deleted first), counted only when `IPersistFile::Save` returns S_OK (S_FALSE means not
+saved), then read back (`IPersistFile::Load`, `IShellLinkW::GetPath`, `GetWorkingDirectory`); a missing file or
+another target or folder fails with 1603, logged (a first installation is rolled back). Removed with the editor.
+Names are recorded, not paths. No AppUserModelID (optional, set through `IPropertyStore` [AUMID]).
+
+[KF] KNOWNFOLDERID, https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid ; SHGetKnownFolderPath,
+https://learn.microsoft.com/en-us/windows/win32/api/shlobj_core/nf-shlobj_core-shgetknownfolderpath .
+[SL] Shell Links, https://learn.microsoft.com/en-us/windows/win32/shell/links ; IShellLinkW,
+https://learn.microsoft.com/en-us/windows/win32/api/shobjidl_core/nn-shobjidl_core-ishelllinkw ; IPersistFile::Save
+and Load, https://learn.microsoft.com/en-us/windows/win32/api/objidl/nf-objidl-ipersistfile-save . Method order and
+ids: CLEAN-ROOM.md.
 [AUMID] Application User Model IDs, https://learn.microsoft.com/en-us/windows/win32/shell/appids .
 
-Windows test: `go run ./tools/clibundle -o DIR` writes the bundle (a layout installer and `yakbd-setup.exe`, three
-versions each, and `tools/clicheck`) that runs every switch combination of this contract a deployment tool sends, in
-a disposable w11x64 guest; scenarios in its README.
+### 12.5 The wizard
 
-**Verified on Windows** (2026-11-26, tool commit 3db00a5, Windows 11 x64): 24 of 24. Layout
+One window (class `YakbdSetupWizard`, title "YAKBD Setup") with standard controls, Common Controls 6 visual styles
+(the manifest's dependency), per-monitor DPI (PerMonitorV2; laid out again on WM_DPICHANGED), Segoe UI, keyboard
+navigation by IsDialogMessage (Tab, Space ticks, Enter is the main button, Esc cancels). Pages: **choose**
+(what is installed, the boxes; Next), **ready** (what will happen, line by line; Back, Install/Change/Remove),
+**progress** (Windows may ask for permission), **finish** (the result and notes; Close). Cancel exits with 1602,
+nothing changed. Its rules are `toolsetup.Wizard`, tested on any OS; the window only draws it.
+
+- **Install / change** (no `/x`): "YAKBD Editor" (shown by the editor installer, or when the editor is installed;
+  ticked by default; greyed and unticked on 32-bit Windows with "The editor needs 64-bit Windows."), "YAKBD CLI"
+  (ticked; locked on while the editor is ticked), "Add YAKBD CLI to PATH" (ticked as §12.3 decides). The title is
+  "Change YAKBD" when YAKBD is installed.
+- **Uninstall** (`/x`, the entry's Uninstall): "YAKBD CLI" and "YAKBD Editor" ticked; the editor box is locked on
+  while the CLI box is ticked ("Removed with YAKBD CLI, which it needs."); unticking the CLI removes the editor only.
+  "Remove my settings" (unticked) shows only when the starting user has editor settings and the editor goes;
+  "Remove YAKBD CLI from PATH" (unticked) only when the CLI stays and a PATH entry exists; with the CLI ticked the
+  wizard says its PATH entry goes with it.
+- **Control ids** (a contract with the guest checkers): 1 the main button, 2 Cancel, 3 Back; check boxes 101 editor,
+  102 CLI, 103 PATH, 104 settings, 105 remove from PATH; texts 201 title, 202 what is installed, 203/204 the notes of
+  the editor and CLI boxes, 205 the summary, 206 progress, 207 finish; 301 the progress bar.
+
+Sources: Microsoft Learn (Enabling Visual Styles, IsDialogMessageW, WM_DPICHANGED, GetDpiForWindow) and, for
+signatures and constants, Microsoft's `windows` crate; CLEAN-ROOM.md lists them.
+
+### 12.6 Taking over the earlier layout
+
+0.1.0-preview.1 and preview.2 of `yakbd-setup.exe` (and the editor's 0.1.0-preview.1, which carried its files as
+that installer's extra payload) installed into `Program Files\YAKBD\yakbd` under the product code
+`{EBE1EAEC-C574-5473-8489-B3FF22FC6506}` (`installer.ToolProductCode`). Either new installer takes it over: the
+components found there (the CLI; the editor when its record lists `yakbd-gui.exe`) count as installed, are installed
+anew into the new folders, then the old files, folder, PATH entry (when it had added it; the new one is set
+instead) and entry are removed, after the new entry is written. A takeover that fails leaves the earlier
+installation as it was. The new `/x` also removes an earlier installation alone. The old installers themselves know
+nothing of the new layout: run over it, they install a second copy in `YAKBD\yakbd`.
+
+### 12.7 Tested
+
+The state table of `installer/toolsetup` (`table_test.go`): nothing, the CLI (with and without PATH, older, newer),
+CLI + editor, the earlier layout with and without the editor × both installers × `ADDLOCAL`, `REMOVE`, `ADDTOPATH`,
+`/x`, `/f` × x86, x64, arm64, each refusal leaving the machine unchanged and each success followed by `/x` leaving
+nothing; the wizard's boxes as they start give the command line's plan in every state; rollbacks at each step of a
+takeover; the shortcut read-back; the settings rules; the payload by `FuzzDecode`.
+
+Windows test: `go run ./tools/instbundle -guest w11suite -assets DIR -old DIR -o OUT` (the release draft's files,
+the published earlier installers): the clean-machine checks of docs/release.md §3, a silent subset of the state table
+including the takeovers, and the wizard in eight states, each read control by control and photographed. **Not yet
+run on Windows** when written (the wizard window has not been seen on a real Windows yet).
+
+The earlier `yakbd-setup.exe` (0.1.0-preview.1 and preview.2, one folder, one product with an extra payload) was
+verified on Windows 11 x64 (2026-11-26: the command-line bundle `tools/clibundle`, 24 of 24; 2026-11-27: its extra
+payload, 4 of 4, and the clean-machine checks); those runs describe that layout, kept here as history.
+
+Windows test of the command line: `go run ./tools/clibundle -o DIR` writes the bundle (a layout installer and
+`yakbd-cli-setup.exe`, three versions each, and `tools/clicheck`) that runs every switch combination of this contract
+a deployment tool sends, in a disposable w11x64 guest; scenarios in its README. Its tool scenarios were written for
+the earlier one-folder `yakbd-setup.exe` and only renamed since; they are to be brought to the new layout before the
+bundle is run again.
+
+**Verified on Windows** (2026-11-26, tool commit 3db00a5, Windows 11 x64, the layout installer and the earlier
+`yakbd-setup.exe`): 24 of 24. Layout
+
 installer: 1639, 1635, 1624, 1605, 1622, a quiet install with the entry values of §9, `/l*v` replaced and `/l*v+`
 appended, 1618 with the mutex held, 1638 for the older version, 3010 for an upgrade with the layout file held open,
 repairs through `ModifyPath` + `/quiet /norestart`, `REINSTALL=ALL` and `/fvomus`, uninstall through

@@ -1,5 +1,5 @@
 // Package winhost is the Windows side of the installer programs (installer/stub for layouts, installer/toolstub
-// for yakbd-setup.exe): Host implements installer/setup's and installer/toolsetup's System with the Windows API
+// for the YAKBD installers): Host implements installer/setup's and installer/toolsetup's System with the Windows API
 // (plain syscall, standard library only), plus elevation, dialogs, the machine-wide lock and the restart
 // (docs/installer.md §2, §3; docs/installer-cli.md §5, §8). Only this file builds on other systems: the dialog
 // kinds and the cancel error the programs' portable code uses.

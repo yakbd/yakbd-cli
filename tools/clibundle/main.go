@@ -79,7 +79,7 @@ func write(out string) error {
 		}
 	}
 	for _, v := range []string{"0.1.0", "0.2.0", "0.3.0"} {
-		if err := run("go", "run", "./tools/toolsetup", "-version", v+".0", "-o", filepath.Join(out, "yakbd-setup-"+v+".exe")); err != nil {
+		if err := run("go", "run", "./tools/toolsetup", "-version", v+".0", "-o", filepath.Join(out, "yakbd-cli-setup-"+v+".exe")); err != nil {
 			return err
 		}
 	}
@@ -111,7 +111,7 @@ Contents
   txcli-v0-setup.exe, txcli-v1-setup.exe, txcli-v2-setup.exe
                        one layout (kbdtxcli.dll, LANGID 0409, not enabled by default), versions 0.5.0, 1.0.0, 2.0.0,
                        one product code
-  yakbd-setup-0.1.0.exe, yakbd-setup-0.2.0.exe, yakbd-setup-0.3.0.exe
+  yakbd-cli-setup-0.1.0.exe, yakbd-cli-setup-0.2.0.exe, yakbd-cli-setup-0.3.0.exe
                        the tool's installer (the same yakbd.exe builds, product versions 0.1.0.0/0.2.0.0/0.3.0.0)
   clicheck.exe         the checker (64-bit)
 
@@ -146,7 +146,7 @@ Scenarios (one PASS/FAIL line each):
   L-winget-manifest-switches   /quiet /norestart /log, /passive /norestart /log, ModifyPath + /quiet /norestart,
                                QuietUninstallString -> 0 each
   L-enable-property            ENABLE=1 -> in the user's list; ENABLE=0 -> not; each uninstalled
-  T-install-quiet-path-entry   yakbd-setup-0.2.0 /quiet /norestart -> 0; Program Files\YAKBD\yakbd\yakbd.exe is the
+  T-install-quiet-path-entry   yakbd-cli-setup-0.2.0 /quiet /norestart -> 0; Program Files\YAKBD\yakbd\yakbd.exe is the
                                x64 build; the machine Path has the folder; "yakbd version" runs through that Path in a
                                new cmd.exe; entry values
   T-downgrade-refused-1638     0.1.0 over 0.2.0 -> 1638

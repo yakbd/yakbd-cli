@@ -73,7 +73,7 @@ func main() {
 	}
 	c.detail, _ = os.Create(filepath.Join(*bundle, "results", "tx-cli-"+*phase+"-details.txt"))
 	c.l0, c.l1, c.l2 = c.path("txcli-v0-setup.exe"), c.path("txcli-v1-setup.exe"), c.path("txcli-v2-setup.exe")
-	c.t0, c.t1, c.t2 = c.path("yakbd-setup-0.1.0.exe"), c.path("yakbd-setup-0.2.0.exe"), c.path("yakbd-setup-0.3.0.exe")
+	c.t0, c.t1, c.t2 = c.path("yakbd-cli-setup-0.1.0.exe"), c.path("yakbd-cli-setup-0.2.0.exe"), c.path("yakbd-cli-setup-0.3.0.exe")
 	b, err := os.ReadFile(c.l1)
 	if err == nil {
 		var p *payload.Payload
@@ -295,7 +295,7 @@ func sysDir() string { return filepath.Join(os.Getenv("SystemRoot"), "System32")
 
 func wowDir() string { return filepath.Join(os.Getenv("SystemRoot"), "SysWOW64") }
 
-func toolDir() string { return filepath.Join(os.Getenv("ProgramW6432"), "YAKBD", "yakbd") }
+func toolDir() string { return filepath.Join(os.Getenv("ProgramW6432"), "YAKBD", "CLI") }
 
 // layoutKLIDs lists the KLIDs whose Layout Product Code is code.
 func layoutKLIDs(code string) []string {

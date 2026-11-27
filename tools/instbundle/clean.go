@@ -25,7 +25,7 @@ func writeClean(out, assets string) error {
 	if err := os.MkdirAll(filepath.Join(out, "ci"), 0o755); err != nil {
 		return err
 	}
-	for _, f := range []string{"yakbd-setup.exe", "SHA256SUMS"} {
+	for _, f := range []string{"yakbd-cli-setup.exe", "SHA256SUMS"} {
 		b, err := os.ReadFile(filepath.Join(assets, f))
 		if err != nil {
 			return err
@@ -89,7 +89,7 @@ func releaseVersion(sums string) (string, error) {
 
 // cleanFiles are the files the driver and the clean-* phases of tools/instcheck open.
 func cleanFiles(version string) []string {
-	return []string{"drive.ps1", "run-phase.ps1", "instcheck.exe", "kbdtst.klc", "ci/yakbd-setup.exe", "ci/SHA256SUMS",
+	return []string{"drive.ps1", "run-phase.ps1", "instcheck.exe", "kbdtst.klc", "ci/yakbd-cli-setup.exe", "ci/SHA256SUMS",
 		"ci/VERSION.txt"}
 }
 
@@ -127,12 +127,12 @@ collects C:\yk\results into host-results\legC\ (next to drive.ps1 when Windows c
 10 minutes.
 
 ci\ holds the release files exactly as downloaded from the workflow's draft release (BUILT-FROM.txt: run and
-commit): yakbd-setup.exe and SHA256SUMS. Nothing in ci\ was built on another machine.
+commit): yakbd-cli-setup.exe and SHA256SUMS. Nothing in ci\ was built on another machine.
 
 Result lines (summary.txt):
   clean-assets-match-sha256sums           the ci\ files have the hashes of SHA256SUMS
-  clean-setup-quiet-installs              ci\yakbd-setup.exe /quiet /norestart: exit 0; Installed apps entry with
-                                          DisplayVersion __VERSION__; yakbd.exe in Program Files\YAKBD\yakbd; the
+  clean-setup-quiet-installs              ci\yakbd-cli-setup.exe /quiet /norestart: exit 0; Installed apps entry with
+                                          DisplayVersion __VERSION__; yakbd.exe in Program Files\YAKBD\CLI; the
                                           folder in the machine Path
   clean-yakbd-on-path-prints-version      in a new task: "yakbd version" through cmd.exe prints "yakbd __VERSION__";
                                           "where yakbd" finds the installed one
@@ -141,9 +141,9 @@ Result lines (summary.txt):
   clean-layout-installs-types-uninstalls  kbdtst-setup.exe /quiet /norestart: installed and enabled; the layout
                                           types every expectation line; /x /quiet removes it (0 or 3010)
   clean-installed-yakbd-is-the-release-build
-                                          the installed yakbd.exe is the x64 build inside ci\yakbd-setup.exe, and
-                                          setup.exe beside it is ci\yakbd-setup.exe (the release has no Windows zip)
-  clean-setup-uninstall-leaves-nothing    ci\yakbd-setup.exe /x /quiet /norestart: exit 0; entry, Path entry and
+                                          the installed yakbd.exe is the x64 build inside ci\yakbd-cli-setup.exe, and
+                                          YAKBD\setup.exe is ci\yakbd-cli-setup.exe (the release has no Windows zip)
+  clean-setup-uninstall-leaves-nothing    ci\yakbd-cli-setup.exe /x /quiet /norestart: exit 0; entry, Path entry and
                                           folder gone
 
 Exit: summary.txt ends with "w11clean: N passed, M failed".

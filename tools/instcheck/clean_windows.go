@@ -4,11 +4,11 @@ package main
 // from its draft (bundle folder ci\), installed and used on a fresh guest. Phases (each a new scheduled task, so
 // each sees the machine environment as a newly started program does):
 //
-//	clean-install    the files match SHA256SUMS; yakbd-setup.exe /quiet /norestart; the uninstall entry
+//	clean-install    the files match SHA256SUMS; yakbd-cli-setup.exe /quiet /norestart; the uninstall entry
 //	clean-use        yakbd on PATH prints the release version; convert, validate -windows, installer with that
 //	                 yakbd; the layout installer installs, the layout types, it uninstalls; the installed
-//	                 yakbd.exe is the x64 build inside the release's yakbd-setup.exe
-//	clean-uninstall  yakbd-setup.exe /x: entry, PATH entry and folder gone
+//	                 yakbd.exe is the x64 build inside the release's yakbd-cli-setup.exe
+//	clean-uninstall  yakbd-cli-setup.exe /x: entry, PATH entry and folder gone
 
 import (
 	"bytes"
@@ -39,7 +39,10 @@ func (c *checker) cleanVersion() string {
 	return strings.TrimSpace(string(b))
 }
 
-func toolDir() string { return filepath.Join(os.Getenv("ProgramW6432"), "YAKBD", "yakbd") }
+func toolDir() string { return filepath.Join(os.Getenv("ProgramW6432"), "YAKBD", "CLI") }
+
+// rootDir is the installers' folder, Program Files\YAKBD.
+func rootDir() string { return filepath.Join(os.Getenv("ProgramW6432"), "YAKBD") }
 
 func (c *checker) clean(phase string) bool {
 	switch phase {
@@ -92,12 +95,12 @@ func (c *checker) cleanAssets() {
 
 func (c *checker) cleanInstall() {
 	s := c.begin("clean-setup-quiet-installs")
-	if code := c.runInstaller(s, c.ci("yakbd-setup.exe"), "clean-setup-install", "/quiet", "/norestart"); code != setup.ExitOK {
+	if code := c.runInstaller(s, c.ci("yakbd-cli-setup.exe"), "clean-setup-install", "/quiet", "/norestart"); code != setup.ExitOK {
 		s.failf("exit code %d, want 0", code)
 	}
-	key := uninstallKey + `\` + installer.ToolProductCode()
+	key := uninstallKey + `\` + installer.SuiteProductCode()
 	if n := regString(hkeyLocalMachine, key, "DisplayName"); n == "" {
-		s.failf("no Installed apps entry %s", installer.ToolProductCode())
+		s.failf("no Installed apps entry %s", installer.SuiteProductCode())
 	} else if v := regString(hkeyLocalMachine, key, "DisplayVersion"); v != c.cleanVersion() {
 		s.failf("entry %q has version %q, want %q", n, v, c.cleanVersion())
 	} else {
@@ -215,19 +218,19 @@ func lastLine(s string) string {
 	return s
 }
 
-// cleanPayload: the installed yakbd.exe is the x64 build inside ci\yakbd-setup.exe, and the installer copy beside it
-// is ci\yakbd-setup.exe (the release has no separate Windows archive of yakbd.exe since 0.1.0-preview.3).
+// cleanPayload: the installed yakbd.exe is the x64 build inside ci\yakbd-cli-setup.exe, and the installer copy beside it
+// is ci\yakbd-cli-setup.exe (the release has no separate Windows archive of yakbd.exe since 0.1.0-preview.3).
 func (c *checker) cleanPayload() {
 	s := c.begin("clean-installed-yakbd-is-the-release-build")
 	defer s.end()
-	b, err := os.ReadFile(c.ci("yakbd-setup.exe"))
+	b, err := os.ReadFile(c.ci("yakbd-cli-setup.exe"))
 	if err != nil {
 		s.failf("%v", err)
 		return
 	}
 	p, err := toolsetup.FromExe(b)
 	if err != nil {
-		s.failf("payload of ci\\yakbd-setup.exe: %v", err)
+		s.failf("payload of ci\\yakbd-cli-setup.exe: %v", err)
 		return
 	}
 	got, err := os.ReadFile(filepath.Join(toolDir(), "yakbd.exe"))
@@ -235,30 +238,37 @@ func (c *checker) cleanPayload() {
 		s.failf("%v", err)
 		return
 	}
-	if !bytes.Equal(got, p.Data[toolsetup.BuildX64]) {
+	files, err := p.FilesFor(toolsetup.CLI, toolsetup.BuildX64)
+	var want []byte
+	for _, f := range files {
+		if f.Path == toolsetup.CLIExe {
+			want = f.Data
+		}
+	}
+	if err != nil || !bytes.Equal(got, want) {
 		s.failf("the installed yakbd.exe is not the x64 build of the installer's payload")
 	}
-	if copyOf, err := os.ReadFile(filepath.Join(toolDir(), "setup.exe")); err != nil || !bytes.Equal(copyOf, b) {
-		s.failf("setup.exe in the folder is not ci\\yakbd-setup.exe (%v)", err)
+	if copyOf, err := os.ReadFile(filepath.Join(rootDir(), "setup.exe")); err != nil || !bytes.Equal(copyOf, b) {
+		s.failf("setup.exe in the folder is not ci\\yakbd-cli-setup.exe (%v)", err)
 	}
 	h := sha256.Sum256(got)
-	s.notef("yakbd.exe x64 %x, builds %s", h[:6], strings.Join(p.Manifest.Builds(), ", "))
+	s.notef("yakbd.exe x64 %x, payload %s", h[:6], p.Manifest.Summary())
 }
 
 func (c *checker) cleanUninstall() {
 	s := c.begin("clean-setup-uninstall-leaves-nothing")
-	code := c.runInstaller(s, c.ci("yakbd-setup.exe"), "clean-setup-uninstall", "/x", "/quiet", "/norestart")
+	code := c.runInstaller(s, c.ci("yakbd-cli-setup.exe"), "clean-setup-uninstall", "/x", "/quiet", "/norestart")
 	if code != setup.ExitOK {
 		s.failf("exit code %d, want 0", code)
 	}
-	if regString(hkeyLocalMachine, uninstallKey+`\`+installer.ToolProductCode(), "DisplayName") != "" {
+	if regString(hkeyLocalMachine, uninstallKey+`\`+installer.SuiteProductCode(), "DisplayName") != "" {
 		s.failf("the Installed apps entry is still there")
 	}
 	if pathHas(toolDir()) {
 		s.failf("the machine Path still names %s", toolDir())
 	}
-	if _, err := os.Stat(toolDir()); err == nil {
-		s.failf("%s still exists", toolDir())
+	if _, err := os.Stat(rootDir()); err == nil {
+		s.failf("%s still exists", rootDir())
 	}
 	s.end()
 }

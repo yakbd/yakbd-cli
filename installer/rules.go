@@ -156,8 +156,16 @@ func Pin(l *model.Layout) *loss.Report {
 	return r
 }
 
-// ToolProductCode is the product code of yakbd-setup.exe, the tool's own installer (docs/installer-cli.md §12):
+// ToolProductCode is the product code of yakbd-setup.exe of 0.1.0-preview.1 and preview.2 (the earlier layout, which
+// the two installers take over, docs/installer-cli.md §12.6):
 // the name-based UUID of productNamespace and "yakbd tool installer", which no layout's "id dll" name gives.
 func ToolProductCode() string {
 	return "{" + strings.ToUpper(uuid5(productNamespace, "yakbd tool installer")) + "}"
+}
+
+// SuiteProductCode is the product code of the two YAKBD installers, yakbd-cli-setup.exe and yakbd-gui-setup.exe,
+// one uninstall entry for both (docs/installer-cli.md §12): the name-based UUID of productNamespace and "YAKBD
+// installers". ToolProductCode is the earlier one-folder layout's, which they take over.
+func SuiteProductCode() string {
+	return "{" + strings.ToUpper(uuid5(productNamespace, "YAKBD installers")) + "}"
 }

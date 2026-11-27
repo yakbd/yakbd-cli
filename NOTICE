@@ -40,6 +40,11 @@ Win32::UI::Shell and Win32::System::Com, and its `windows-core` crate, version 0
 
 Both are licensed under MIT OR Apache-2.0, Copyright (c) Microsoft Corporation, as above.
 
+The values of the window, button, static, progress bar, font, message and registry constants and the field order
+of WNDCLASSEXW, MSG and INITCOMMONCONTROLSEX used by the installers' wizard (installer/toolstub) are taken from the
+same `windows` crate, version 0.61.3 (modules Win32::UI::WindowsAndMessaging, Win32::UI::Controls,
+Win32::Graphics::Gdi, Win32::System::Com), with the function descriptions from Microsoft Learn.
+
 Only the eight names and their values are used. No header of the Windows SDK or WDK is a source for any name.
 
 2. Material from the YAKBD reference specification

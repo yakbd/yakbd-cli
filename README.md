@@ -27,11 +27,14 @@ each target in a section of its own (`targets.*`), and has been checked on paper
 
 ## Install
 
-From the [releases](https://github.com/yakbd/yakbd-cli/releases) of this repository:
+From the [latest release](https://github.com/yakbd/yakbd-cli/releases/latest) of this repository:
 
-- **Windows**: `yakbd-setup.exe` installs `yakbd.exe` for the PC's architecture into Program Files and puts it on
-  the PATH (for an unattended install, `yakbd-setup.exe /quiet /norestart` from an elevated prompt; uninstall
-  under "Installed apps"). Windows may warn about it: [`docs/windows-security-prompts.md`](docs/windows-security-prompts.md).
+- **Windows**: [`yakbd-cli-setup.exe`](https://github.com/yakbd/yakbd-cli/releases/latest/download/yakbd-cli-setup.exe)
+  installs YAKBD CLI (`yakbd.exe` for the PC's architecture) into `Program Files\YAKBD\CLI` and puts it on the PATH
+  (a choice in its wizard; unattended: `yakbd-cli-setup.exe /quiet /norestart` from an elevated prompt; uninstall
+  under "Installed apps", entry "YAKBD"). The editor's installer, `yakbd-gui-setup.exe` from
+  [yakbd/yakbd-gui](https://github.com/yakbd/yakbd-gui/releases/latest), installs the editor and the CLI together.
+  Windows may warn about either: [`docs/windows-security-prompts.md`](docs/windows-security-prompts.md).
 - **Linux and macOS**: `yakbd-<version>-linux-amd64.tar.gz`, `-linux-arm64.tar.gz` or `-macos.tar.gz` (one
   universal binary for Intel and Apple silicon Macs); each holds `yakbd`, `LICENSE` and `NOTICE`.
 - **Check the download** against the release's `SHA256SUMS` file and its build provenance attestation
@@ -73,8 +76,8 @@ command with an error writes nothing. Flags may come before or after the file na
 | [`docs/migrating-from-msklc.md`](docs/migrating-from-msklc.md) | from a `.klc` file to an installed layout; what differs from MSKLC; replacing an installed MSKLC layout safely |
 | [`docs/recover-a-layout.md`](docs/recover-a-layout.md) | getting an editable file back from an installed layout DLL |
 | [`docs/windows-security-prompts.md`](docs/windows-security-prompts.md) | Smart App Control, SmartScreen and UAC; checking a download; signing your own layout installer |
-| [`docs/code-signing-policy.md`](docs/code-signing-policy.md) | **Code signing policy** of `yakbd-setup.exe` (planned) |
-| [`docs/installer.md`](docs/installer.md), [`docs/installer-cli.md`](docs/installer-cli.md) | what the installers do, their command line and exit codes; the extra payload of `yakbd-setup.exe` (§12.1) |
+| [`docs/code-signing-policy.md`](docs/code-signing-policy.md) | **Code signing policy** of the YAKBD installers (planned) |
+| [`docs/installer.md`](docs/installer.md), [`docs/installer-cli.md`](docs/installer-cli.md) | what the installers do, their command line and exit codes; the YAKBD installers and their wizard (§12) |
 | [`docs/report-file.md`](docs/report-file.md) | the `-report` JSON file, for programs that run yakbd (an editor, a build script) |
 | [`docs/dll-import.md`](docs/dll-import.md) | how layout DLLs are read |
 | [`docs/cldr.md`](docs/cldr.md) | CLDR keyboards: import, Windows builds, the conformance test |
@@ -90,7 +93,7 @@ other operating systems are planned and not available yet.
 
 ## Code signing policy
 
-The 0.1 preview ships `yakbd-setup.exe` unsigned; it is to be signed through SignPath Foundation from a later
+The 0.1 previews ship `yakbd-cli-setup.exe` unsigned; it is to be signed through SignPath Foundation from a later
 release. Free code signing provided
 by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org). The policy:
 [`docs/code-signing-policy.md`](docs/code-signing-policy.md).

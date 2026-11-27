@@ -60,42 +60,93 @@ var WindowsArch = map[string]string{toolsetup.BuildX86: "386", toolsetup.BuildX6
 // WindowsBuilds are the installer's builds of yakbd.exe in payload order.
 var WindowsBuilds = []string{toolsetup.BuildX86, toolsetup.BuildX64, toolsetup.BuildARM64}
 
-// Setup builds yakbd.exe for x86, x64 and arm64 and yakbd-setup.exe carrying them, with the given product version
-// (the uninstall entry's and the version resource's). It returns the installer and the yakbd.exe builds by build
-// name, the same bytes the installer carries.
+// Installer file names (docs/installer-cli.md §12).
+const (
+	CLISetupName = "yakbd-cli-setup.exe"
+	GUISetupName = "yakbd-gui-setup.exe"
+)
+
+// Setup builds yakbd.exe for x86, x64 and arm64 and yakbd-cli-setup.exe carrying them (the CLI component), with the
+// given CLI version. It returns the installer and the yakbd.exe builds by build name, the same bytes the installer
+// carries.
 func Setup(root, version, release string) ([]byte, map[string][]byte, error) {
 	return SetupWith(root, SetupOptions{Version: version, Release: release})
 }
 
-// SetupOptions choose what SetupWith puts into yakbd-setup.exe.
+// SetupOptions choose what SetupWith puts into the installer.
 type SetupOptions struct {
-	Version string // the product version
+	Version string // the CLI component's version
 	Release string // written into ReleaseVar of yakbd.exe when set
 	// Builds are the builds of yakbd.exe it carries, a subset of WindowsBuilds in that order; nil: all of them. A
-	// machine whose build is missing gets exit code 1633 (docs/installer-cli.md §12).
+	// machine whose build is missing gets exit code 1633.
 	Builds []string
-	// Extra is the extra payload (docs/installer-cli.md §12.1), in this order.
-	Extra []toolsetup.Extra
-	// Shortcuts are Start-menu shortcuts to files of Extra (docs/installer-cli.md §12.2).
-	Shortcuts []toolsetup.Shortcut
+	// Editor, when set, makes yakbd-gui-setup.exe: the editor component besides the CLI.
+	Editor *EditorInput
 }
 
-// SetupWith is Setup with the builds and the extra payload chosen.
+// EditorInput is the editor component of yakbd-gui-setup.exe: its version, its files per build (each build's files
+// in Files[build], paths relative to the Editor folder), its Start-menu shortcuts (targets in that folder) and the
+// per-user settings "Remove my settings" deletes.
+type EditorInput struct {
+	Version   string
+	Files     map[string][]toolsetup.Input
+	Shortcuts []toolsetup.Shortcut
+	UserData  []toolsetup.UserData
+}
+
+// SetupWith is Setup with the builds and the editor chosen.
 func SetupWith(root string, o SetupOptions) ([]byte, map[string][]byte, error) {
 	version, release := o.Version, o.Release
 	builds := o.Builds
 	if builds == nil {
 		builds = WindowsBuilds
 	}
+	license, err := os.ReadFile(filepath.Join(root, "LICENSE"))
+	if err != nil {
+		return nil, nil, err
+	}
+	notice, err := os.ReadFile(filepath.Join(root, "NOTICE"))
+	if err != nil {
+		return nil, nil, err
+	}
 	exes := map[string][]byte{}
+	cli := toolsetup.ComponentInput{ID: toolsetup.CLI, Version: version, Builds: builds}
 	for _, b := range builds {
 		if WindowsArch[b] == "" {
 			return nil, nil, fmt.Errorf("unknown build %q (want x86, x64 or arm64)", b)
 		}
-		var err error
 		if exes[b], err = Build(root, "./cmd/yakbd", "windows", WindowsArch[b], false, release); err != nil {
 			return nil, nil, err
 		}
+		cli.Files = append(cli.Files, toolsetup.Input{Path: toolsetup.CLIExe, Build: b, Data: exes[b]})
+	}
+	cli.Files = append(cli.Files, toolsetup.Input{Path: "LICENSE", Data: license}, toolsetup.Input{Path: "NOTICE", Data: notice})
+	comps := []toolsetup.ComponentInput{cli}
+	m := toolsetup.Manifest{Product: toolsetup.Product{Name: toolsetup.ProductName, Publisher: "The YAKBD contributors", Code: installer.SuiteProductCode()},
+		AddToPath: true}
+	name := CLISetupName
+	if e := o.Editor; e != nil {
+		ed := toolsetup.ComponentInput{ID: toolsetup.Editor, Version: e.Version}
+		for _, b := range WindowsBuilds {
+			if fs, ok := e.Files[b]; ok {
+				ed.Builds = append(ed.Builds, b)
+				for _, f := range fs {
+					f.Build = b
+					ed.Files = append(ed.Files, f)
+				}
+			}
+		}
+		comps = append(comps, ed)
+		for _, sc := range e.Shortcuts {
+			sc.Component = toolsetup.Editor
+			m.Shortcuts = append(m.Shortcuts, sc)
+		}
+		for _, u := range e.UserData {
+			u.Component = toolsetup.Editor
+			m.UserData = append(m.UserData, u)
+		}
+		m.AddToPath = false
+		name = GUISetupName
 	}
 	stub, err := Build(root, "./installer/toolstub", "windows", "386", true, "")
 	if err != nil {
@@ -104,16 +155,19 @@ func SetupWith(root string, o SetupOptions) ([]byte, map[string][]byte, error) {
 	if end, err := payload.ImageEnd(stub); err != nil || end != int64(len(stub)) {
 		return nil, nil, fmt.Errorf("installer program: bytes after the last section or no PE image (%v)", err)
 	}
-	prod := toolsetup.Product{Name: "yakbd", Version: version, Publisher: "The YAKBD contributors", Code: installer.ToolProductCode()}
-	res, err := exeres.For(exeres.Product{Name: prod.Name, Version: prod.Version, Publisher: prod.Publisher, FileName: "yakbd-setup.exe"})
+	pl, err := toolsetup.Encode(m, comps)
+	if err != nil {
+		return nil, nil, err
+	}
+	dec, err := toolsetup.Decode(pl)
+	if err != nil {
+		return nil, nil, err
+	}
+	res, err := exeres.For(exeres.Product{Name: toolsetup.ProductName, Version: dec.Manifest.Version(), Publisher: m.Product.Publisher, FileName: name})
 	if err != nil {
 		return nil, nil, err
 	}
 	if stub, err = exeres.Add(stub, res); err != nil {
-		return nil, nil, err
-	}
-	pl, err := toolsetup.Encode(toolsetup.Manifest{Product: prod, Shortcuts: o.Shortcuts}, builds, exes, o.Extra)
-	if err != nil {
 		return nil, nil, err
 	}
 	return append(stub, pl...), exes, nil

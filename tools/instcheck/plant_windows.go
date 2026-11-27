@@ -28,7 +28,7 @@ var plantCases = [][2]string{
 	{"control", "instcheck-32.exe"},
 	{"dblclick", "kbdxx-setup.exe"},
 	{"quiet", "kbdxx-setup.exe"},
-	{"toolsetup", "yakbd-setup.exe"},
+	{"toolsetup", "yakbd-cli-setup.exe"},
 	{"prefix", "kbdxx-prefix-setup.exe"},
 }
 
@@ -43,7 +43,7 @@ func plantRoot() string {
 
 // plantNeeds are the bundle files each phase opens (tools/instbundle plantFiles holds them all).
 var plantNeeds = map[string][]string{
-	"plant-prepare":          {"plant-marker.dll", "kbdxx-setup.exe", "yakbd-setup.exe", "kbdxx-prefix-setup.exe", "instcheck-32.exe"},
+	"plant-prepare":          {"plant-marker.dll", "kbdxx-setup.exe", "yakbd-cli-setup.exe", "kbdxx-prefix-setup.exe", "instcheck-32.exe"},
 	"plant-control":          {"instcheck-32.exe"},
 	"plant-dblclick":         {"kbdxx-setup.exe"},
 	"plant-dblclick-cleanup": {"kbdxx-setup.exe"},
@@ -76,7 +76,7 @@ func (c *checker) plant(phase string) bool {
 	case "plant-quiet":
 		c.plantQuiet("quiet", "kbdxx-setup.exe", false)
 	case "plant-toolsetup":
-		c.plantQuiet("toolsetup", "yakbd-setup.exe", false)
+		c.plantQuiet("toolsetup", "yakbd-cli-setup.exe", false)
 	case "plant-prefix":
 		c.plantQuiet("prefix", "kbdxx-prefix-setup.exe", true)
 	}
@@ -101,7 +101,7 @@ func (c *checker) plantNames() (names []string, fromExe int, err error) {
 			set[strings.ToLower(filepath.Base(p))] = true
 		}
 	}
-	for _, exe := range []string{"kbdxx-setup.exe", "yakbd-setup.exe"} {
+	for _, exe := range []string{"kbdxx-setup.exe", "yakbd-cli-setup.exe"} {
 		b, err := os.ReadFile(filepath.Join(c.bundle, exe))
 		if err != nil {
 			return nil, 0, err
@@ -286,8 +286,8 @@ func (c *checker) plantQuiet(name, file string, want bool) {
 	s := c.begin(title)
 	dir := filepath.Join(plantRoot(), name)
 	exe := filepath.Join(dir, file)
-	code := installer.ToolProductCode()
-	if file != "yakbd-setup.exe" {
+	code := installer.SuiteProductCode()
+	if file != "yakbd-cli-setup.exe" {
 		a, err := c.load(file, "")
 		if err != nil {
 			s.failf("%v", err)

@@ -5,7 +5,7 @@
 //
 // It writes, for version V:
 //
-//	yakbd-setup.exe               the tool's installer (x86, x64 and arm64 builds of yakbd.exe; docs/installer-cli.md §12)
+//	yakbd-cli-setup.exe               the tool's installer (x86, x64 and arm64 builds of yakbd.exe; docs/installer-cli.md §12)
 //	yakbd-V-linux-amd64.tar.gz    yakbd for Linux on x86-64, LICENSE, NOTICE
 //	yakbd-V-linux-arm64.tar.gz    the same for Linux on ARM64
 //	yakbd-V-macos.tar.gz          yakbd for macOS as one universal binary (x86-64 and arm64; macho.go), LICENSE, NOTICE
@@ -121,7 +121,7 @@ func Assets(root, v string) (map[string][]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	assets["yakbd-setup.exe"] = setup
+	assets["yakbd-cli-setup.exe"] = setup
 	bin := map[string][]byte{}
 	for _, t := range [][2]string{{"linux", "amd64"}, {"linux", "arm64"}, {"darwin", "amd64"}, {"darwin", "arm64"}} {
 		if bin[t[0]+"-"+t[1]], err = relbuild.Build(root, "./cmd/yakbd", t[0], t[1], false, v); err != nil {

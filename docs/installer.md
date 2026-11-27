@@ -547,7 +547,7 @@ pending.
 `go run ./tools/instbundle -guest w11plant -o DIR` writes the check of §5.2 for a w11x64 guest, autonomous like
 w11signin2 (`drive.ps1` on the host, `summary.txt`): a 32-bit marker DLL (written with package `pe`; when loaded it
 creates `<its path>.loaded`) planted under every DLL name of System32 and SysWOW64 and every DLL name in the
-installers' bytes, next to `kbdxx-setup.exe` (a layout installer) and `yakbd-setup.exe` in the administrator's
+installers' bytes, next to `kbdxx-setup.exe` (a layout installer) and the YAKBD installer (`yakbd-cli-setup.exe`; `yakbd-setup.exe` at the time of run 1) in the administrator's
 Downloads folder. Phases `plant-*` of `tools/instcheck` (`plant_windows.go`): a control that loads a probe name by
 bare name (its marker must appear), the double-click path (unelevated first process and its elevated copy; the
 consent prompt is switched off in the guest so that no one has to answer it), `/quiet` install and `/x /quiet`

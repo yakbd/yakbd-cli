@@ -1,7 +1,7 @@
 # Code signing policy
 
 **Status: planned.** Signing has not started yet: the 0.1 previews ship every file unsigned, including
-`yakbd-setup.exe`. The project has applied to SignPath Foundation, and signing starts with a release after the
+the installers. The project has applied to SignPath Foundation, and signing starts with a release after the
 project has been accepted. This page describes how signing will work then. Releases can
 already be checked with their `SHA256SUMS` file and build provenance attestation ([`release.md`](release.md)).
 
@@ -23,11 +23,11 @@ The project is **yakbd**, one SignPath project for two repositories of the
 Only Windows programs this project builds itself, from its own source, in the release workflows of these two
 repositories:
 
-- `yakbd-setup.exe`, the one installer for every Windows architecture (x86, x64 and arm64), published in the
-  releases of [`yakbd/yakbd-cli`](https://github.com/yakbd/yakbd-cli/releases) and, with the editor added, of
-  [`yakbd/yakbd-gui`](https://github.com/yakbd/yakbd-gui/releases);
-- nested inside it, the project's own programs it installs: `yakbd.exe` (each architecture's build) and, in the
-  editor's release, `yakbd-gui.exe`.
+- the installers, each one file for every Windows architecture (x86, x64 and arm64): `yakbd-cli-setup.exe`,
+  published in the releases of [`yakbd/yakbd-cli`](https://github.com/yakbd/yakbd-cli/releases/latest), and
+  `yakbd-gui-setup.exe`, published in the releases of [`yakbd/yakbd-gui`](https://github.com/yakbd/yakbd-gui/releases/latest);
+- nested inside them, the project's own programs they install: `yakbd.exe` (each architecture's build) and, in the
+  editor's installer, `yakbd-gui.exe`.
 
 The certificate is SignPath Foundation's, so Windows shows "SignPath Foundation" as the publisher.
 
@@ -48,14 +48,14 @@ Not signed:
 - **Started by hand.** The workflow runs only when a maintainer starts it for a version; it has no automatic
   trigger.
 - **Signed only after approval.** The release workflow sends what it built to SignPath: the project's own programs
-  first, then `yakbd-setup.exe` assembled around the signed programs (the workflow change for the nested programs
+  first, then each installer assembled around the signed programs (the workflow change for the nested programs
   comes with enabling signing, [`release.md`](release.md) §4). An approver
   checks that the request comes from the release workflow of this repository for the intended version, and approves
   it in SignPath. Every release is approved by hand.
 - **Published unchanged.** The release is published with its assets and tag frozen (an immutable GitHub
   release), its `SHA256SUMS` file and a build provenance attestation, so anyone can check that a file comes from
   this repository's source and workflow.
-- **Released before it is signed.** A form of `yakbd-setup.exe` is published in a release before its signed form
+- **Released before it is signed.** A form of each installer is published in a release before its signed form
   is.
 
 ## Team roles
@@ -75,7 +75,7 @@ Every team member must use multi-factor authentication for GitHub and for SignPa
 This program will not transfer any information to other networked systems unless specifically requested by the
 user or the person installing or operating it.
 
-This applies to `yakbd.exe`, `yakbd-setup.exe` and the layout installers `yakbd` writes: none of them contains
+This applies to `yakbd.exe`, `yakbd-cli-setup.exe`, `yakbd-gui-setup.exe` and the layout installers `yakbd` writes: none of them contains
 network code. The editor's policy page says the same of `yakbd-gui.exe`.
 
 ## Reporting

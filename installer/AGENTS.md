@@ -1,16 +1,20 @@
 # installer: agent rules
 
-Layout installers (`yakbd installer`) and the tool's own `yakbd-setup.exe`. The contract is `docs/installer.md`
+Layout installers (`yakbd installer`) and the YAKBD installers `yakbd-cli-setup.exe` and `yakbd-gui-setup.exe`. The contract is `docs/installer.md`
 (design, payload, resources) and `docs/installer-cli.md` (command line, exit codes); the spec repo's
 `targets/windows-install.md` and the reference spec's `installation` text are the normative sources.
 
     go test ./installer/...
     go run ./tools/buildstub      # after any change to a package compiled into the stub (root AGENTS.md)
-    go run ./tools/toolsetup -o DIR/yakbd-setup.exe   # without -o it writes into the repository root;
-                                                      # -builds, -extra [BUILD=]DIR: extra payload (docs/installer-cli.md §12.1)
-                                                      # -shortcut "NAME=PATH": Start-menu shortcut to it (§12.2)
-                                                      # reproducible; releases: go run ./tools/release (docs/release.md)
+    go run ./tools/toolsetup -o DIR/yakbd-cli-setup.exe   # without -o it writes into the repository root;
+                                                          # -editor BUILD=DIR -editor-json FILE: yakbd-gui-setup.exe
+                                                          # (docs/installer-cli.md §12.1); reproducible; releases:
+                                                          # go run ./tools/release (docs/release.md)
 
+- The YAKBD installers' decisions (components, versions, PATH, settings, the earlier layout) are one function,
+  `toolsetup.Decide`, for the command line and the wizard; the wizard's rules are `toolsetup.Wizard`; the Win32
+  window (`installer/toolstub/wizard_windows.go`) only draws it. Its window class and control ids are a contract
+  with `tools/instcheck` (docs/installer-cli.md §12.5).
 - Put every install decision (files per machine, KLID and Layout Id, value order, rollback, upgrade, repair,
   uninstall) in `installer/setup` behind the `System` interface and test it against the in-memory Windows of
   `installer/setup/fake_test.go`. `installer/stub`, `installer/toolstub` and `installer/winhost` only map calls to

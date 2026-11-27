@@ -8,6 +8,6 @@ import (
 )
 
 func main() {
-	fmt.Fprintln(os.Stderr, "this program is yakbd-setup.exe, the Windows installer of yakbd; it runs on Windows only")
+	fmt.Fprintln(os.Stderr, "this program is a YAKBD installer (yakbd-cli-setup.exe or yakbd-gui-setup.exe); it runs on Windows only")
 	os.Exit(2)
 }

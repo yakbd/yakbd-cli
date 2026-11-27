@@ -1,4 +1,4 @@
-# Release: builds every asset twice and compares, runs the macOS binary on a Mac, optionally signs yakbd-setup.exe through SignPath, attests the
+# Release: builds every asset twice and compares, runs the macOS binary on a Mac, optionally signs yakbd-cli-setup.exe through SignPath, attests the
 # build provenance, then creates the tag v<version> and a DRAFT release with the assets. A person publishes the draft.
 # How to run it and how to verify a release: docs/release.md.
 name: release
@@ -10,7 +10,7 @@ on:
         required: true
         type: string
       sign:
-        description: 'Sign yakbd-setup.exe through SignPath (needs the repository variables and secret of docs/release.md)'
+        description: 'Sign yakbd-cli-setup.exe through SignPath (needs the repository variables and secret of docs/release.md)'
         required: false
         type: boolean
         default: false
@@ -67,7 +67,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: setup-unsigned
-          path: ${{ runner.temp }}/dist/yakbd-setup.exe
+          path: ${{ runner.temp }}/dist/yakbd-cli-setup.exe
           if-no-files-found: error
 
   # Off by default. Turned on with the input sign once the SignPath Foundation project exists (docs/release.md §4):
@@ -91,7 +91,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: setup-signed
-          path: signed/yakbd-setup.exe
+          path: signed/yakbd-cli-setup.exe
           if-no-files-found: error
 
   # The universal macOS binary is written in Go on Linux (tools/release/macho.go); this job runs it on a Mac: lipo
@@ -144,8 +144,8 @@ jobs:
           path: signed
       - name: signed installer and SHA256SUMS
         run: |
-          if [ -f signed/yakbd-setup.exe ]; then
-            cp signed/yakbd-setup.exe dist/yakbd-setup.exe
+          if [ -f signed/yakbd-cli-setup.exe ]; then
+            cp signed/yakbd-cli-setup.exe dist/yakbd-cli-setup.exe
           fi
           cd dist
           find . -maxdepth 1 -type f ! -name SHA256SUMS -printf '%f\n' | LC_ALL=C sort | xargs sha256sum > SHA256SUMS
@@ -166,12 +166,12 @@ jobs:
           # pre-release as its release. A rehearsal and any other suffix stay pre-releases. The latest mark is
           # given when the draft is published (gh release edit --draft=false --latest, docs/release.md §2).
           mark=""
-          SIGNED="yakbd-setup.exe is unsigned in this release"
-          if [ "${{ inputs.sign }}" = "true" ]; then SIGNED="yakbd-setup.exe is signed through SignPath Foundation"; fi
+          SIGNED="yakbd-cli-setup.exe is unsigned in this release"
+          if [ "${{ inputs.sign }}" = "true" ]; then SIGNED="yakbd-cli-setup.exe is signed through SignPath Foundation"; fi
           case "$VERSION" in *-rehearsal.*) mark="--prerelease" ;; *-preview.*) ;; *-*) mark="--prerelease" ;; esac
           notes="yakbd $VERSION, built from $GITHUB_SHA by $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID.
-          Check a download with SHA256SUMS and gh attestation verify FILE -R $GITHUB_REPOSITORY: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/v$VERSION/docs/release.md
-          Code signing ($SIGNED): $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/v$VERSION/docs/code-signing-policy.md
+          Check a download with SHA256SUMS and gh attestation verify FILE -R $GITHUB_REPOSITORY: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/main/docs/release.md
+          Code signing ($SIGNED): $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/main/docs/code-signing-policy.md
           The arm64 build of yakbd.exe is tested in emulation only."
           gh release create "v$VERSION" dist/* --repo "$GITHUB_REPOSITORY" --draft $mark --verify-tag \
             --title "yakbd $VERSION" \

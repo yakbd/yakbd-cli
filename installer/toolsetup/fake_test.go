@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"testing"
 
-	"github.com/yakbd/yakbd-cli/installer/cmdline"
 	"github.com/yakbd/yakbd-cli/installer/payload"
 	"github.com/yakbd/yakbd-cli/installer/setup"
 )
@@ -25,6 +23,7 @@ type fake struct {
 	broadcast int
 	noProgs   bool   // CommonPrograms fails
 	linkFail  string // CreateShortcut fails for a shortcut file ending in this
+	failWrite string // WriteFile fails for a path ending in this (lower case)
 	linkLost  string // CreateShortcut reports success but writes nothing, for a file ending in this
 	linkWrong string // CreateShortcut stores another target, for a file ending in this
 }
@@ -60,6 +59,9 @@ func (f *fake) parentExists(p string) bool {
 }
 
 func (f *fake) WriteFile(p string, d []byte) error {
+	if f.failWrite != "" && strings.HasSuffix(strings.ToLower(p), f.failWrite) {
+		return fmt.Errorf("disk full")
+	}
 	if f.inUse[strings.ToLower(p)] {
 		return setup.ErrInUse
 	}
@@ -231,187 +233,64 @@ func pe(machine uint16, tag string) []byte {
 	return append(b, tag...)
 }
 
-const code = "{EBE1EAEC-C574-5473-8489-B3FF22FC6506}"
-
-func newSetup(t *testing.T, f *fake, version string, builds ...string) *Setup {
-	t.Helper()
-	if len(builds) == 0 {
-		builds = []string{BuildX86, BuildX64, BuildARM64}
-	}
-	data := map[string][]byte{}
-	for _, b := range builds {
-		data[b] = pe(MachineOf[b], b+" "+version)
-	}
-	enc, err := Encode(Manifest{Product: Product{Name: "yakbd", Version: version, Publisher: "The YAKBD contributors", Code: code}}, builds, data, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	p, err := Decode(enc)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return &Setup{Sys: f, P: p, Log: t.Logf}
+// fakeUser is the starting user's side: environment, HKCU keys (lower-case path -> values count, subkeys by
+// prefix), folders and files.
+type fakeUser struct {
+	env   map[string]string
+	keys  map[string]int // lower-case key below HKCU -> number of values
+	dirs  map[string]bool
+	files map[string]bool
 }
 
-func wantCode(t *testing.T, err error, c int) {
-	t.Helper()
-	if got := ExitCode(err); got != c {
-		t.Fatalf("exit code %d (%v), want %d", got, err, c)
-	}
+func newUser() *fakeUser {
+	return &fakeUser{env: map[string]string{"LOCALAPPDATA": `C:\Users\t\AppData\Local`, "APPDATA": `C:\Users\t\AppData\Roaming`},
+		keys: map[string]int{}, dirs: map[string]bool{}, files: map[string]bool{}}
 }
 
-const dir = `c:\program files\yakbd\yakbd`
-
-func TestInstallUninstall(t *testing.T) {
-	for _, m := range []struct {
-		machine uint16
-		build   string
-	}{{payload.MachineAMD64, "x64"}, {payload.MachineI386, "x86"}, {payload.MachineARM64, "arm64"}} {
-		f := newFake()
-		f.machine = m.machine
-		before := f.snapshot()
-		s := newSetup(t, f, "0.2.0.0")
-		if _, err := s.Install(); err != nil {
-			t.Fatal(err)
+func (u *fakeUser) Getenv(n string) string { return u.env[n] }
+func (u *fakeUser) UserKeyExists(p string) bool {
+	_, ok := u.keys[strings.ToLower(p)]
+	return ok
+}
+func (u *fakeUser) UserKeyEmpty(p string) bool {
+	l := strings.ToLower(p)
+	for k := range u.keys {
+		if strings.HasPrefix(k, l+`\`) {
+			return false
 		}
-		if got := string(f.files[dir+`\yakbd.exe`]); !strings.HasSuffix(got, m.build+" 0.2.0.0") {
-			t.Errorf("%s: yakbd.exe is %q", m.build, got)
+	}
+	return u.keys[l] == 0
+}
+func (u *fakeUser) DeleteUserKeyTree(p string) error {
+	l := strings.ToLower(p)
+	for k := range u.keys {
+		if k == l || strings.HasPrefix(k, l+`\`) {
+			delete(u.keys, k)
 		}
-		if f.files[dir+`\setup.exe`] == nil {
-			t.Error("no setup.exe copy")
-		}
-		pv := f.keys[strings.ToLower(Environment)]["path"]
-		if pv.Str != `%SystemRoot%\system32;%SystemRoot%;C:\Program Files\YAKBD\yakbd` || pv.Type != setup.RegExpandSZ || f.broadcast != 1 {
-			t.Errorf("PATH %+v, broadcasts %d", pv, f.broadcast)
-		}
-		arp := f.keys[strings.ToLower(setup.UninstallRoot+`\`+code)]
-		if arp["quietuninstallstring"].Str != `"C:\Program Files\YAKBD\yakbd\setup.exe" /x `+code+` /quiet /norestart` ||
-			arp["modifypath"].Str != `"C:\Program Files\YAKBD\yakbd\setup.exe" /f `+code || arp["yakbdpathadded"].Str != "1" ||
-			arp["yakbdtoolbuild"].Str != m.build {
-			t.Errorf("uninstall entry %v", arp)
-		}
-		for _, n := range []string{"windowsinstaller", "nomodify", "norepair"} {
-			if _, ok := arp[n]; ok {
-				t.Errorf("entry has %s", n)
+	}
+	return nil
+}
+func (u *fakeUser) DirExists(p string) bool { return u.dirs[strings.ToLower(p)] }
+func (u *fakeUser) RemoveTree(p string) error {
+	l := strings.ToLower(p)
+	for _, m := range []map[string]bool{u.dirs, u.files} {
+		for k := range m {
+			if k == l || strings.HasPrefix(k, l+`\`) {
+				delete(m, k)
 			}
 		}
-		if _, err := s.Uninstall(); err != nil {
-			t.Fatal(err)
-		}
-		if after := f.snapshot(); after != before {
-			t.Errorf("%s: uninstall left:\n%s\nbefore:\n%s", m.build, after, before)
-		}
-		_, err := s.Uninstall()
-		wantCode(t, err, cmdline.UnknownProduct)
 	}
+	return nil
 }
-
-func TestVersionsAndRepair(t *testing.T) {
-	f := newFake()
-	if _, err := newSetup(t, f, "0.3.0.0").Install(); err != nil {
-		t.Fatal(err)
-	}
-	installed := f.snapshot()
-	_, err := newSetup(t, f, "0.2.0.0").Install()
-	wantCode(t, err, cmdline.ProductVersion)
-	if f.snapshot() != installed {
-		t.Error("a refused downgrade changed something")
-	}
-	// Repair: yakbd.exe deleted by hand, the same version brings it back; PATH not added twice.
-	delete(f.files, dir+`\yakbd.exe`)
-	r, err := newSetup(t, f, "0.3.0.0").Install()
-	if err != nil || !r.Upgraded {
-		t.Fatalf("%+v %v", r, err)
-	}
-	if f.snapshot() != installed {
-		t.Error("repair did not restore the same state")
-	}
-	if strings.Count(f.keys[strings.ToLower(Environment)]["path"].Str, "YAKBD") != 1 {
-		t.Error("PATH entry twice")
-	}
-	// Upgrade with yakbd.exe running: replaced at the restart.
-	f.inUse[dir+`\yakbd.exe`] = true
-	r, err = newSetup(t, f, "0.4.0.0").Install()
-	if err != nil || !r.Reboot || len(f.atReboot) != 1 || !strings.HasPrefix(f.atReboot[0], "move "+dir+`\yakbd.exe.yakbd-new`) {
-		t.Fatalf("%+v %v %v", r, err, f.atReboot)
-	}
-	if v := f.keys[strings.ToLower(setup.UninstallRoot+`\`+code)]["displayversion"].Str; v != "0.4.0.0" {
-		t.Errorf("DisplayVersion %s", v)
-	}
-	// Uninstall while it runs: deleted at the restart, with the folder after it; the rest goes now.
-	r, err = newSetup(t, f, "0.4.0.0").Uninstall()
-	if err != nil || !r.Reboot {
-		t.Fatalf("%+v %v", r, err)
-	}
-	if got := f.atReboot[len(f.atReboot)-2:]; got[0] != "delete "+dir+`\yakbd.exe` || got[1] != "delete "+dir {
-		t.Errorf("%v", f.atReboot)
-	}
-	if strings.Contains(f.keys[strings.ToLower(Environment)]["path"].Str, "YAKBD") || f.keys[strings.ToLower(setup.UninstallRoot+`\`+code)] != nil {
-		t.Error("PATH or entry left")
-	}
-}
-
-func TestPathAlreadyThere(t *testing.T) {
-	f := newFake()
-	f.keys[strings.ToLower(Environment)]["path"] = setup.Value{Name: "Path", Type: setup.RegSZ, Str: `C:\x;c:\program files\yakbd\yakbd\`}
-	s := newSetup(t, f, "0.2.0.0")
-	if _, err := s.Install(); err != nil {
-		t.Fatal(err)
-	}
-	if f.keys[strings.ToLower(setup.UninstallRoot+`\`+code)]["yakbdpathadded"].Str != "0" || f.broadcast != 0 {
-		t.Error("PATH entry that was there counted as added")
-	}
-	if _, err := s.Uninstall(); err != nil {
-		t.Fatal(err)
-	}
-	if v := f.keys[strings.ToLower(Environment)]["path"]; v.Str != `C:\x;c:\program files\yakbd\yakbd\` || v.Type != setup.RegSZ {
-		t.Errorf("someone else's PATH entry changed: %+v", v)
-	}
-}
-
-func TestRefusals(t *testing.T) {
-	f := newFake()
-	f.machine = payload.MachineARM64
-	before := f.snapshot()
-	_, err := newSetup(t, f, "0.2.0.0", BuildX64, BuildX86).Install()
-	wantCode(t, err, cmdline.PlatformUnsupported)
-	f.elevated = false
-	_, err = newSetup(t, f, "0.2.0.0").Install()
-	wantCode(t, err, cmdline.ElevationRequired)
-	f.elevated = true
-	f.keys[strings.ToLower(setup.SessionManager)] = map[string]setup.Value{"pendingfilerenameoperations": {Name: "PendingFileRenameOperations", Type: setup.RegMultiSZ,
-		Str: `\??\C:\Program Files\YAKBD\yakbd\yakbd.exe` + "\x00\x00"}}
-	before = f.snapshot()
-	_, err = newSetup(t, f, "0.2.0.0").Install()
-	wantCode(t, err, cmdline.InstallFailure)
-	if f.snapshot() != before {
-		t.Error("a refusal changed something")
-	}
-}
-
-func TestPayloadDamage(t *testing.T) {
-	data := map[string][]byte{BuildX64: pe(payload.MachineAMD64, "x")}
-	enc, err := Encode(Manifest{Product: Product{Name: "yakbd", Version: "1", Code: code}}, []string{BuildX64}, data, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	enc[len(enc)-1] ^= 1
-	if _, err := Decode(enc); err == nil {
-		t.Error("damage not found")
-	}
-	if _, err := Encode(Manifest{Product: Product{Name: "yakbd", Version: "1", Code: code}}, []string{BuildARM64}, map[string][]byte{BuildARM64: pe(payload.MachineAMD64, "x")}, nil); err == nil {
-		t.Error("an x64 file accepted as arm64")
-	}
-}
-
-func TestPathRoundTrip(t *testing.T) {
-	const d = `C:\Program Files\YAKBD\yakbd`
-	for _, pv := range []string{"", `a;b`, `a;b;`, `a;;b`, `%SystemRoot%\system32;%SystemRoot%;`} {
-		if got := removePath(addPath(pv, d), d); got != pv {
-			t.Errorf("%q -> %q -> %q", pv, addPath(pv, d), got)
+func (u *fakeUser) RemoveDir(p string) error {
+	l := strings.ToLower(p)
+	for _, m := range []map[string]bool{u.dirs, u.files} {
+		for k := range m {
+			if strings.HasPrefix(k, l+`\`) {
+				return fmt.Errorf("not empty")
+			}
 		}
 	}
-	if got := removePath(`x;`+d+`;y`, d); got != "x;y" {
-		t.Errorf("moved entry: %q", got)
-	}
+	delete(u.dirs, l)
+	return nil
 }

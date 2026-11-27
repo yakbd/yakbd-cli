@@ -11,6 +11,7 @@ executes; nothing here runs on Windows.
 | `go run ./tools/importbundle -o DIR` | DLL import check | `docs/dll-import.md` §5 |
 | `go run ./tools/msklcbundle -o DIR` | MSKLC comparison, guest driver `tools/msklcbundle/guest` | `docs/dll-import.md` §6 |
 | `go run ./tools/instbundle -guest w11plant -o DIR` | DLL planting check: marker DLL planted next to the installers in Downloads, autonomous `drive.ps1` | `docs/installer.md` §5.2, §8.4 |
+| `go run ./tools/instbundle -guest w11suite -assets DIR -old DIR -o OUT` | the two YAKBD installers: the release's clean checks, a silent state-table subset with the takeover of the published earlier installers, the wizard in eight states with screenshots | `docs/installer-cli.md` §12.7 |
 | `go run ./tools/cldrbundle -o DIR` | CLDR conformance: every CLDR test case a Windows build can express, typed by both `yakbd-wincheck` runners | `docs/cldr.md` §4 |
 
 `tools/buildstub` and `tools/toolsetup` belong to `installer/AGENTS.md`; `tools/release` (every release asset, reproducible) to `docs/release.md`; `tools/genucd` to

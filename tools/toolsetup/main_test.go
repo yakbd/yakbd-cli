@@ -1,10 +1,9 @@
 package main
 
 import (
-	"bytes"
 	"os"
 	"path/filepath"
-	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/yakbd/yakbd-cli/installer"
@@ -12,14 +11,14 @@ import (
 	"github.com/yakbd/yakbd-cli/internal/relbuild"
 )
 
-// TestWrite builds yakbd-setup.exe (three yakbd builds and the program; skipped with -short) and reads its payload
-// back: every build, the version, the product code.
+// TestWrite builds yakbd-cli-setup.exe (three yakbd builds and the program; skipped with -short) and reads its
+// payload back.
 func TestWrite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("builds four programs")
 	}
 	t.Chdir("../..")
-	b, err := Write("9.8.7.6")
+	b, err := Write("9.8.7")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -28,53 +27,53 @@ func TestWrite(t *testing.T) {
 		t.Fatal(err)
 	}
 	m := p.Manifest
-	if m.Product.Version != "9.8.7.6" || m.Product.Code != installer.ToolProductCode() || len(p.Data) != 3 {
-		t.Errorf("%+v, %d builds", m.Product, len(p.Data))
+	if m.Product.Code != installer.SuiteProductCode() || len(m.Components) != 1 || m.Components[0].Version != "9.8.7" || !m.AddToPath {
+		t.Errorf("%+v", m)
+	}
+	if fs, err := p.FilesFor(toolsetup.CLI, "x64"); err != nil || len(fs) != 3 {
+		t.Errorf("CLI files for x64: %d %v (yakbd.exe, LICENSE, NOTICE)", len(fs), err)
 	}
 }
 
-// TestReadExtra: -extra reads every regular file below the folder, in name order, with backslash paths, for every
-// build or for one build.
-func TestReadExtra(t *testing.T) {
+// TestEditor: -editor and -editor-json make the editor component, its shortcut and settings; the declaration is
+// required and strict.
+func TestEditor(t *testing.T) {
 	d := t.TempDir()
-	for p, c := range map[string]string{"b.exe": "b", "qml/x/a.qml": "a", "a.dll": "d"} {
-		if err := os.MkdirAll(filepath.Dir(filepath.Join(d, p)), 0o755); err != nil {
-			t.Fatal(err)
-		}
-		if err := os.WriteFile(filepath.Join(d, p), []byte(c), 0o644); err != nil {
-			t.Fatal(err)
-		}
+	for p, c := range map[string]string{"x64/yakbd-gui.exe": "g", "x64/qt/Qt6Core.dll": "q", "arm64/yakbd-gui.exe": "a"} {
+		_ = os.MkdirAll(filepath.Dir(filepath.Join(d, p)), 0o755)
+		_ = os.WriteFile(filepath.Join(d, p), []byte(c), 0o644)
 	}
-	if err := os.MkdirAll(filepath.Join(d, "empty"), 0o755); err != nil {
-		t.Fatal(err)
-	}
-	xs, err := readExtra([]string{d, "arm64=" + filepath.Join(d, "qml")})
+	js := filepath.Join(d, "editor.json")
+	_ = os.WriteFile(js, []byte(`{"version":"0.1.0-preview.3","shortcuts":[{"name":"YAKBD Editor","target":"yakbd-gui.exe"}],
+"userData":[{"component":"Editor","kind":"key","path":"HKCU\\Software\\YAKBD\\YAKBD Editor","parentIfEmpty":true}]}`), 0o644)
+	e, err := readEditor([]string{"x64=" + filepath.Join(d, "x64"), "arm64=" + filepath.Join(d, "arm64")}, js)
 	if err != nil {
 		t.Fatal(err)
 	}
-	var got []string
-	for _, x := range xs {
-		got = append(got, x.Build+":"+x.Path+":"+string(x.Data))
+	if e.Version != "0.1.0-preview.3" || len(e.Files["x64"]) != 2 || e.Files["x64"][0].Path != `qt\Qt6Core.dll` || len(e.Shortcuts) != 1 || len(e.UserData) != 1 {
+		t.Errorf("%+v", e)
 	}
-	if want := []string{":a.dll:d", ":b.exe:b", `:qml\x\a.qml:a`, `arm64:x\a.qml:a`}; !reflect.DeepEqual(got, want) {
-		t.Errorf("%q, want %q", got, want)
+	if _, err := readEditor([]string{"x64=" + d}, ""); err == nil {
+		t.Error("-editor without a declaration accepted")
 	}
-	if err := os.Symlink("b.exe", filepath.Join(d, "link")); err == nil {
-		if _, err := readExtra([]string{d}); err == nil {
-			t.Error("a link was accepted")
-		}
+	_ = os.WriteFile(js, []byte(`{"version":"1.0.0","extra":1}`), 0o644)
+	if _, err := readEditor([]string{"x64=" + d}, js); err == nil || !strings.Contains(err.Error(), "unknown field") {
+		t.Errorf("unknown field: %v", err)
+	}
+	if _, err := readEditor([]string{"mips=" + d}, js); err == nil {
+		t.Error("unknown build accepted")
 	}
 }
 
-// TestSetupWithExtra builds an installer of two yakbd.exe builds with an extra payload (skipped with -short) and
-// reads it back.
-func TestSetupWithExtra(t *testing.T) {
+// TestGUISetup builds yakbd-gui-setup.exe with two yakbd.exe builds (skipped with -short) and reads it back.
+func TestGUISetup(t *testing.T) {
 	if testing.Short() {
 		t.Skip("builds three programs")
 	}
 	t.Chdir("../..")
-	b, exes, err := relbuild.SetupWith(".", relbuild.SetupOptions{Version: "9.8.7", Builds: []string{"x64", "arm64"},
-		Extra: []toolsetup.Extra{{Path: "yakbd-gui.exe", Data: []byte("gui")}, {Path: `plugins\p.dll`, Build: "arm64", Data: []byte("p")}}})
+	e := &relbuild.EditorInput{Version: "9.8.7", Files: map[string][]toolsetup.Input{"x64": {{Path: "yakbd-gui.exe", Data: []byte("g")}}},
+		Shortcuts: []toolsetup.Shortcut{{Name: "YAKBD Editor", Target: "yakbd-gui.exe"}}}
+	b, _, err := relbuild.SetupWith(".", relbuild.SetupOptions{Version: "9.8.6", Builds: []string{"x64", "arm64"}, Editor: e})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -82,24 +81,8 @@ func TestSetupWithExtra(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(p.Data) != 2 || !bytes.Equal(p.Data["arm64"], exes["arm64"]) || len(p.ExtraFor("x64")) != 1 || len(p.ExtraFor("arm64")) != 2 {
-		t.Errorf("builds %v, extra %+v", p.Manifest.Builds(), p.Manifest.Extra)
-	}
-	if _, _, err := relbuild.SetupWith(".", relbuild.SetupOptions{Version: "1", Builds: []string{"mips"}}); err == nil {
-		t.Error("unknown build accepted")
-	}
-}
-
-// TestReadShortcuts: -shortcut NAME=PATH, slashes turned into backslashes; a value without both parts refused.
-func TestReadShortcuts(t *testing.T) {
-	got, err := readShortcuts([]string{"YAKBD Editor=yakbd-gui.exe", "Viewer=tools/viewer.exe"})
-	want := []toolsetup.Shortcut{{Name: "YAKBD Editor", Target: "yakbd-gui.exe"}, {Name: "Viewer", Target: `tools\viewer.exe`}}
-	if err != nil || !reflect.DeepEqual(got, want) {
-		t.Errorf("%+v %v", got, err)
-	}
-	for _, bad := range []string{"x", "=a.exe", "a="} {
-		if _, err := readShortcuts([]string{bad}); err == nil {
-			t.Errorf("%q accepted", bad)
-		}
+	m := p.Manifest
+	if m.Version() != "9.8.7" || m.AddToPath || !p.Supports(toolsetup.Editor, "x64") || p.Supports(toolsetup.Editor, "arm64") || len(m.Shortcuts) != 1 {
+		t.Errorf("%+v", m)
 	}
 }

@@ -3,14 +3,14 @@
 Windows checks programs you download before it runs them. This page says what you can expect to see for the two
 kinds of program yakbd gives you, and what you can do about it:
 
-- `yakbd-setup.exe`, the installer of the yakbd tool itself, downloaded from the
-  [releases](https://github.com/yakbd/yakbd-cli/releases) of this repository, and the `yakbd.exe` it installs;
+- `yakbd-cli-setup.exe` and `yakbd-gui-setup.exe`, the YAKBD installers (the CLI's and the editor's), downloaded from the
+  [latest releases](https://github.com/yakbd/yakbd-cli/releases/latest) of the two repositories, and the programs they install;
 - the layout installers (`<dll name>-setup.exe`) that `yakbd installer` writes for a layout. These are unsigned.
 
 Statements below are marked **[measured]** when we tested them on Windows, and otherwise give the Microsoft page
 they come from (read 2026-11-27). Windows changes these checks from time to time.
 
-**Signing.** The 0.1 preview release ships `yakbd-setup.exe` **unsigned**; you can check it with the release's
+**Signing.** The 0.1 preview release ships `yakbd-cli-setup.exe` **unsigned**; you can check it with the release's
 `SHA256SUMS` file and its GitHub release attestation (§3). The project applies to SignPath Foundation for a code
 signing certificate right after that release, so signing starts with a later release
 ([`code-signing-policy.md`](code-signing-policy.md)).
@@ -36,13 +36,13 @@ signing certificate right after that release, so signing starts with a later rel
 
 | | Smart App Control on | SmartScreen | UAC |
 |---|---|---|---|
-| `yakbd-setup.exe` once signed (a later release, see [`code-signing-policy.md`](code-signing-policy.md)) | expected to run, as it is signed by a trusted certificate authority (not yet tested) | expected: may warn while the certificate is new, naming SignPath Foundation as the publisher | expected: grey prompt, publisher SignPath Foundation |
-| `yakbd-setup.exe` of the 0.1 preview, and every layout installer | **blocked** **[measured]**: an unsigned program in the Downloads folder was blocked, with and without the download mark | "Windows protected your PC", with "Run anyway" | yellow prompt, no verified publisher |
-| `yakbd.exe`, installed by `yakbd-setup.exe` | unsigned, so treated like any unsigned program: expect it to be blocked (not yet tested) | not shown: it is not a download | none: `yakbd.exe` needs no administrator rights |
+| `yakbd-cli-setup.exe` once signed (a later release, see [`code-signing-policy.md`](code-signing-policy.md)) | expected to run, as it is signed by a trusted certificate authority (not yet tested) | expected: may warn while the certificate is new, naming SignPath Foundation as the publisher | expected: grey prompt, publisher SignPath Foundation |
+| `yakbd-cli-setup.exe` of the 0.1 preview, and every layout installer | **blocked** **[measured]**: an unsigned program in the Downloads folder was blocked, with and without the download mark | "Windows protected your PC", with "Run anyway" | yellow prompt, no verified publisher |
+| `yakbd.exe`, installed by `yakbd-cli-setup.exe` | unsigned, so treated like any unsigned program: expect it to be blocked (not yet tested) | not shown: it is not a download | none: `yakbd.exe` needs no administrator rights |
 
 Smart App Control checks every program it starts, not only downloads
 ([SmartScreen reputation for apps](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/smartscreen-reputation)).
-Only `yakbd-setup.exe` will be signed, so with Smart App Control on, the `yakbd.exe` it installs is expected to be
+Only `yakbd-cli-setup.exe` will be signed, so with Smart App Control on, the `yakbd.exe` it installs is expected to be
 blocked like any unsigned program; this has not been tested yet.
 
 The layout DLL itself is not stopped by Smart App Control: an unsigned layout DLL, installed by hand, loaded and
@@ -56,8 +56,8 @@ an author can sign their own.
 **Check that the file is the one we published.** Every release lists a `SHA256SUMS` file and has a build
 provenance attestation that ties each file to the source and the workflow run that built it. In PowerShell:
 
-    Get-FileHash .\yakbd-setup.exe          # SHA256 by default; compare with the line in SHA256SUMS
-    Get-AuthenticodeSignature .\yakbd-setup.exe   # once signing has started: Status Valid, signer SignPath Foundation
+    Get-FileHash .\yakbd-cli-setup.exe          # SHA256 by default; compare with the line in SHA256SUMS
+    Get-AuthenticodeSignature .\yakbd-cli-setup.exe   # once signing has started: Status Valid, signer SignPath Foundation
 
 The GitHub CLI checks the attestation with `gh attestation verify`. The exact steps for both checks are in
 [`release.md`](release.md).
