@@ -76,6 +76,8 @@ type SetupOptions struct {
 	Builds []string
 	// Extra is the extra payload (docs/installer-cli.md §12.1), in this order.
 	Extra []toolsetup.Extra
+	// Shortcuts are Start-menu shortcuts to files of Extra (docs/installer-cli.md §12.2).
+	Shortcuts []toolsetup.Shortcut
 }
 
 // SetupWith is Setup with the builds and the extra payload chosen.
@@ -110,7 +112,7 @@ func SetupWith(root string, o SetupOptions) ([]byte, map[string][]byte, error) {
 	if stub, err = exeres.Add(stub, res); err != nil {
 		return nil, nil, err
 	}
-	pl, err := toolsetup.Encode(toolsetup.Manifest{Product: prod}, builds, exes, o.Extra)
+	pl, err := toolsetup.Encode(toolsetup.Manifest{Product: prod, Shortcuts: o.Shortcuts}, builds, exes, o.Extra)
 	if err != nil {
 		return nil, nil, err
 	}

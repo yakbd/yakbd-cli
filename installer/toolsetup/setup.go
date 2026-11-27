@@ -35,6 +35,11 @@ type System interface {
 	SetDWORD(path, name string, v uint32) error
 	// BroadcastEnvironment sends WM_SETTINGCHANGE "Environment" (docs/installer-cli.md §12).
 	BroadcastEnvironment() error
+	// CommonPrograms is the common Start-menu Programs folder, FOLDERID_CommonPrograms (docs/installer-cli.md §12.2).
+	CommonPrograms() (string, error)
+	// CreateShortcut writes the shortcut file lnk (replacing one that is there) pointing at target, with target's
+	// first icon and the working folder dir (docs/installer-cli.md §12.2).
+	CreateShortcut(lnk, target, dir string) error
 }
 
 // Registry paths and record values.
@@ -45,7 +50,10 @@ const (
 	RecBuild     = "YakbdToolBuild"
 	// RecExtra lists the installed files of the extra payload, relative to the folder, joined by "|" (a
 	// character no path has); written when there are any or were any.
-	RecExtra      = "YakbdToolExtraFiles"
+	RecExtra = "YakbdToolExtraFiles"
+	// RecShortcuts lists the names of the Start-menu shortcuts made, joined by "|"; written when there are any or
+	// were any.
+	RecShortcuts  = "YakbdToolShortcuts"
 	ExeName       = "yakbd.exe"
 	InstallerName = "setup.exe"
 )
@@ -158,6 +166,41 @@ func (s *Setup) pendingDeletion(dir string) string {
 		}
 	}
 	return ""
+}
+
+// shortcutRecord is the shortcut names of the uninstall entry's record that are valid names (never a path, whatever
+// the registry holds).
+func shortcutRecord(arp map[string]setup.Value) []string {
+	var out []string
+	for _, n := range strings.Split(arp[strings.ToLower(RecShortcuts)].Str, "|") {
+		if n != "" && CheckShortcutName(n) == nil {
+			out = append(out, n)
+		}
+	}
+	return out
+}
+
+// lnkName is the file name of a shortcut.
+func lnkName(name string) string { return name + ".lnk" }
+
+// removeShortcuts deletes shortcut files of the common Programs folder by name; one in use at the next restart.
+func (s *Setup) removeShortcuts(progs string, names []string, res *Result) error {
+	for _, n := range names {
+		p := join(progs, lnkName(n))
+		if err := s.Sys.Remove(p); err != nil && !errors.Is(err, setup.ErrNotFound) {
+			if !errors.Is(err, setup.ErrInUse) {
+				return fmt.Errorf("cannot delete %s: %v", p, err)
+			}
+			if err := s.Sys.DeleteAtReboot(p); err != nil {
+				return fmt.Errorf("cannot schedule the deletion of %s: %v", p, err)
+			}
+			res.Reboot = true
+			s.logf("%s is in use: deleted at the next restart", p)
+		} else if err == nil {
+			s.logf("%s deleted", p)
+		}
+	}
+	return nil
 }
 
 // extraRecord is the installed extra files of the uninstall entry's record.
@@ -351,6 +394,35 @@ func (s *Setup) Install() (*Result, error) {
 		size += len(x.Data)
 	}
 
+	// 1c. Start-menu shortcuts to files of this build's extra payload (§12.2), always written again (a repair
+	// restores them); a fresh install that fails deletes the ones it made.
+	shorts := s.P.ShortcutsFor(build)
+	oldShorts := shortcutRecord(arp)
+	progs := ""
+	if len(shorts) > 0 || len(oldShorts) > 0 {
+		if progs, err = s.Sys.CommonPrograms(); err != nil {
+			if len(shorts) > 0 {
+				return rollback(fmt.Errorf("cannot find the Start menu's Programs folder: %v", err))
+			}
+			s.logf("cannot find the Start menu's Programs folder (%v): earlier shortcuts left alone", err)
+			oldShorts = nil
+		}
+	}
+	for _, sc := range shorts {
+		lnk := join(progs, lnkName(sc.Name))
+		_, rerr := s.Sys.ReadFile(lnk)
+		if rerr == nil {
+			_ = s.Sys.Remove(lnk) // written anew, not saved over (the sources do not say that Save replaces a file)
+		}
+		if err := s.Sys.CreateShortcut(lnk, join(dir, sc.Target), dir); err != nil {
+			return rollback(fmt.Errorf("cannot create the shortcut %s: %v", lnk, err))
+		}
+		if rerr != nil {
+			undo = append(undo, func() { _ = s.Sys.Remove(lnk) })
+		}
+		s.logf("shortcut %s -> %s written", lnk, sc.Target)
+	}
+
 	// 2. The installer itself, for the uninstall entry.
 	inst := join(dir, InstallerName)
 	self := s.Self
@@ -436,6 +508,15 @@ func (s *Setup) Install() (*Result, error) {
 			return rollback(fmt.Errorf("cannot write %s\\%s: %v", key, RecExtra, err))
 		}
 	}
+	if len(shorts) > 0 || len(oldShorts) > 0 {
+		var names []string
+		for _, sc := range shorts {
+			names = append(names, sc.Name)
+		}
+		if err := s.Sys.SetString(key, RecShortcuts, strings.Join(names, "|"), false); err != nil {
+			return rollback(fmt.Errorf("cannot write %s\\%s: %v", key, RecShortcuts, err))
+		}
+	}
 	if err := s.Sys.SetDWORD(key, "EstimatedSize", uint32((size+len(self)+1023)/1024)); err != nil {
 		return rollback(fmt.Errorf("cannot write %s\\EstimatedSize: %v", key, err))
 	}
@@ -450,6 +531,23 @@ func (s *Setup) Install() (*Result, error) {
 	for _, r := range old {
 		if !keep[strings.ToLower(r)] && CheckExtraPath(r) == nil {
 			stale = append(stale, r)
+		}
+	}
+	kept := map[string]bool{}
+	for _, sc := range shorts {
+		kept[strings.ToLower(sc.Name)] = true
+	}
+	var staleShorts []string
+	for _, n := range oldShorts {
+		if !kept[strings.ToLower(n)] {
+			staleShorts = append(staleShorts, n)
+		}
+	}
+	if len(staleShorts) > 0 {
+		s.logf("removing %d shortcut(s) of the earlier installation that this installer does not make", len(staleShorts))
+		if err := s.removeShortcuts(progs, staleShorts, res); err != nil {
+			s.logf("%v", err)
+			res.Notes = append(res.Notes, fmt.Sprintf("A Start-menu shortcut of the earlier installation could not be removed: %v", err))
 		}
 	}
 	if len(stale) > 0 {
@@ -491,6 +589,15 @@ func (s *Setup) Uninstall() (*Result, error) {
 		}
 	}
 	res := &Result{}
+	if names := shortcutRecord(arp); len(names) > 0 {
+		progs, err := s.Sys.CommonPrograms()
+		if err != nil {
+			return nil, fmt.Errorf("cannot find the Start menu's Programs folder: %v", err)
+		}
+		if err := s.removeShortcuts(progs, names, res); err != nil {
+			return nil, err
+		}
+	}
 	exe := join(dir, ExeName)
 	for _, ext := range []string{".yakbd-new", ".yakbd-tmp"} {
 		if err := s.Sys.Remove(exe + ext); err == nil {

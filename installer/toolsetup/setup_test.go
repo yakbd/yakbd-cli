@@ -23,13 +23,15 @@ type fake struct {
 	inUse     map[string]bool
 	atReboot  []string
 	broadcast int
+	noProgs   bool   // CommonPrograms fails
+	linkFail  string // CreateShortcut fails for a shortcut file ending in this
 }
 
 func newFake() *fake {
 	f := &fake{machine: payload.MachineAMD64, elevated: true, self: `C:\Users\t\Downloads\yakbd-setup.exe`,
 		files: map[string][]byte{}, dirs: map[string]bool{}, keys: map[string]map[string]setup.Value{}, inUse: map[string]bool{}}
 	f.files[strings.ToLower(f.self)] = []byte("MZ yakbd-setup itself")
-	for _, d := range []string{`c:\program files`, `c:\windows\temp`, `c:\users\t\downloads`} {
+	for _, d := range []string{`c:\program files`, `c:\windows\temp`, `c:\users\t\downloads`, strings.ToLower(progsDir)} {
 		f.dirs[d] = true
 	}
 	f.keys[strings.ToLower(Environment)] = map[string]setup.Value{"path": {Name: "Path", Type: setup.RegExpandSZ, Str: `%SystemRoot%\system32;%SystemRoot%`}}
@@ -160,6 +162,26 @@ func (f *fake) SetDWORD(p, name string, v uint32) error {
 	return nil
 }
 func (f *fake) BroadcastEnvironment() error { f.broadcast++; return nil }
+func (f *fake) CommonPrograms() (string, error) {
+	if f.noProgs {
+		return "", fmt.Errorf("no such folder")
+	}
+	return progsDir, nil
+}
+
+// CreateShortcut stores a shortcut as a file "lnk TARGET | DIR"; the target must exist, as SetPath needs no file
+// but the test wants to see the target placed first.
+func (f *fake) CreateShortcut(lnk, target, dir string) error {
+	if f.linkFail != "" && strings.HasSuffix(lnk, f.linkFail) {
+		return fmt.Errorf("CoCreateInstance failed")
+	}
+	if _, ok := f.files[strings.ToLower(target)]; !ok {
+		return fmt.Errorf("target %s missing", target)
+	}
+	return f.WriteFile(lnk, []byte("lnk "+target+" | "+dir))
+}
+
+const progsDir = `C:\ProgramData\Microsoft\Windows\Start Menu\Programs`
 
 func (f *fake) snapshot() string {
 	var out []string

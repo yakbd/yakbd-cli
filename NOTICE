@@ -29,6 +29,17 @@ FreeRDP is licensed under the Apache License, Version 2.0. The copyright line of
 
     Copyright 2012 Marc-Andre Moreau <marcandre.moreau@gmail.com>
 
+The class and interface ids of the Shell link object (CLSID_ShellLink, IID_IShellLinkW, IID_IPersistFile) and the
+positions of the methods the installer calls in the IUnknown, IShellLinkW and IPersistFile method tables
+(installer/winhost/shortcut_windows.go) are taken from Microsoft's `windows` crate, version 0.61.3, modules
+Win32::UI::Shell and Win32::System::Com, and its `windows-core` crate, version 0.61.2 (IUnknown):
+
+    https://crates.io/crates/windows/0.61.3
+    https://crates.io/crates/windows-core/0.61.2
+    https://github.com/microsoft/windows-rs
+
+Both are licensed under MIT OR Apache-2.0, Copyright (c) Microsoft Corporation, as above.
+
 Only the eight names and their values are used. No header of the Windows SDK or WDK is a source for any name.
 
 2. Material from the YAKBD reference specification

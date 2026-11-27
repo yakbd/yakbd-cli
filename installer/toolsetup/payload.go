@@ -48,6 +48,16 @@ type Manifest struct {
 	// Extra is the extra payload (docs/installer-cli.md §12.1): more files installed into the folder of yakbd.exe,
 	// such as a graphical program. Left out when empty, so that a payload without it keeps its earlier bytes.
 	Extra []ExtraFile `json:"extra,omitempty"`
+	// Shortcuts are Start-menu shortcuts to files of the extra payload (docs/installer-cli.md §12.2). Left out when
+	// empty, like Extra.
+	Shortcuts []Shortcut `json:"shortcuts,omitempty"`
+}
+
+// Shortcut is one Start-menu shortcut: the file Name + ".lnk" in the common Start-menu Programs folder, pointing at
+// Target, a path of the extra payload. A machine gets it only when its build carries Target.
+type Shortcut struct {
+	Name   string `json:"name"`
+	Target string `json:"target"`
 }
 
 // ExtraFile is one file of the extra payload.
@@ -147,7 +157,10 @@ func (m *Manifest) check() error {
 		}
 		seen[f.Build] = true
 	}
-	return checkExtra(m.Extra, seen)
+	if err := checkExtra(m.Extra, seen); err != nil {
+		return err
+	}
+	return checkShortcuts(m.Shortcuts, m.Extra)
 }
 
 // reservedSuffixes are the endings of the installer's temporary names (Install, Uninstall).
@@ -161,13 +174,8 @@ func CheckExtraPath(p string) error {
 		return errors.New("an extra payload path is empty")
 	}
 	for _, part := range strings.Split(p, `\`) {
-		if part == "" || part == "." || part == ".." || strings.HasSuffix(part, " ") || strings.HasSuffix(part, ".") {
-			return fmt.Errorf("extra payload path %q: %q is not a file or folder name", p, part)
-		}
-		for _, c := range part {
-			if c < 0x20 || strings.ContainsRune(`<>:"/|?*`, c) {
-				return fmt.Errorf("extra payload path %q: character %q is not allowed", p, c)
-			}
+		if err := checkPart(part); err != nil {
+			return fmt.Errorf("extra payload path %q: %v", p, err)
 		}
 	}
 	l := strings.ToLower(p)
@@ -298,6 +306,69 @@ func (m *Manifest) Builds() []string {
 	var out []string
 	for _, f := range m.Files {
 		out = append(out, f.Build)
+	}
+	return out
+}
+
+// CheckShortcutName checks a shortcut's name, which becomes the file name Name + ".lnk": one plain name by the rules
+// of a part of CheckExtraPath (so no backslash and no "|", the record's separator), at most 200 characters.
+func CheckShortcutName(name string) error {
+	if name == "" || len(name) > 200 || strings.Contains(name, `\`) {
+		return fmt.Errorf("shortcut name %q: one name of 1 to 200 characters, without a backslash", name)
+	}
+	if err := checkPart(name); err != nil {
+		return fmt.Errorf("shortcut name %q: %v", name, err)
+	}
+	return nil
+}
+
+// checkPart applies the rules of one part of an extra payload path.
+func checkPart(part string) error {
+	if part == "" || part == "." || part == ".." || strings.HasSuffix(part, " ") || strings.HasSuffix(part, ".") {
+		return fmt.Errorf("%q is not a file or folder name", part)
+	}
+	for _, c := range part {
+		if c < 0x20 || strings.ContainsRune(`<>:"/|?*`, c) {
+			return fmt.Errorf("character %q is not allowed", c)
+		}
+	}
+	return nil
+}
+
+// checkShortcuts checks the shortcuts: every name (CheckShortcutName), no name twice (letter case ignored), and every
+// target a path of the extra payload.
+func checkShortcuts(scs []Shortcut, xs []ExtraFile) error {
+	paths := map[string]bool{}
+	for _, x := range xs {
+		paths[strings.ToLower(x.Path)] = true
+	}
+	names := map[string]bool{}
+	for _, sc := range scs {
+		if err := CheckShortcutName(sc.Name); err != nil {
+			return err
+		}
+		if names[strings.ToLower(sc.Name)] {
+			return fmt.Errorf("shortcut %q is listed twice", sc.Name)
+		}
+		names[strings.ToLower(sc.Name)] = true
+		if !paths[strings.ToLower(sc.Target)] {
+			return fmt.Errorf("shortcut %q: target %q is not a file of the extra payload", sc.Name, sc.Target)
+		}
+	}
+	return nil
+}
+
+// ShortcutsFor returns the shortcuts of a build: those whose target the build's extra payload carries.
+func (p *Payload) ShortcutsFor(build string) []Shortcut {
+	has := map[string]bool{}
+	for _, x := range p.ExtraFor(build) {
+		has[strings.ToLower(x.Path)] = true
+	}
+	var out []Shortcut
+	for _, sc := range p.Manifest.Shortcuts {
+		if has[strings.ToLower(sc.Target)] {
+			out = append(out, sc)
+		}
 	}
 	return out
 }

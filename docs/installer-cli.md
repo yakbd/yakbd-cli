@@ -350,7 +350,7 @@ x86, x64 and arm64 builds of `yakbd.exe`. It takes the same command line and giv
 - **Uninstall entry** `...\Uninstall\{product code}` as §9, product code fixed:
   `{EBE1EAEC-C574-5473-8489-B3FF22FC6506}` (UUID version 5 of the namespace of docs/installer.md §7 and the
   name `yakbd tool installer`: `installer.ToolProductCode`); record values `YakbdToolFile`, `YakbdPathAdded`,
-  `YakbdToolBuild` and, with an extra payload, `YakbdToolExtraFiles` (§12.1).
+  `YakbdToolBuild` and, with an extra payload, `YakbdToolExtraFiles` (§12.1) and `YakbdToolShortcuts` (§12.2).
 - **Upgrade, repair, downgrade** as §6; `yakbd.exe` in use (running) is replaced or deleted at the next restart,
   3010, and the restart rules of §5 apply.
 - **Built** by `go run ./tools/toolsetup -o yakbd-setup.exe` for tests and by the release workflow for releases (reproducible: fixed flags and environment, as the
@@ -372,9 +372,10 @@ rules of §6. Nothing else changes: command line, exit codes, PATH and uninstall
   `-extra BUILD=DIR` for the machines of one build only (the same path may appear once per build). `-builds` limits
   the builds of `yakbd.exe`; a machine whose build is missing gets 1633 and nothing changes, as in §12 (a payload
   that exists only for x64 and arm64 is built with `-builds x64,arm64`). The command prints the SHA-256 of each
-  `yakbd.exe` it carries: with the tag's own version they equal the `yakbd.exe` in that release's
-  `yakbd-V-windows-*.zip` (whose sums are in `SHA256SUMS`), which is how a consumer shows the bundled CLI is the
-  released one. In Go, the same is `relbuild.SetupWith` with `SetupOptions{Builds, Extra}` (an internal package: it
+  `yakbd.exe` it carries. To show that the bundled CLI is the released one, a consumer runs the same command
+  without `-extra` and `-shortcut` (and without `-builds`): at the tag, with the tag's own version, it writes that
+  release's `yakbd-setup.exe` byte for byte (its sum is in `SHA256SUMS`), and it prints the same `yakbd.exe` sums as
+  the bundled run. In Go, the same is `relbuild.SetupWith` with `SetupOptions{Builds, Extra}` (an internal package: it
   is used from this repository's checkout, not imported).
 - **Product version**: the installer's version is the CLI's (`-version`, default the tool's own), because §6 compares
   it with the installed one. A bundle of the same CLI version as the installed copy is a repair in place, which
@@ -401,13 +402,58 @@ rules of §6. Nothing else changes: command line, exit codes, PATH and uninstall
   it stops the install with 1603, nothing changed.
 - **Size**: the installer reads itself once into memory and copies itself as `setup.exe` into the folder, so a
   bundle takes its own size once more in the folder and in memory while it runs.
-- **No Start-menu shortcut**: the reference specification has no facts on shortcut files or the Start menu folders,
-  and this repository takes no Windows fact from elsewhere without a source; the extra payload installs files only.
-  A consumer that wants a shortcut has to wait for that fact (an open question).
-- **Not yet run on Windows**: the extra payload, and the `yakbd-setup.exe` of 0.1.0-preview.2 with it, are tested
-  only against the in-memory Windows of `installer/toolsetup` (`extra_test.go`: every machine, CLI-only and bundled
-  in both directions, older/newer refusals, changed file sets, files in use, rollback) and by `FuzzDecode`. The
-  Windows run of §12 (24 of 24) predates them.
+- **Start-menu shortcuts** to files of the extra payload: §12.2.
+- **Tested** against the in-memory Windows of `installer/toolsetup` (`extra_test.go`: every machine, CLI-only and
+  bundled in both directions, older/newer refusals, changed file sets, files in use, rollback) and by `FuzzDecode`.
+  **Verified on Windows** (2026-11-27, Windows 11 x64, the release draft of 0.1.0-preview.2 from commit 5316eee and
+  `tools/toolsetup -extra x64=DIR` at that commit, four payload files: an exe, a DLL and two files in sub folders):
+  the bundle installs them next to `yakbd.exe`, the plain `yakbd-setup.exe` over it removes them with one entry left,
+  the bundle again puts them back, and its `/x /quiet` leaves no file, folder, entry or Path entry; 4 of 4, after
+  the 7 clean-machine checks of the draft (docs/release.md §3) and the upgrade from the published 0.1.0-preview.1.
+
+### 12.2 Start-menu shortcuts to the extra payload
+
+A `yakbd-setup.exe` with an extra payload can make shortcuts in the Start menu for all users, as installers of
+desktop programs do, for example to the graphical editor:
+
+    go run ./tools/toolsetup -o yakbd-setup.exe -builds x64,arm64 -extra x64=DIR-x64 -extra arm64=DIR-arm64 \
+        -shortcut "YAKBD Editor=yakbd-gui.exe"
+
+- **What is made**: for `-shortcut NAME=PATH`, the file `NAME.lnk` in the common Start-menu Programs folder
+  (FOLDERID_CommonPrograms, by default `%ALLUSERSPROFILE%\Microsoft\Windows\Start Menu\Programs` [KF]),
+  pointing at `PATH` in the install folder (`PATH` is a path of the extra payload, slashes allowed on the command
+  line), with that file's first icon, the install folder as its working folder, and `NAME` as its description. It is a
+  Shell link made with the Shell's own link object and saved as a file [SL], not a file written by our code.
+  `NAME` follows the rules of one part of an extra payload path (§12.1; no `\` or `|`), at most 200 characters,
+  each name once (letter case ignored); the payload is refused otherwise, or when `PATH` is not one of its files.
+- **Per machine**: a machine gets a shortcut only when its build of the extra payload carries `PATH`; a machine
+  whose architecture has no extra payload gets none (and nothing in the record).
+- **Record**: the uninstall entry's value `YakbdToolShortcuts`, the names joined by `|`, written when there are
+  shortcuts now or were before (as `YakbdToolExtraFiles`). It holds names, not paths: uninstall and upgrade delete
+  only `NAME.lnk` in the common Programs folder for each valid name, whatever else the registry holds.
+- **Install, repair**: after the extra files, each shortcut is written anew (an earlier file of that name is deleted
+  first), so a repair brings back a deleted or changed shortcut. A fresh install that fails deletes the shortcuts it
+  made (rollback, with the files). Shortcuts of the earlier record that this installer does not make (another set, or
+  an installer without the extra payload) are deleted after the entry is written; one in use at the next restart.
+- **Uninstall** deletes the recorded shortcuts first, then the files as in §12.1.
+- **No AppUserModelID**: a shortcut can carry one (the `System.AppUserModel.ID` property through `IPropertyStore`
+  [AUMID]), but Windows treats it as optional and the program must then set the same ID on its own windows; the
+  installer sets none, and the system's own choice applies.
+- **Installers that know no shortcuts**: one of 0.1.0-preview.2 run over a bundle with shortcuts counts as the same
+  version (a repair, §6) and deletes the extra files but leaves the shortcuts and their record value; any later
+  `yakbd-setup.exe` then removes them. Its uninstall (`/x`) deletes the entry and leaves the shortcuts, pointing at
+  nothing; delete them by hand, or install and uninstall a current `yakbd-setup.exe`.
+- **Not yet run on Windows** when written: the decisions are tested against the in-memory Windows of
+  `installer/toolsetup` (`shortcut_test.go`); the link object calls are in `installer/winhost/shortcut_windows.go`.
+
+[KF] KNOWNFOLDERID, https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid ;
+SHGetKnownFolderPath, https://learn.microsoft.com/en-us/windows/win32/api/shlobj_core/nf-shlobj_core-shgetknownfolderpath .
+[SL] Shell Links, https://learn.microsoft.com/en-us/windows/win32/shell/links ; IShellLinkW and its Set methods,
+https://learn.microsoft.com/en-us/windows/win32/api/shobjidl_core/nn-shobjidl_core-ishelllinkw ; IPersistFile::Save,
+https://learn.microsoft.com/en-us/windows/win32/api/objidl/nf-objidl-ipersistfile-save ; CoInitializeEx and
+CoCreateInstance, https://learn.microsoft.com/en-us/windows/win32/api/combaseapi/ . The order of the interfaces'
+methods and the class and interface ids: CLEAN-ROOM.md.
+[AUMID] Application User Model IDs, https://learn.microsoft.com/en-us/windows/win32/shell/appids .
 
 Windows test: `go run ./tools/clibundle -o DIR` writes the bundle (a layout installer and `yakbd-setup.exe`, three
 versions each, and `tools/clicheck`) that runs every switch combination of this contract a deployment tool sends, in

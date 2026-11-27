@@ -89,3 +89,17 @@ func TestSetupWithExtra(t *testing.T) {
 		t.Error("unknown build accepted")
 	}
 }
+
+// TestReadShortcuts: -shortcut NAME=PATH, slashes turned into backslashes; a value without both parts refused.
+func TestReadShortcuts(t *testing.T) {
+	got, err := readShortcuts([]string{"YAKBD Editor=yakbd-gui.exe", "Viewer=tools/viewer.exe"})
+	want := []toolsetup.Shortcut{{Name: "YAKBD Editor", Target: "yakbd-gui.exe"}, {Name: "Viewer", Target: `tools\viewer.exe`}}
+	if err != nil || !reflect.DeepEqual(got, want) {
+		t.Errorf("%+v %v", got, err)
+	}
+	for _, bad := range []string{"x", "=a.exe", "a="} {
+		if _, err := readShortcuts([]string{bad}); err == nil {
+			t.Errorf("%q accepted", bad)
+		}
+	}
+}

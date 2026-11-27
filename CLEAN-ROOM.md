@@ -278,3 +278,30 @@ trigger, not about shortcut files; nothing was taken, and no shortcut is made. T
 (docs/report-file.md) locates entries by JSON Pointer, RFC 6901 (https://www.rfc-editor.org/rfc/rfc6901: the
 `/` syntax and the `~0`/`~1` escapes, which the schema validator already used). The release workflow's `--latest`
 publish step is from the GitHub CLI's own help (`gh release create --help`, `gh release edit --help`).
+
+## Start-menu shortcuts of yakbd-setup.exe (2026-11-27)
+
+The reference specification has no facts on shortcut files (see the entry above), so docs/installer-cli.md §12.2
+and `installer/winhost/shortcut_windows.go` rest on public sources only, read 2026-11-27, facts only:
+- Microsoft Learn: "Shell Links" (https://learn.microsoft.com/en-us/windows/win32/shell/links: a shortcut is made
+  with CoCreateInstance of CLSID_ShellLink in process for IShellLink, its Set methods, then QueryInterface for
+  IPersistFile and Save; COM must be initialized first; the shortcut's name is its file name, `.lnk`);
+  IShellLinkW (https://learn.microsoft.com/en-us/windows/win32/api/shobjidl_core/nn-shobjidl_core-ishelllinkw) and
+  IShellLinkW::SetIconLocation (`.../nf-shobjidl_core-ishelllinkw-seticonlocation`); IPersistFile::Save
+  (https://learn.microsoft.com/en-us/windows/win32/api/objidl/nf-objidl-ipersistfile-save: absolute path,
+  fRemember); CoInitializeEx (https://learn.microsoft.com/en-us/windows/win32/api/combaseapi/nf-combaseapi-coinitializeex:
+  S_FALSE, RPC_E_CHANGED_MODE, balancing CoUninitialize); CoCreateInstance
+  (https://learn.microsoft.com/en-us/windows/win32/api/combaseapi/nf-combaseapi-cocreateinstance); SHGetKnownFolderPath
+  (https://learn.microsoft.com/en-us/windows/win32/api/shlobj_core/nf-shlobj_core-shgetknownfolderpath: flags 0,
+  CoTaskMemFree in every case); KNOWNFOLDERID (https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid:
+  FOLDERID_CommonPrograms, its GUID and default path); Application User Model IDs
+  (https://learn.microsoft.com/en-us/windows/win32/shell/appids: optional, set through IPropertyStore; not used).
+- Learn lists an interface's methods by name, not in the order of its method table, and does not give the ids of
+  CLSID_ShellLink, IID_IShellLinkW and IID_IPersistFile. Those ids and the method order of IUnknown, IShellLinkW,
+  IPersist and IPersistFile are from Microsoft's own generated Rust bindings: the `windows` crate 0.61.3
+  (`src/Windows/Win32/UI/Shell/mod.rs`: `IShellLinkW_Vtbl`, `define_interface!(IShellLinkW, ...)`, `ShellLink`;
+  `src/Windows/Win32/System/Com/mod.rs`: `IPersist_Vtbl`, `IPersistFile_Vtbl`, `define_interface!(IPersistFile, ...)`,
+  `CLSCTX_INPROC_SERVER`, `COINIT_APARTMENTTHREADED`, `COINIT_DISABLE_OLE1DDE`) and `windows-core` 0.61.2
+  (`src/unknown.rs`: `IUnknown_Vtbl`), downloaded from crates.io (MIT OR Apache-2.0; NOTICE §1). Only those ids,
+  positions and constants were taken; no code.
+- Go documentation: `syscall.SyscallN`, `runtime.LockOSThread`, the `//go:uintptrescapes` directive (cmd/compile).
