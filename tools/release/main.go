@@ -1,7 +1,7 @@
 // Command release builds every asset of a release into one folder (docs/release.md). Run from the repository root:
 //
-//	go run ./tools/release -version 0.1.0-preview.1 -o DIR
-//	go run ./tools/release -version 0.1.0-preview.1 -check   # only the version rules below
+//	go run ./tools/release -version 0.1.0-preview.2 -o DIR
+//	go run ./tools/release -version 0.1.0-preview.2 -check   # only the version rules below
 //
 // It writes, for version V:
 //
@@ -18,7 +18,7 @@
 // Every build has fixed flags and environment (internal/relbuild) and the zips have fixed times and attributes, so
 // two runs on the same commit with the same Go give the same bytes, in any folder; the release workflow checks it.
 // V is a semantic version without "v". It must equal the tool's own version (internal/cli VersionString, e.g.
-// 0.1.0-preview.1), except for a rehearsal (V contains "-rehearsal."), which may be anything.
+// 0.1.0-preview.2), except for a rehearsal (V contains "-rehearsal."), which may be anything.
 package main
 
 import (
