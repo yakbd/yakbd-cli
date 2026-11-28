@@ -117,8 +117,14 @@ func TestCorpus(t *testing.T) {
 			diffs := typeDiffs(k, k2)
 			w := warnings(ir)
 			var single, pairs []string
+			ended := slices.Contains(warnings(br), "macos.deadKeyEndedByEmptyKey")
 			for _, d := range diffs {
 				if strings.HasPrefix(d, "[") {
+					// the original keeps the dead key pending, the build ends it: the reported
+					// macos.deadKeyEndedByEmptyKey (kbl spec D131)
+					if ended && strings.HasSuffix(d, `|dead" vs "|none"`) {
+						continue
+					}
 					pairs = append(pairs, d)
 				} else {
 					single = append(single, d)

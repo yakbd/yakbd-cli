@@ -8,6 +8,7 @@ import (
 
 	"github.com/yakbd/yakbd-cli/format/kbljson"
 	"github.com/yakbd/yakbd-cli/format/keylayout"
+	"github.com/yakbd/yakbd-cli/loss"
 )
 
 func TestExamplesBuild(t *testing.T) {
@@ -178,6 +179,45 @@ func TestNextNamesDefinedState(t *testing.T) {
 					t.Errorf("%s: action %s: next=%q names no defined state", filepath.Base(name), a.ID, w.Next)
 				}
 			}
+		}
+	}
+}
+
+// TestDeadKeyEndedByEmptyKey: a build with a dead key and key codes that type nothing reports
+// macos.deadKeyEndedByEmptyKey once (a warning, kbl spec D131); a build without dead keys does not.
+func TestDeadKeyEndedByEmptyKey(t *testing.T) {
+	for _, c := range []struct {
+		name, deadKeys string
+		want           bool
+	}{
+		{"dead", `, "deadKeys": {"acute": {"spacing": "´", "entries": [{"base": "e", "result": "é"}]}}`, true},
+		{"none", ``, false},
+	} {
+		bind := `"KeyE": "e"`
+		if c.want {
+			bind += `, "Equal": {"deadKey": "acute"}`
+		}
+		src := `{"kbl": "0.2", "metadata": {"id": "en", "name": "N"}, "positions": {"KeyE": {}, "Equal": {}},
+		 "hardware": {"layers": [{"modifiers": [[]], "bindings": {` + bind + `}}]}` + c.deadKeys + `}`
+		l, r := kbljson.Read([]byte(src), "t.kbl.json")
+		if r.HasErrors() {
+			t.Fatal(r.Summary())
+		}
+		res, br := Build(l, Options{})
+		if res == nil {
+			t.Fatal(br.Summary())
+		}
+		n := 0
+		for _, e := range br.Entries {
+			if e.Code == "macos.deadKeyEndedByEmptyKey" {
+				n++
+				if e.Severity != loss.Warning {
+					t.Errorf("%s: severity %v, want warning", c.name, e.Severity)
+				}
+			}
+		}
+		if got := n == 1; got != c.want || n > 1 {
+			t.Errorf("%s: %d entries of macos.deadKeyEndedByEmptyKey, want one: %v", c.name, n, c.want)
 		}
 	}
 }

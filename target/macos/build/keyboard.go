@@ -9,6 +9,7 @@ import (
 
 	"github.com/yakbd/yakbd-cli/format/keylayout"
 	"github.com/yakbd/yakbd-cli/model"
+	"github.com/yakbd/yakbd-cli/target/macos/keycode"
 )
 
 // Element ids of the written file (the writer's choice, TN2056).
@@ -137,6 +138,9 @@ func (b *builder) keyboard() *keylayout.Keyboard {
 		}
 	}
 	dead = reached
+	if len(dead) > 0 {
+		b.emptyKeys(keyMaps, dead)
+	}
 	// actions: dead keys by state name, then texts by id
 	chainedExpanded := false
 	var deadIDs []string
@@ -365,4 +369,60 @@ func decodeIcon(s string) []byte {
 		return nil
 	}
 	return b
+}
+
+// emptyKeys reports macos.deadKeyEndedByEmptyKey (targets/macos.md §4, D131): a key code with a key, a row of the
+// position table that is not a modifier or a code the build gave a position, that has no <key> in some key map. Pressed
+// while a dead key is pending, macOS types the terminator and ends the dead key; the model keeps it pending.
+func (b *builder) emptyKeys(keyMaps []keylayout.KeyMap, dead []*deadInfo) {
+	mod := map[string]bool{}
+	for _, cm := range b.l.CustomModifiers {
+		for _, p := range cm.Positions {
+			mod[p] = true
+		}
+	}
+	isMod := func(p string) bool {
+		if mod[p] || p == "CapsLock" {
+			return true
+		}
+		for _, w := range []string{"Control", "Shift", "Alt", "Meta"} {
+			if p == w+"Left" || p == w+"Right" {
+				return true
+			}
+		}
+		return false
+	}
+	codes := map[int]bool{}
+	for _, row := range keycode.Rows {
+		if !isMod(row.Position) {
+			codes[row.Code] = true
+		}
+	}
+	for p, c := range b.codes {
+		if !isMod(p) {
+			codes[c] = true
+		}
+	}
+	empty := map[int]bool{}
+	for _, km := range keyMaps {
+		has := map[int]bool{}
+		for _, k := range km.Keys {
+			has[k.Code] = true
+		}
+		for c := range codes {
+			if !has[c] {
+				empty[c] = true
+			}
+		}
+	}
+	if len(empty) == 0 {
+		return
+	}
+	var ids []string
+	for _, d := range dead {
+		ids = append(ids, d.id)
+	}
+	sort.Strings(ids)
+	e := b.lost("macos.deadKeyEndedByEmptyKey", "/deadKeys", "%d key codes type nothing in some key map: pressed while a dead key is pending, macOS types the terminator and ends the dead key, where the model keeps it pending", len(empty))
+	e.Detail = map[string]any{"deadKeys": ids}
 }

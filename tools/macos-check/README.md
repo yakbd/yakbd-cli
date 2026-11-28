@@ -113,6 +113,11 @@ follows it), its own `inputSourceId` and a keyboard id of its own (pinned, or th
   `<when state="ring" output=""/>`. Run 46126097229 also had two twins that differed only in that `<when>`:
   `next="none"` alone, and `next` to a state with no `<when>` and no terminator; the system listed neither, so they
   were removed.
+- `twin-pending-next` (hand-written from `twin-empty-output`): the form a build could write for a key with no output while
+  a dead key is pending, `<when state="ring" next="ring"/>`, on a key that types `x` and on key code 16 that types
+  nothing (`<when state="none" output=""/>`): does it keep the dead key pending (kbl spec `targets/macos.md` §8 item
+  8)? `expect.tsv` holds the model's result (`å` after ring, the key, `a`); the build does not write this form yet
+  and reports `macos.deadKeyEndedByEmptyKey` instead.
 - `gen-maxout` (generated, with `extra.tsv`): the same press with `maxout` pinned to 2, the longest single output and
   one less than terminator and output together (§8 item 7), and a key code without a key pressed while the dead key is
   pending (§8 item 1: measured, macOS types the terminator and drops the dead key). It also shows that key codes

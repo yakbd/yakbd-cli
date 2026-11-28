@@ -1,0 +1,15 @@
+# name<TAB>strokes<TAB>expected (README.md). A twin of twin-empty-output (dead key ring on Minus 27, no terminator):
+# key x (7) types x, and with ring pending <when state="ring" next="ring"/>; key code 16 types nothing
+# (<when state="none" output=""/>) and with ring pending the same. Measures kbl spec targets/macos.md §8 item 8: does
+# that form keep the dead key pending? The model's answer (å) is expected; without it macOS ends the dead key (a).
+plain-a	0	a
+plain-m	46	ʮ
+shift-a	0+shift	A
+plain-x	7	x
+ring-a	27 0	å
+ring-s	27 1 14	se
+empty-then-e	16 14	e
+ring-x-a	27 7 0	å
+ring-x-x-a	27 7 7 0	å
+ring-empty-a	27 16 0	å
+ring-empty-e	27 16 14	e

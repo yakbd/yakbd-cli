@@ -107,6 +107,7 @@ var kindDefaults = map[string]string{
 	"macos.outputUnencodable":              "error",
 	"macos.markerNotCompiled":              "warning",
 	"macos.transformNotCompiled":           "warning",
+	"macos.deadKeyEndedByEmptyKey":         "warning",
 	"macos.deadKeyNoMatchExpanded":         "accept",
 	"macos.stateNameDuplicate":             "error",
 	"macos.malformed":                      "fatal",

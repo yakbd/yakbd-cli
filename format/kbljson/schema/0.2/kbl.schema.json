@@ -2256,7 +2256,7 @@
               "type": "integer",
               "minimum": 1,
               "maximum": 65535,
-              "description": "keyboard/@maxout: most UTF-16 units one key press emits (rule maxout)."
+              "description": "keyboard/@maxout: most UTF-16 units of one output; a terminator and a key output count separately (rule maxout)."
             },
             "hardwareRanges": {
               "minItems": 1,
@@ -2918,6 +2918,7 @@
               "windowsDefault.versionInfo",
               "windowsDefault.vk",
               "macos.*",
+              "macos.deadKeyEndedByEmptyKey",
               "macos.deadKeyNoMatchExpanded",
               "macos.keyCodeDuplicate",
               "macos.keyCodeMissing",

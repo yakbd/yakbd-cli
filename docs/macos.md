@@ -57,6 +57,7 @@ Each of these is a loss in the report (kinds of SPEC §17.3; a file's `onLoss` c
 | `macos.settingNotCompiled` | Shift turning Caps Lock off, and bidi marks on Shift+Backspace |
 | `macos.markerNotCompiled`, `macos.transformNotCompiled` | markers, transforms and reorders; dead keys are compiled |
 | `macos.deadKeyNoMatchExpanded` | (accepted) noMatch rules and a dead key pressed while another is pending are written as explicit states |
+| `macos.deadKeyEndedByEmptyKey` | a key that types nothing (in that key map) ends a pending dead key on macOS and the dead key's terminator is typed, where the format keeps the dead key pending; reported once per build with dead keys |
 | `macos.positionWithoutKey` | a bound position the macOS table has no key for but another target's table has (`Break`, which every layout converted from a `.klc` file binds, `SysRq`, `PrintScreen`, media keys): its bindings are left out; pin `keys.<p>.keyCode` to build them |
 | `macos.keyCodeMissing`, `macos.keyCodeDuplicate`, `macos.outputUnencodable`, `macos.outputBeyondMaxout` | errors: no key code for a bound position, two positions on one code, U+0000 or a lone surrogate, an output longer than a pinned `maxout` |
 
