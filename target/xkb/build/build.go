@@ -193,7 +193,7 @@ func (b *builder) run() *Result {
 		b.key(p)
 	}
 	if len(b.multi) > 0 {
-		b.lost("xkb.multiCharacterOutput", "/hardware", "levels of several characters (%s): libxkbcommon and Qt type them, X11 (xkbcomp) types nothing and GTK 4 types nothing", strings.Join(b.multi, ", "))
+		b.lost("xkb.multiCharacterOutput", "/hardware", "levels of several characters (%s): libxkbcommon and Qt type them, GTK 4 types nothing, and an X11 server may refuse the whole keymap (measured: Xvfb 21.1, XkbSetMap BadValue)", strings.Join(b.multi, ", "))
 	}
 	if len(b.numpad) > 0 {
 		b.lost("xkb.numLockKeyReduced", "/positions", "the number-pad keys %s type their navigation keysym with Num Lock off and their base binding with Num Lock on (type KEYPAD, which also gives Shift the base binding); their other states are not built", strings.Join(b.numpad, ", "))

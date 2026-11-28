@@ -70,8 +70,8 @@ in every combination of Shift, Caps Lock, AltGr and level 5, through the key typ
 
 ## What Linux cannot hold, or not everywhere
 
-- **Several characters on one key** type in libxkbcommon and Qt, but X11 (`xkbcomp`) and GTK 4 type nothing
-  (`xkb.multiCharacterOutput`).
+- **Several characters on one key** type in libxkbcommon and Qt; GTK 4 types nothing, and an X11 server may refuse
+  the whole layout (measured with Xvfb 21.1: `XkbSetMap` fails) (`xkb.multiCharacterOutput`).
 - **Dead keys** need an input method that reads your Compose file: libxkbcommon, Qt 6, GTK 4 on X11 and weston do;
   GTK 4 on sway, KDE Plasma and GNOME without IBus drop them unless `GTK_IM_MODULE=simple` is set
   (`xkb.deadKeyStacks`). What a key without a sequence types after a dead key is up to the input method

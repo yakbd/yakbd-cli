@@ -82,6 +82,20 @@ holds every row of the kbl spec's position table.
 
 ## Results
 
+Run of 2026-11-28 with the generated cases (`XKB_CHECK_NO_BUILD=1`, about 9 minutes): 1930 result lines, 1732 PASS, 198
+FAIL, no line of the hand-written layouts changed; the 1564 lines of `gen-demo`, `gen-multi` and `gen-corpus` were added
+to `baseline.txt`. Every FAIL of a generated case is a loss the build reports:
+
+- the yakbd key type `YAKBD_12213434` (`gen-demo` KeyT: AltGr+Caps Lock gives þ) types as built on every stack with
+  libxkbcommon 1.13 (through `~/.config/xkb/rules/evdev.post`) and on X11 with `-types complete+<name>-types`; Debian
+  13 (libxkbcommon 1.7) ignores the rules file and gives the key a default type (6 + 6 FAIL, `xkb.customKeyType`);
+- dead keys from the generated Compose file type everywhere except GTK 4 on sway, KWin and mutter (`gen-demo` 4,
+  `gen-corpus` 17 per stack, `xkb.deadKeyStacks`);
+- several characters on one level type in libxkbcommon and Qt; GTK 4 types nothing (8 per Wayland stack), and Xvfb
+  21.1 refuses the whole keymap of `gen-multi` (`XkbSetMap` BadValue, all 24 cases in both clients; the same file
+  with the multi-keysym levels replaced by one keysym loads) (`xkb.multiCharacterOutput`).
+
+The first run, of the hand-written layouts only:
 Run of 2026-11-28 (`run.sh`, 5 minutes with the images already built): 366 result lines, 322 PASS, 44 FAIL; `baseline.txt`
 holds them, with one correction: `x11 qt yakbdtest control-us` failed in that run because the injector focused a small
 helper window of Qt; it now focuses the largest window, and a rerun of the x11 stack passed it. Every FAIL in
