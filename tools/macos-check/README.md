@@ -24,9 +24,12 @@ with the preinstalled `swiftc`, then:
    (`type-sysevents:<name>`). It then reads the text back. System Events has no caps-lock modifier, so caps cases are
    `SKIP` there.
 
-Before the checker runs, `run.sh` adds the layout to `AppleEnabledInputSources` in the `com.apple.HIToolbox`
-preferences (its keyboard `id` and `name` from the `.keylayout`), as the Text Input settings do. Without that entry,
-`TISEnableInputSource` returned 0 but did not enable a bundle in `~/Library/Keyboard Layouts` (see Runs).
+Before the checker runs, `run.sh` registers the layout (`<case>/register`: a checker run with
+`MACOS_CHECK_REGISTER_ONLY=1` that stops after registration) and then adds it to `AppleEnabledInputSources` in
+the `com.apple.HIToolbox` preferences (its keyboard `id` and `name` from the `.keylayout`), as the Text Input
+settings do; the checker, a new process, then finds it enabled. Without that entry, `TISEnableInputSource`
+returned 0 but did not enable a bundle in `~/Library/Keyboard Layouts`; an entry written before registration
+was not always honoured (see Runs).
 `MACOS_CHECK_WAIT` sets how long the checker waits for a registered layout to be listed (60 s).
 
 ## summary.txt
@@ -64,7 +67,7 @@ No other change is needed. The cases run in name order.
 ## Locally
 
 On a Mac, `tools/macos-check/run.sh OUT` does the same as the workflow. It installs into your own
-`~/Library/Keyboard Layouts` adds each test layout to your enabled input sources and selects it, so remove them and switch back afterwards.
+`~/Library/Keyboard Layouts`, adds each test layout to your enabled input sources and selects it, so remove them and switch back afterwards.
 
 ## Runs
 
@@ -75,9 +78,10 @@ All on GitHub's arm64 images, `macos-15` (15.8.2) and `macos-26` (26.7.2), 2026-
 | 46102612485 | cff8cb5 | UCKeyTranslate: every case passes on both images. Key codes typed into the text view arrive by both methods (AXIsProcessTrusted and CGPreflightPostEventAccess true), but come out as US, because the layout was not selected: registered (0), enable 0 but still disabled, select -50 |
 | 46102900903 | aeee2c4 | the same; an enabled-sources entry written by the checker itself, mid-run, did not help |
 | 46103925085 | 39c126d | control (Apple's German) enables, selects and types at once; our layouts: `TISEnableInputSource` alone enabled one in `/Library` but none in `~/Library`; after the enabled-sources entry, a new checker process found every layout enabled, selected it, and every typing case passed, quarantined copy included, in both folders on both images; no restart of the text-input agents or sign-out needed |
+| 46104372309 | 0a17aee | entry written right after the copy, then one checker run: `check` passed everywhere, `quarantined` was selected only on macos-15 in `/Library` (enable stayed false elsewhere, with the entry present), so the entry's timing matters, not the quarantine |
 
 What this settles: an unsigned, hand-copied layout bundle (and one carrying `com.apple.quarantine`,
 set by `xattr` here, not by a real download) is listed, compiled and usable at once in the same session;
 `spctl` rejects it ("no usable signature"), but nothing enforces that for a layout. Selection by a script
-needs the enabled-sources preference entry, then `TISRegisterInputSource` and `TISSelectInputSource`
-from a process started after the entry was written.
+needs `TISRegisterInputSource`, then the enabled-sources preference entry, then `TISSelectInputSource` from a
+process started after the entry was written; no sign-out.

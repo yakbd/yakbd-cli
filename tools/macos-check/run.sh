@@ -56,9 +56,13 @@ for c in "$here"/cases/*/; do
 		$as xattr -r -w com.apple.quarantine "0083;$(printf %x "$(date +%s)");Safari;$(uuidgen)" "$inst"
 		echo "INFO $name quarantine : $(xattr -p com.apple.quarantine "$inst" 2>&1)" >>"$sum"
 	fi
-	# Enable the layout the way the Text Input settings do: an entry in AppleEnabledInputSources of the HIToolbox
-	# preferences (keyboard id and name from the .keylayout). TISEnableInputSource alone did not enable a bundle
-	# in ~/Library/Keyboard Layouts on the runners (README.md, runs).
+	# Register first (a checker run that stops after registration), then enable the layout the way the Text Input
+	# settings do: an entry in AppleEnabledInputSources of the HIToolbox preferences (keyboard id and name from the
+	# .keylayout). The checker that follows is a new process and finds the layout enabled. TISEnableInputSource
+	# alone did not enable a bundle in ~/Library/Keyboard Layouts, and an entry written before the layout was
+	# registered was not always honoured (README.md, runs).
+	MACOS_CHECK_REGISTER_ONLY=1 "$out/macos-check" "$name/register" "$inst" "$c/expect.tsv" none >>"$sum" 2>>"$out/stderr.txt"
+	echo "INFO $name/register exit : $?" >>"$sum"
 	kname=$(basename "$bundle" .bundle)
 	kid=$(sed -n 's/.*<keyboard [^>]* id="\(-\{0,1\}[0-9]*\)".*/\1/p' "$inst/Contents/Resources/$kname.keylayout" | head -1)
 	defaults write com.apple.HIToolbox AppleEnabledInputSources -array-add \

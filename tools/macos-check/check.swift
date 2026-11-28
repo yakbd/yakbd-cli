@@ -236,6 +236,7 @@ if control {
     }
 }
 if let s = source { emit("INFO", "properties", describe(s)) }
+if ProcessInfo.processInfo.environment["MACOS_CHECK_REGISTER_ONLY"] == "1" { exit(failed ? 1 : 0) }
 
 // Calls TISEnableInputSource every 2 s until a freshly listed object says it is enabled.
 func enableAndWait(_ seconds: Double) -> (calls: Int, last: OSStatus, enabled: Bool) {
