@@ -381,3 +381,20 @@ Measured on GitHub's `macos-15` (15.8.2) and `macos-26` (26.7.2) arm64 runners, 
 `AppleEnabledInputSources` entry, from the runners' own entry for U.S. in a `defaults read com.apple.HIToolbox`
 dump; that the entry, written after registration, makes a new process find the layout enabled; and that `spctl`
 rejects an unsigned layout bundle while the system still lists, compiles and selects it.
+
+### The .keylayout reader and writer, the macOS conversion and target (2026-11-28)
+
+`format/keylayout`, `convert/keylayoutkbl` and `target/macos` are our own code, written from these public sources
+(read 2026-11-28, facts only, no code or prose copied):
+- Apple Technical Note TN2056 (https://developer.apple.com/library/archive/technotes/tn2056/_index.html, Apple's
+  archived documentation), read again for the reader and writer: every element and attribute with its required and
+  optional parts, the `?` suffix and the "any" modifier words, later `keyMapSelect` matches winning,
+  `baseMapSet`/`baseIndex` copying, inline and named actions, `when` single and range forms, `terminators`, that
+  named entities are not supported in outputs and that a supplementary character is one numeric reference, UTF-8
+  or UTF-16 files.
+- The test layouts of `tools/macos-check/cases/` (this repository) and the measurements recorded in its README: XML
+  1.1 with C0 controls as references compiles on macOS 15 and 26; a plain output key in a dead-key state gives the
+  terminator followed by the key's output (case `dead-terminator`).
+- The fixtures of `testdata/third_party/keylayout/` (NOTICE section 6, all MIT or Unlicense), read as data to test
+  the reader: their XML shapes (XML 1.0 and 1.1, `DOCTYPE ... PUBLIC ""`, comments, attribute orders, key codes
+  above 127).
