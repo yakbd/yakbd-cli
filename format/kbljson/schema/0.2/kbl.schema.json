@@ -2372,6 +2372,144 @@
         "xkb": {
           "type": "object",
           "properties": {
+            "symbolsName": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+              "description": "The symbols file name and the layout name in rules/evdev.xml (rule symbolsName)."
+            },
+            "variant": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+              "description": "The section name: basic (default) is the file's default section and a layout of its own; any other name is a variant of the layout symbolsName (rule variant)."
+            },
+            "description": {
+              "description": "The layout's name: name[Group1] and the registry's <description> (rule description).",
+              "$ref": "#/$defs/Text"
+            },
+            "shortDescription": {
+              "type": "string",
+              "pattern": "^[^\\x00-\\x1f\\x7f]{1,16}$",
+              "description": "The registry's <shortDescription>, the short label of the layout (rule shortDescription)."
+            },
+            "languages": {
+              "minItems": 1,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z]{3}$",
+                "description": "An ISO 639-2 or 639-3 language code."
+              },
+              "uniqueItems": true,
+              "description": "The registry's <languageList>, three-letter codes; no default (none written)."
+            },
+            "characters": {
+              "type": "string",
+              "enum": [
+                "keysyms",
+                "utf8"
+              ],
+              "description": "How characters are written in the symbols file: keysym names and Uxxxx (any libxkbcommon, xkbcomp) or UTF-8 strings (libxkbcommon 1.9 and later only) (rule characters)."
+            },
+            "keys": {
+              "type": "object",
+              "propertyNames": {
+                "$ref": "#/$defs/PositionId"
+              },
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "keyName": {
+                    "type": "string",
+                    "pattern": "^[0-9A-Za-z_+-]{1,4}$",
+                    "description": "The XKB key name, without the angle brackets (rule keyName)."
+                  },
+                  "type": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "ONE_LEVEL",
+                          "TWO_LEVEL",
+                          "ALPHABETIC",
+                          "FOUR_LEVEL",
+                          "FOUR_LEVEL_ALPHABETIC",
+                          "FOUR_LEVEL_SEMIALPHABETIC",
+                          "FOUR_LEVEL_PLUS_LOCK",
+                          "EIGHT_LEVEL",
+                          "EIGHT_LEVEL_ALPHABETIC",
+                          "EIGHT_LEVEL_SEMIALPHABETIC"
+                        ],
+                        "description": "A stock key type of xkeyboard-config (targets/xkb.md §3)."
+                      },
+                      {
+                        "type": "string",
+                        "pattern": "^YAKBD_[1-8]{8}([1-8]{8})?$",
+                        "description": "A yakbd key type: YAKBD_ and the level of each of the 8 (or 16, with LevelFive) states, Lock always consumed (targets/xkb.md §3)."
+                      }
+                    ],
+                    "description": "The key type of this key (rule keyType)."
+                  }
+                },
+                "additionalProperties": false,
+                "description": "XKB data of one position."
+              },
+              "description": "XKB data per position."
+            },
+            "customTypes": {
+              "type": "boolean",
+              "description": "true: a key no stock type fits gets a yakbd key type, installed with the layout (needs libxkbcommon 1.13 or a types option on X11); default false (rule keyType)."
+            },
+            "modifiers": {
+              "type": "object",
+              "properties": {
+                "levelThree": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z][A-Za-z0-9]{0,31}$",
+                  "description": "The component that is the level-3 shift: altR, alt or a custom held component (rule levelThree)."
+                },
+                "levelFive": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z][A-Za-z0-9]{0,31}$",
+                  "description": "The component that is the level-5 shift: a custom held component or altR; no default (no level 5)."
+                }
+              },
+              "additionalProperties": false,
+              "description": "Which components shift XKB levels."
+            },
+            "deadKeys": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "keysym": {
+                    "type": "string",
+                    "pattern": "^dead_[A-Za-z0-9_]{1,40}$",
+                    "description": "The dead_* keysym the dead key's key types (rule deadKeysym)."
+                  }
+                },
+                "additionalProperties": false,
+                "description": "XKB data of one dead key."
+              },
+              "description": "XKB data per dead key."
+            },
+            "compose": {
+              "type": "object",
+              "properties": {
+                "write": {
+                  "type": "boolean",
+                  "description": "Write a Compose file with the dead-key sequences (default: when the file has dead keys)."
+                },
+                "includeLocale": {
+                  "type": "boolean",
+                  "description": "Start the Compose file with include \"%L\", keeping the system sequences (default true)."
+                }
+              },
+              "additionalProperties": false,
+              "description": "The Compose file of the build (rule compose)."
+            },
             "onLoss": {
               "description": "Loss policy for this target.",
               "$ref": "#/$defs/OnLoss"
@@ -2819,7 +2957,52 @@
               "macosDefault.standardKeys",
               "macosDefault.stateName",
               "xkb.*",
-              "xkbDefault.*"
+              "xkb.actionsDropped",
+              "xkb.capsLockNotExpressible",
+              "xkb.composeBaseNotSingle",
+              "xkb.composeSequenceDropped",
+              "xkb.controlAltLayerDropped",
+              "xkb.customKeyType",
+              "xkb.deadKeyChainCut",
+              "xkb.deadKeyNoCompose",
+              "xkb.deadKeyNoMatchNotCompiled",
+              "xkb.deadKeyStacks",
+              "xkb.deadKeysymDuplicate",
+              "xkb.deadKeysymMissing",
+              "xkb.groupDropped",
+              "xkb.includeUnresolved",
+              "xkb.keyNameDuplicate",
+              "xkb.keyNameMissing",
+              "xkb.keyNameUnknown",
+              "xkb.keyTypeNotExact",
+              "xkb.keyTypeUnknown",
+              "xkb.keysymNotText",
+              "xkb.lockUnmapped",
+              "xkb.malformed",
+              "xkb.markerNotCompiled",
+              "xkb.modifierUnmapped",
+              "xkb.multiCharacterOutput",
+              "xkb.noHardwareLayers",
+              "xkb.numLockKeyReduced",
+              "xkb.outputUnencodable",
+              "xkb.settingNotCompiled",
+              "xkb.syntaxDetailsIgnored",
+              "xkb.systemComposeSequences",
+              "xkb.tooManyLevels",
+              "xkb.transformNotCompiled",
+              "xkb.typeModifierDropped",
+              "xkb.utf8Characters",
+              "xkbDefault.*",
+              "xkbDefault.characters",
+              "xkbDefault.compose",
+              "xkbDefault.deadKeysym",
+              "xkbDefault.description",
+              "xkbDefault.keyName",
+              "xkbDefault.keyType",
+              "xkbDefault.levelThree",
+              "xkbDefault.shortDescription",
+              "xkbDefault.symbolsName",
+              "xkbDefault.variant"
             ],
             "description": "A loss kind of SPEC §17.3, a prefix wildcard, or <target>Default.<rule>."
           },

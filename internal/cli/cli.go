@@ -207,7 +207,7 @@ func convert(args []string, stdout, stderr io.Writer) int {
 	from := fs.String("from", "", "the input's format by name, for a file without a suffix: "+formatNames())
 	to := fs.String("to", "", "the output's format by name, for a file without a suffix")
 	variant := fs.String("variant", "", "xkb: the xkb_symbols section to read (default: the file's default section)")
-	compose := fs.String("compose", "", "xkb: the Compose file of the layout's dead keys (read with an XKB input)")
+	compose := fs.String("compose", "", "xkb: the Compose file of the layout's dead keys (read with an XKB input; written with an XKB output, default <output>.XCompose)")
 	include := fs.String("include", "", "xkb: folders of the symbols files an include names, separated by ':' (default: the input's folder)")
 	pos, err := parseInterleaved(fs, args)
 	if err != nil {
@@ -253,7 +253,8 @@ func convert(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "yakbd convert: unknown output format of %s (want %s)\n", outPath, extList(true))
 		return ExitUsage
 	}
-	data, wr := f.write(l, writeOptions{extra: rf.extra(), msklc: *forMSKLC})
+	var side []sideFile
+	data, wr := f.write(l, writeOptions{extra: rf.extra(), msklc: *forMSKLC, out: outPath, side: &side})
 	r.Merge(wr)
 	if !rf.finish(r, stderr) || data == nil {
 		return ExitError
@@ -261,6 +262,13 @@ func convert(args []string, stdout, stderr io.Writer) int {
 	if err := os.WriteFile(outPath, data, 0o644); err != nil {
 		fmt.Fprintf(stderr, "yakbd convert: %v\n", err)
 		return ExitError
+	}
+	for _, s := range side {
+		if err := os.WriteFile(s.path, s.data, 0o644); err != nil {
+			fmt.Fprintf(stderr, "yakbd convert: %v\n", err)
+			return ExitError
+		}
+		fmt.Fprintln(stdout, s.path)
 	}
 	return ExitOK
 }

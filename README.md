@@ -21,8 +21,10 @@ Windows architecture.
 - **Lost the source?** yakbd reads an installed layout DLL back into an editable file.
 
 macOS is the second target: yakbd converts `.keylayout` files and builds a layout bundle and a zip with install
-steps (`-target macos`, [`docs/macos.md`](docs/macos.md)), on any computer and without Apple's tools. Linux XKB and
-the formats of other operating systems come next, then third-party formats such as Keyman. The format keeps the
+steps (`-target macos`, [`docs/macos.md`](docs/macos.md)), on any computer and without Apple's tools. Linux is the
+third: yakbd converts XKB symbols and Compose files and builds a layout with an install script for your user
+(`-target xkb`, [`docs/linux.md`](docs/linux.md)). The formats of other operating systems come next, then
+third-party formats such as Keyman. The format keeps the
 choices of each target in a section of its own (`targets.*`); `targets.macos` and `targets.xkb` are new in format
 version 0.2 ([kbl-spec](https://github.com/yakbd/kbl-spec)), and yakbd writes 0.2 only for a file that uses them.
 
@@ -67,6 +69,7 @@ Keyboard › Text Input ([`docs/macos.md`](docs/macos.md)).
 ## Commands
 
     yakbd convert in.klc out.kbl.json        # any of .kbl.json, .klc, CLDR .xml, .keylayout, in both directions
+    yakbd convert -from xkb symbols out.kbl.json   # XKB symbols files have no suffix: -from / -to xkb
     yakbd convert kbdmine.dll out.kbl.json   # read an installed layout DLL back
     yakbd validate layout.kbl.json           # the file; add -windows for the Windows build's report
     yakbd compile layout.kbl.json            # the DLLs for x64, WOW64, x86 and ARM64 in folders of their own
@@ -89,6 +92,7 @@ command with an error writes nothing. Flags may come before or after the file na
 | [`docs/migrating-from-msklc.md`](docs/migrating-from-msklc.md) | from a `.klc` file to an installed layout; what differs from MSKLC; replacing an installed MSKLC layout safely |
 | [`docs/recover-a-layout.md`](docs/recover-a-layout.md) | getting an editable file back from an installed layout DLL |
 | [`docs/macos.md`](docs/macos.md) | macOS: building, installing and selecting a layout; what a `.keylayout` cannot hold |
+| [`docs/linux.md`](docs/linux.md) | Linux (XKB): building, installing and selecting a layout on GNOME, KDE, sway and X11; importing symbols files; what XKB cannot hold |
 | [`docs/windows-security-prompts.md`](docs/windows-security-prompts.md) | Smart App Control, SmartScreen and UAC; checking a download; signing your own layout installer |
 | [`docs/code-signing-policy.md`](docs/code-signing-policy.md) | **Code signing policy** of the YAKBD installers (planned) |
 | [`docs/installer.md`](docs/installer.md), [`docs/installer-cli.md`](docs/installer-cli.md) | what the installers do, their command line and exit codes; the YAKBD installers and their wizard (§12) |

@@ -40,7 +40,7 @@ var tables struct {
 	foldName map[string]Keysym // lower-case name -> first value, for names written in another case
 	name     map[Keysym]string // canonical name
 	char     map[Keysym]rune   // character of a named keysym
-	forRune  map[rune]Keysym   // first non-deprecated keysym that stands exactly for a character
+	forRune  map[rune]Keysym   // the lowest non-deprecated keysym that stands exactly for a character
 }
 
 func initTables() {
@@ -65,7 +65,7 @@ func initTables() {
 				}
 			}
 			if e.kind == mapExact && !e.deprecated {
-				if _, ok := tables.forRune[e.r]; !ok {
+				if old, ok := tables.forRune[e.r]; !ok || k < old {
 					tables.forRune[e.r] = k
 				}
 			}
@@ -147,7 +147,7 @@ func (k Keysym) Rune() (rune, bool) {
 	return r, ok
 }
 
-// FromRune returns the keysym of a character: the first non-deprecated keysym that stands exactly for it, the
+// FromRune returns the keysym of a character: the lowest non-deprecated keysym that stands exactly for it, the
 // Latin-1 keysym for U+0020 to U+007E and U+00A0 to U+00FF, else the Unicode keysym 0x01000000 + r.
 func FromRune(r rune) Keysym {
 	initTables()
@@ -163,17 +163,15 @@ func FromRune(r rune) Keysym {
 // IsDead reports whether k is a dead key (dead_*, 0xfe50 to 0xfe93).
 func (k Keysym) IsDead() bool { return k >= 0xfe50 && k <= 0xfe93 }
 
-// Upper is the keysym Caps Lock turns k into when the key type does not use Lock: the upper case of the
-// character it types (Unicode simple case mapping, and ß to ẞ as libxkbcommon 1.13 does), else k.
+// Upper is the keysym Caps Lock turns k into when the key type does not consume Lock: the upper case of the
+// character it types by the Unicode simple uppercase mapping (libxkbcommon 1.13 also maps ß to ẞ; this follows
+// Unicode, as the kbl specification's coverage/xkb.md does), else k.
 func (k Keysym) Upper() Keysym {
 	r, ok := k.Rune()
 	if !ok {
 		return k
 	}
 	u := unicode.ToUpper(r)
-	if r == 'ß' {
-		u = 'ẞ'
-	}
 	if u == r {
 		return k
 	}

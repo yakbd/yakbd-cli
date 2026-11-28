@@ -9,6 +9,7 @@ import (
 	"github.com/yakbd/yakbd-cli/format/xkb"
 	"github.com/yakbd/yakbd-cli/loss"
 	"github.com/yakbd/yakbd-cli/model"
+	"github.com/yakbd/yakbd-cli/target/xkb/build"
 )
 
 // xkbOptions are convert's options of an XKB input or output (-variant, -compose, -include).
@@ -89,8 +90,32 @@ func readXKB(b []byte, name string) (*model.Layout, *loss.Report) {
 	if sec.Name != "" {
 		src = name + "(" + sec.Name + ")"
 	}
+	o.SymbolsName = name
+	if sec != f.Section("") {
+		o.Variant = sec.Name
+	}
 	l, ir := xkbkbl.FromXKB(km, src, o)
 	r.Merge(ir)
 	checked(l, r)
 	return l, r
+}
+
+// writeXKB writes the symbols file; the Compose file of the dead keys goes to -compose, else next to the output
+// as <output>.XCompose (writeOptions.side).
+func writeXKB(l *model.Layout, o writeOptions) ([]byte, *loss.Report) {
+	sym, comp, r := xkbkbl.ToXKB(l, build.Options{Policy: o.extra})
+	if sym != nil && comp != nil && o.side != nil {
+		p := xkbIO.compose
+		if p == "" {
+			p = o.out + ".XCompose"
+		}
+		*o.side = append(*o.side, sideFile{path: p, data: comp})
+	}
+	return sym, r
+}
+
+// sideFile is a file a writer makes next to its output.
+type sideFile struct {
+	path string
+	data []byte
 }

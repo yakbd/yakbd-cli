@@ -3,12 +3,14 @@ package xkbkbl
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"unicode/utf16"
 
 	"github.com/yakbd/yakbd-cli/format/kbljson"
 	"github.com/yakbd/yakbd-cli/format/xkb"
 	"github.com/yakbd/yakbd-cli/model"
+	"github.com/yakbd/yakbd-cli/target/xkb/build"
 )
 
 const corpus = "../../testdata/third_party/xkeyboard-config-2.49/symbols"
@@ -84,8 +86,7 @@ func TestCorpusImport(t *testing.T) {
 			for _, dk := range l.DeadKeys {
 				dead += len(dk.Entries)
 			}
-			im := &importer{km: km, name: where, r: ir, once: map[string]bool{}, posOf: map[string]string{},
-				cells: map[string]*[states]cell{}, deadSyms: map[xkb.Keysym]bool{}}
+			im := newImporter(km, where, Options{})
 			im.switches()
 			im.keys()
 			for p, cs := range im.cells {
@@ -135,7 +136,7 @@ func TestDeadKeys(t *testing.T) {
 			chain = e.Result.DeadKey
 		}
 	}
-	if chain != "acute+diaeresis" || len(l.DeadKeys[chain].Entries) != 1 || l.DeadKeys[chain].Entries[0].Result.Text != "ǘ" {
+	if chain != "acute-diaeresis" || len(l.DeadKeys[chain].Entries) != 1 || l.DeadKeys[chain].Entries[0].Result.Text != "ǘ" {
 		t.Errorf("chain: %q %+v", chain, l.DeadKeys[chain])
 	}
 	if l.DeadKeys["grave"] == nil || l.DeadKeys["diaeresis"] == nil {
@@ -157,4 +158,184 @@ func hasCode(r interface{ Codes() []string }, c string) bool {
 		}
 	}
 	return false
+}
+
+// importText reads a symbols file and imports its default section.
+func importText(t *testing.T, sym, comp []byte, name string) (*model.Layout, *importer) {
+	t.Helper()
+	f, r := xkb.Read(sym, name)
+	if f == nil {
+		t.Fatalf("%s: %s\n%s", name, r.Summary(), sym)
+	}
+	o := Options{SymbolsName: name}
+	if comp != nil {
+		c, cr := xkb.ReadCompose(comp, name+".XCompose")
+		if c == nil {
+			t.Fatalf("%s: %s", name, cr.Summary())
+		}
+		o.Compose, o.ComposeName = c, name+".XCompose"
+	}
+	km, _ := xkb.Compile(f, f.Section(""), name, nil)
+	l, _ := FromXKB(km, name, o)
+	im := newImporter(km, name, o)
+	im.switches()
+	im.keys()
+	return l, im
+}
+
+// TestRoundTrip: every corpus section, imported and built again, types the same in every state where the build
+// reported no loss for the key (capsLockNotExpressible), and a second import and build gives the same files.
+func TestRoundTrip(t *testing.T) {
+	comp := testCompose(t)
+	inc := xkb.NewIncludes(func(n string) ([]byte, bool) {
+		b, err := os.ReadFile(filepath.Join(corpus, filepath.FromSlash(n)))
+		return b, err == nil
+	})
+	ents, _ := os.ReadDir(corpus)
+	n := 0
+	for _, e := range ents {
+		if e.IsDir() {
+			continue
+		}
+		b, _ := os.ReadFile(filepath.Join(corpus, e.Name()))
+		f, _ := xkb.Read(b, e.Name())
+		for _, s := range f.Sections {
+			where := e.Name() + "(" + s.Name + ")"
+			km, _ := xkb.Compile(f, s, e.Name(), inc)
+			l, _ := FromXKB(km, where, Options{Compose: comp, ComposeName: "c", SymbolsName: e.Name()})
+			im := newImporter(km, where, Options{})
+			im.switches()
+			im.keys()
+			if len(im.cells) == 0 {
+				continue
+			}
+			res, br := build.Build(l, build.Options{})
+			if res == nil {
+				t.Errorf("%s: build: %s", where, br.Summary())
+				continue
+			}
+			n++
+			inexact := map[string]bool{}
+			for _, en := range br.Entries {
+				if en.Code == "xkb.capsLockNotExpressible" || en.Code == "xkb.numLockKeyReduced" {
+					for p := range im.cells {
+						if strings.Contains(en.Where.Path, "/"+p+"/") || strings.Contains(en.Message, p) {
+							inexact[p] = true
+						}
+					}
+				}
+			}
+			l2, im2 := importText(t, res.SymbolsText, res.ComposeText, "rt")
+			for p, cs := range im.cells {
+				cs2 := im2.cells[p]
+				if cs2 == nil {
+					t.Errorf("%s: %s lost", where, p)
+					continue
+				}
+				for st := 0; st < states; st++ {
+					if st&4 != 0 && im.l3comp == "" || st&8 != 0 && len(im.l5pos) == 0 {
+						continue
+					}
+					if st&2 != 0 && inexact[p] {
+						continue
+					}
+					if cs[st] != cs2[st] {
+						t.Errorf("%s %s state %d: %+v, after the round trip %+v", where, p, st, cs[st], cs2[st])
+					}
+				}
+			}
+			res2, _ := build.Build(l2, build.Options{})
+			res3 := res2
+			if res2 != nil {
+				l3, _ := importText(t, res2.SymbolsText, res2.ComposeText, "rt")
+				res3, _ = build.Build(l3, build.Options{})
+			}
+			if res2 == nil || res3 == nil || string(res2.SymbolsText) != string(res3.SymbolsText) || string(res2.ComposeText) != string(res3.ComposeText) {
+				t.Errorf("%s: the second round trip is not stable", where)
+			}
+		}
+	}
+	if n < 100 {
+		t.Errorf("only %d sections built", n)
+	}
+}
+
+// TestKblRoundTrip: each spec example that builds for XKB, imported again from its symbols and Compose files,
+// types what the build says it types (res.Keys) in every build state, except Caps Lock states of keys the build
+// reported, and its dead keys compose what the original's entries say.
+func TestKblRoundTrip(t *testing.T) {
+	files, _ := filepath.Glob("../../testdata/kbl-spec/examples/*.kbl.json")
+	n := 0
+	for _, p := range files {
+		b, _ := os.ReadFile(p)
+		l, _ := kbljson.Read(b, p)
+		res, br := build.Build(l, build.Options{})
+		if res == nil {
+			continue
+		}
+		n++
+		inexact := map[string]bool{}
+		for _, e := range br.Entries {
+			if e.Code == "xkb.capsLockNotExpressible" || e.Code == "xkb.keyTypeNotExact" {
+				inexact[e.Where.Path] = true
+			}
+		}
+		back, im := importText(t, res.SymbolsText, res.ComposeText, res.Pins.SymbolsName)
+		if cr := back.Check(); cr.HasErrors() {
+			t.Errorf("%s: %s", p, cr.Summary())
+		}
+		for _, k := range res.Keys {
+			if k.Keypad != "" {
+				continue
+			}
+			cs := im.cells[k.Position]
+			for s, v := range k.Values {
+				if s&build.StLock != 0 && inexact["/targets/xkb/keys/"+k.Position+"/type"] {
+					continue
+				}
+				var got cell
+				if cs != nil {
+					got = cs[s]
+				}
+				want := cell{text: v.Text}
+				if v.Dead != "" {
+					want = cell{dead: res.Keysyms[v.Dead]}
+				}
+				if got != want && !strings.ContainsRune(v.Text, 0xfffd) {
+					t.Errorf("%s %s state %d: built %+v, imported %+v", filepath.Base(p), k.Position, s, want, got)
+				}
+			}
+		}
+		for id, k := range res.Keysyms {
+			orig, re := l.DeadKeys[id], back.DeadKeys[deadID(k)]
+			if re == nil {
+				t.Errorf("%s: dead key %s lost", p, id)
+				continue
+			}
+			got := map[string]string{}
+			for _, e := range re.Entries {
+				if e.Base.Kind == model.ValueText && e.Result.Kind == model.ValueText {
+					got[e.Base.Text] = e.Result.Text
+				}
+			}
+			for _, e := range orig.Entries {
+				if e.Base.Kind != model.ValueText || e.Result.Kind != model.ValueText || len([]rune(e.Base.Text)) != 1 {
+					continue
+				}
+				if _, typed := im.typed[xkb.FromRune([]rune(e.Base.Text)[0])]; !typed {
+					continue
+				}
+				want := e.Result.Text
+				if l.Normalizes() {
+					want = e.Result.NFC().Text
+				}
+				if g, ok := got[e.Base.Text]; ok && g != want {
+					t.Errorf("%s: %s + %q gives %q, want %q", filepath.Base(p), id, e.Base.Text, g, want)
+				}
+			}
+		}
+	}
+	if n < 4 {
+		t.Errorf("only %d examples built", n)
+	}
 }

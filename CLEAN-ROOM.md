@@ -464,3 +464,13 @@ public sources (read 2026-11-28, facts only, no code or prose copied):
 - The system Compose file of libX11 (`/usr/share/X11/locale/en_US.UTF-8/Compose`, as installed on the build host)
   was read once, locally, to check the Compose reader on a large file; it is not committed. The Compose test file
   `testdata/xkb/test.XCompose` was written for this repository.
+
+### The XKB target (2026-11-28)
+
+`target/xkb`, `target/xkb/build` and the XKB export of `convert/xkbkbl` are our own code, written from the kbl
+specification's `targets/xkb.md`, `coverage/xkb.md`, `targets/xkb-default-keyname.tsv` and the example
+`xkb-caps-deadkeys.kbl.json` (branch `spec-0.2` at ab9b0f2, this project's own repository), which cite their Linux
+sources, and from the measurements of `tools/xkb-check/` (its README). The install script, its marker blocks and
+the selection commands follow `targets/xkb.md` §5; the case-stability exceptions of the type fit (characters whose
+full uppercase differs while the simple one does not) are those of Unicode's `SpecialCasing.txt` (Unicode 18.0.0,
+https://www.unicode.org/Public/18.0.0/ucd/SpecialCasing.txt, read 2026-11-28, facts only).

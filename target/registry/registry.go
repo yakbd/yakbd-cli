@@ -6,6 +6,7 @@ import (
 	"github.com/yakbd/yakbd-cli/target"
 	"github.com/yakbd/yakbd-cli/target/macos"
 	"github.com/yakbd/yakbd-cli/target/windows/wintarget"
+	"github.com/yakbd/yakbd-cli/target/xkb"
 )
 
 // Default is the target of a command line without -target.
@@ -15,6 +16,7 @@ const Default = "windows"
 var Targets = []target.Target{
 	wintarget.Target{},
 	macos.Target{},
+	xkb.Target{},
 }
 
 // Lookup returns the target called name.

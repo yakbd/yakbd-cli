@@ -13,6 +13,8 @@ import (
 	"github.com/yakbd/yakbd-cli/format/xkb"
 	"github.com/yakbd/yakbd-cli/internal/fuzzcheck"
 	"github.com/yakbd/yakbd-cli/loss"
+	xkbtarget "github.com/yakbd/yakbd-cli/target/xkb"
+	xkbbuild "github.com/yakbd/yakbd-cli/target/xkb/build"
 )
 
 const corpus = "../../testdata/third_party/xkeyboard-config-2.49/symbols"
@@ -70,6 +72,11 @@ func FuzzRead(f *testing.F) {
 				}
 				if data, jr := kbljson.Write(l); data == nil || jr.HasErrors() {
 					return fmt.Errorf("an imported layout does not write as .kbl.json: %s", jr.Summary())
+				}
+				if res, _ := xkbbuild.Build(l, xkbbuild.Options{}); res != nil {
+					if _, err := xkbtarget.Archive(res); err != nil {
+						return err
+					}
 				}
 			}
 			return nil

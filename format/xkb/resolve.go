@@ -28,12 +28,16 @@ type Keymap struct {
 	Order   []string       // key names in the order first defined
 	Names   map[int]string // name[GroupN]
 	ModMaps []ModMapDef
+	// Inlined lists the includes read, as file(section), in the order first read.
+	Inlined []string
 }
 
 // ResolvedKey is a key after merging.
 type ResolvedKey struct {
 	Name   string
 	Groups []ResolvedGroup
+	// Props are the fields other than type of its definitions (virtualMods, repeat, ...), as "name = value".
+	Props []string
 }
 
 // ResolvedGroup is one group of a resolved key.
@@ -51,10 +55,11 @@ const (
 )
 
 type compiler struct {
-	inc   *Includes
-	r     *loss.Report
-	name  string
-	count int
+	inc     *Includes
+	r       *loss.Report
+	name    string
+	count   int
+	inlined []string
 }
 
 // Compile applies the includes of the section sec of f (named name in reports) through inc (nil: none). An include that
@@ -66,12 +71,19 @@ func Compile(f *File, sec *Section, name string, inc *Includes) (*Keymap, *loss.
 	}
 	c := &compiler{inc: inc, r: &loss.Report{}, name: name}
 	km := c.section(f, sec, name, nil)
+	seen := map[string]bool{}
+	for _, id := range c.inlined {
+		if !seen[id] {
+			seen[id] = true
+			km.Inlined = append(km.Inlined, id)
+		}
+	}
 	for _, n := range km.Order {
 		k := km.Keys[n]
 		for i := range k.Groups {
 			g := &k.Groups[i]
 			if g.Type == "" {
-				g.Type = AutomaticType(g.Levels)
+				g.Type = AutomaticType(trimLevels(g.Levels))
 				if g.Type == "" {
 					g.Type = "ONE_LEVEL"
 				}
@@ -145,7 +157,10 @@ func (c *compiler) section(f *File, sec *Section, file string, stack []string) *
 }
 
 func (c *compiler) include(file, section string, at loss.Where, stack []string) *Keymap {
-	id := file + "(" + section + ")"
+	id := file
+	if section != "" {
+		id += "(" + section + ")"
+	}
 	for _, s := range stack {
 		if s == id {
 			c.r.Warnf("xkb.includeUnresolved", at, "the include %s includes itself", id)
@@ -183,6 +198,7 @@ func (c *compiler) include(file, section string, at loss.Where, stack []string) 
 		c.r.Warnf("xkb.includeUnresolved", at, "the symbols file %q has no section %q", file, section)
 		return nil
 	}
+	c.inlined = append(c.inlined, id)
 	return c.section(f, sec, file, append(stack, id))
 }
 
@@ -192,6 +208,8 @@ func resolvedFrom(k *Key, defType string) *ResolvedKey {
 	for _, p := range k.Props {
 		if p.Name == "type" {
 			all = strings.Trim(p.Value, `"`)
+		} else {
+			rk.Props = append(rk.Props, p.Name+" = "+p.Value)
 		}
 	}
 	for _, g := range k.Groups {
@@ -225,6 +243,7 @@ func merge(into, from *Keymap, mode string) {
 		for len(ik.Groups) < len(fk.Groups) {
 			ik.Groups = append(ik.Groups, ResolvedGroup{})
 		}
+		ik.Props = append(ik.Props, fk.Props...)
 		for i, fg := range fk.Groups {
 			ig := &ik.Groups[i]
 			if fg.Type != "" && (ig.Type == "" || clobber) {
@@ -263,7 +282,7 @@ func merge(into, from *Keymap, mode string) {
 }
 
 func cloneKey(k *ResolvedKey) *ResolvedKey {
-	c := &ResolvedKey{Name: k.Name, Groups: make([]ResolvedGroup, len(k.Groups))}
+	c := &ResolvedKey{Name: k.Name, Groups: make([]ResolvedGroup, len(k.Groups)), Props: append([]string(nil), k.Props...)}
 	copy(c.Groups, k.Groups)
 	for i := range c.Groups {
 		c.Groups[i].Levels = append([]Level(nil), k.Groups[i].Levels...)
@@ -271,13 +290,24 @@ func cloneKey(k *ResolvedKey) *ResolvedKey {
 	return c
 }
 
-// TypeOf returns the key type of a resolved group: a stock type, or ONE_LEVEL for a name the package does not
-// know (ok false).
+// TypeOf returns the key type of a resolved group: a stock type, or for a name the package does not know (ok
+// false) the type the key would have without one.
 func TypeOf(g ResolvedGroup) (*KeyType, bool) {
 	if t := StockType(g.Type); t != nil {
 		return t, true
 	}
+	if t := StockType(AutomaticType(trimLevels(g.Levels))); t != nil {
+		return t, false
+	}
 	return StockType("ONE_LEVEL"), false
+}
+
+// trimLevels drops trailing NoSymbol levels, as libxkbcommon 1.9 and later do before the automatic type.
+func trimLevels(ls []Level) []Level {
+	for len(ls) > 0 && len(ls[len(ls)-1]) == 0 {
+		ls = ls[:len(ls)-1]
+	}
+	return ls
 }
 
 // String is a short description of a resolved group, for messages.

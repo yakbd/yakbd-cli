@@ -5,26 +5,29 @@ package xkbkbl
 
 import (
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 
 	"github.com/yakbd/yakbd-cli/format/xkb"
 	"github.com/yakbd/yakbd-cli/loss"
 	"github.com/yakbd/yakbd-cli/model"
+	"github.com/yakbd/yakbd-cli/target/xkb/build"
 	"github.com/yakbd/yakbd-cli/target/xkb/keyname"
 )
 
-// The modifier states the importer reads: every combination of Shift, Lock, LevelThree and LevelFive.
+// The modifier states the importer reads: every combination of Shift, Lock, LevelThree and LevelFive
+// (targets/xkb.md §3).
 const states = 16
 
-// Keysyms of the level switches and of modifier keys (keysymdef.h).
+// Keysyms of the level shifts (keysymdef.h).
 const (
 	ksLevel3Shift = 0xfe03
 	ksLevel5Shift = 0xfe11
 )
 
 // modifierKeysym reports keysyms of modifier, lock and group keys: a key with one of them operates a modifier
-// and types nothing, so it is no loss.
+// and types nothing; symbols/pc gives them again, so they are no loss.
 func modifierKeysym(k xkb.Keysym) bool {
 	switch {
 	case k >= 0xffe1 && k <= 0xffee: // Shift_L .. Hyper_R, Caps_Lock, Shift_Lock, Meta, Alt, Super
@@ -39,10 +42,13 @@ func modifierKeysym(k xkb.Keysym) bool {
 
 // Options of an import.
 type Options struct {
-	ID      string       // metadata.id; "" gives und-x-<slug of the name>
-	Compose *xkb.Compose // the Compose file of the layout's dead keys, nil for none
-	// ComposeName is the Compose file's name in reports.
-	ComposeName string
+	ID string // metadata.id; "" gives und-x-<slug of the symbols file name>
+	// SymbolsName is the symbols file's name (targets.xkb.symbolsName); Variant the section's name when it is not
+	// the file's default section, "" otherwise.
+	SymbolsName string
+	Variant     string
+	Compose     *xkb.Compose // the Compose file of the layout's dead keys, nil for none
+	ComposeName string       // its name in reports
 }
 
 type importer struct {
@@ -58,6 +64,10 @@ type importer struct {
 	posOf    map[string]string // key name -> position
 	cells    map[string]*[states]cell
 	deadSyms map[xkb.Keysym]bool
+	typed    map[xkb.Keysym]bool // every keysym some key types
+	types    map[string]string   // position -> type to pin
+	numLock  map[string]bool     // positions of keypad types
+	unknown  map[string]string   // position -> key name of a position named Xkb...
 }
 
 type cell struct {
@@ -81,28 +91,22 @@ func (im *importer) lostOnce(key, kind string, sev loss.Severity, format string,
 }
 
 // xkbMods is the XKB modifier state of an importer state.
-func xkbMods(s int) xkb.Mods {
-	var m xkb.Mods
-	if s&1 != 0 {
-		m |= xkb.Shift
-	}
-	if s&2 != 0 {
-		m |= xkb.Lock
-	}
-	if s&4 != 0 {
-		m |= xkb.LevelThree
-	}
-	if s&8 != 0 {
-		m |= xkb.LevelFive
-	}
-	return m
+func xkbMods(s int) xkb.Mods { return build.Mods(s) }
+
+func newImporter(km *xkb.Keymap, name string, o Options) *importer {
+	return &importer{km: km, name: name, o: o, r: &loss.Report{}, once: map[string]bool{}, posOf: map[string]string{},
+		cells: map[string]*[states]cell{}, deadSyms: map[xkb.Keysym]bool{}, typed: map[xkb.Keysym]bool{},
+		types: map[string]string{}, numLock: map[string]bool{}, unknown: map[string]string{}}
 }
 
 // FromXKB converts a resolved symbols section (xkb.Compile) and, optionally, its Compose file into a layout
-// (coverage/xkb.md). name is the file's name in reports and provenance.
+// (coverage/xkb.md). name is the section's name in reports and provenance.
 func FromXKB(km *xkb.Keymap, name string, o Options) (*model.Layout, *loss.Report) {
-	im := &importer{km: km, name: name, o: o, r: &loss.Report{}, once: map[string]bool{}, posOf: map[string]string{},
-		cells: map[string]*[states]cell{}, deadSyms: map[xkb.Keysym]bool{}}
+	im := newImporter(km, name, o)
+	im.lost("xkb.syntaxDetailsIgnored", loss.Accepted, 0, "comments, white space, section flags and the spelling of keysyms are not kept")
+	for _, inc := range km.Inlined {
+		im.lost("general.importInlined", loss.Accepted, 0, "include %s inlined", inc)
+	}
 	im.switches()
 	im.keys()
 	l := &model.Layout{Kbl: model.FormatVersion, Positions: map[string]*model.Position{}}
@@ -117,24 +121,51 @@ func FromXKB(km *xkb.Keymap, name string, o Options) (*model.Layout, *loss.Repor
 	}
 	l.Metadata.ID = o.ID
 	if l.Metadata.ID == "" {
-		l.Metadata.ID = "und-x-" + slug(l.Metadata.Name)
+		src := o.SymbolsName
+		if src == "" {
+			src = l.Metadata.Name
+		}
+		parts := strings.Split(build.Slug(src), "-")
+		for i, p := range parts {
+			if len(p) > 8 {
+				parts[i] = p[:8]
+			}
+		}
+		l.Metadata.ID = "und-x-" + strings.Join(parts, "-")
 	}
 	l.Metadata.Provenance = &model.Provenance{Source: name, Format: "xkb"}
+	t := true
 	// XKB types exactly the keysyms a level lists: no normalisation while typing
-	l.Settings = &model.Settings{Normalization: "disabled"}
+	l.Settings = &model.Settings{Normalization: "disabled", CapsLockFallback: &t}
 	im.layers(l)
-	im.deadKeys(l)
+	x := &model.XKBTarget{Description: km.Names[1]}
+	if fileNameRE.MatchString(o.SymbolsName) {
+		x.SymbolsName = o.SymbolsName
+	}
+	switch {
+	case o.Variant == "":
+		x.Variant = "basic"
+	case fileNameRE.MatchString(o.Variant):
+		x.Variant = o.Variant
+	}
+	im.deadKeys(l, x)
 	if len(im.l3pos) > 0 || len(im.l5pos) > 0 {
 		l.CustomModifiers = map[string]*model.CustomModifier{}
+		x.Modifiers = &model.XKBModifiers{}
 		if len(im.l3pos) > 0 {
 			l.CustomModifiers["level3"] = &model.CustomModifier{Kind: "held", Positions: im.l3pos}
+			x.Modifiers.LevelThree = "level3"
 		}
 		if len(im.l5pos) > 0 {
 			l.CustomModifiers["level5"] = &model.CustomModifier{Kind: "held", Positions: im.l5pos}
+			x.Modifiers.LevelFive = "level5"
 		}
 	}
 	for _, p := range im.posOf {
 		l.Positions[p] = &model.Position{}
+		if im.numLock[p] {
+			l.Positions[p].NumLock = &t
+		}
 	}
 	for _, ps := range [][]string{im.l3pos, im.l5pos} {
 		for _, p := range ps {
@@ -144,38 +175,24 @@ func FromXKB(km *xkb.Keymap, name string, o Options) (*model.Layout, *loss.Repor
 	if im.l3comp == "altR" {
 		l.Positions["AltRight"] = &model.Position{}
 	}
+	for _, p := range im.posOf {
+		k := &model.XKBKey{Type: im.types[p], KeyName: im.unknown[p]}
+		if *k != (model.XKBKey{}) {
+			if x.Keys == nil {
+				x.Keys = map[string]*model.XKBKey{}
+			}
+			x.Keys[p] = k
+		}
+	}
+	l.Targets = &model.Targets{XKB: x}
 	return l, im.r
 }
 
-func slug(s string) string {
-	var parts []string
-	cur := []byte{}
-	flush := func() {
-		if len(cur) > 0 {
-			p := string(cur)
-			if len(p) > 8 {
-				p = p[:8]
-			}
-			parts = append(parts, p)
-			cur = cur[:0]
-		}
-	}
-	for _, r := range strings.ToLower(s) {
-		if r >= 'a' && r <= 'z' || r >= '0' && r <= '9' {
-			cur = append(cur, byte(r))
-		} else {
-			flush()
-		}
-	}
-	flush()
-	if len(parts) == 0 {
-		return "layout"
-	}
-	return strings.Join(parts, "-")
-}
+var fileNameRE = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{0,63}$`)
 
 // switches finds the keys that set LevelThree and LevelFive.
 func (im *importer) switches() {
+	ralt := false
 	for _, n := range im.km.Order {
 		k := im.km.Keys[n]
 		if len(k.Groups) == 0 {
@@ -190,33 +207,80 @@ func (im *importer) switches() {
 		if len(syms) == 0 {
 			continue
 		}
-		pos, ok := keyname.ForKeyName(n)
+		pos, _ := im.position(n)
 		switch syms[0] {
 		case ksLevel3Shift:
 			if keyname.Canonical(n) == "RALT" {
-				im.l3comp = "altR"
-			} else if ok {
+				ralt = true
+			} else {
 				im.l3pos = append(im.l3pos, pos)
 			}
 		case ksLevel5Shift:
-			if ok {
-				im.l5pos = append(im.l5pos, pos)
-			}
+			im.l5pos = append(im.l5pos, pos)
 		}
 	}
-	if im.l3comp == "" && len(im.l3pos) > 0 {
+	switch {
+	case len(im.l3pos) > 0:
 		im.l3comp = "level3"
-	}
-	if im.l3comp == "altR" && len(im.l3pos) > 0 {
-		im.lostOnce("l3", "xkb.keysymNotText", loss.Warning, "LevelThree is set by <RALT> and by other keys (%s): only AltRight is kept", strings.Join(im.l3pos, ", "))
-		im.l3pos = nil
+		if ralt {
+			im.l3pos = append(im.l3pos, "AltRight")
+		}
+	case ralt:
+		im.l3comp = "altR"
 	}
 	sort.Strings(im.l3pos)
 	sort.Strings(im.l5pos)
 }
 
+// position is the position of a key name: the table's, or Xkb + the name (false: not in the table).
+func (im *importer) position(n string) (string, bool) {
+	if p, ok := keyname.ForKeyName(n); ok {
+		return p, true
+	}
+	var b strings.Builder
+	b.WriteString("Xkb")
+	for _, r := range n {
+		if r < 128 && (r >= 'A' && r <= 'Z' || r >= 'a' && r <= 'z' || r >= '0' && r <= '9') {
+			b.WriteRune(r)
+		} else {
+			b.WriteByte('_')
+		}
+	}
+	return b.String(), false
+}
+
+// keypadType reports the types whose level 2 is the Num Lock level.
+func keypadType(name string) bool {
+	switch name {
+	case "KEYPAD", "FOUR_LEVEL_KEYPAD", "FOUR_LEVEL_MIXED_KEYPAD":
+		return true
+	}
+	return false
+}
+
+// pinnable reports the types of targets/xkb.md §3.
+func pinnable(name string) bool {
+	for _, t := range build.StockTypes {
+		if t == name {
+			return true
+		}
+	}
+	return strings.HasPrefix(name, "YAKBD_") && build.TypeOf(name) != nil
+}
+
 // keys evaluates every key in the 16 states.
 func (im *importer) keys() {
+	modmaps := false
+	for _, m := range im.km.ModMaps {
+		for _, k := range m.Keys {
+			if k != "ISO_Level3_Shift" && k != "ISO_Level5_Shift" && k != "<LVL3>" && k != "<LVL5>" {
+				modmaps = true
+			}
+		}
+	}
+	if modmaps {
+		im.lostOnce("modmap", "xkb.actionsDropped", loss.Warning, "modifier_map statements are not kept")
+	}
 	for _, n := range im.km.Order {
 		k := im.km.Keys[n]
 		if len(k.Groups) == 0 {
@@ -226,8 +290,8 @@ func (im *importer) keys() {
 			im.lostOnce("groups", "xkb.groupDropped", loss.Warning, "groups 2 to 4 of keys are not kept: one .kbl.json file holds one group (first: <%s>)", n)
 		}
 		g := k.Groups[0]
-		if g.Actions != "" {
-			im.lostOnce("act:"+n, "xkb.actionsDropped", loss.Warning, "the actions of <%s> are not kept", n)
+		if g.Actions != "" || len(k.Props) > 0 {
+			im.lostOnce("act:"+n, "xkb.actionsDropped", loss.Warning, "the actions and other fields of <%s> are not kept", n)
 		}
 		if len(g.Levels) == 0 {
 			continue
@@ -236,15 +300,31 @@ func (im *importer) keys() {
 			continue
 		}
 		t, known := xkb.TypeOf(g)
+		if yt := build.TypeOf(g.Type); !known && yt != nil {
+			t, known = yt, true // a yakbd type: its name is its definition
+		}
+		pos, inTable := im.position(n)
+		keypad := keypadType(t.Name)
 		var cs [states]cell
 		any := false
 		for s := 0; s < states; s++ {
 			if s&4 != 0 && im.l3comp == "" || s&8 != 0 && len(im.l5pos) == 0 {
 				continue
 			}
-			lv := t.Type(g.Levels, xkbMods(s))
+			var lv xkb.Level
+			if keypad {
+				// the Num Lock level; the navigation level is the position table's
+				if s == 0 && len(g.Levels) > 1 {
+					lv = g.Levels[1]
+				}
+			} else {
+				lv = t.Type(g.Levels, xkbMods(s))
+			}
 			if len(lv) == 0 {
 				continue
+			}
+			for _, x := range lv {
+				im.typed[x.K] = true
 			}
 			if txt, ok := lv.Text(); ok {
 				cs[s] = cell{text: txt}
@@ -258,21 +338,29 @@ func (im *importer) keys() {
 				continue
 			}
 			name := xkb.LevelText(lv, xkb.WriteOptions{})
-			im.lostOnce("sym:"+name, "xkb.keysymNotText", loss.Warning, "%s types no text: it is not kept (first: <%s>)", name, n)
+			im.lostOnce("sym:"+name, "xkb.keysymNotText", loss.Warning, "%s types no text: the level is no binding (first: <%s>)", name, n)
 		}
 		if !any {
 			continue
 		}
 		if !known {
-			im.lostOnce("type:"+g.Type, "xkb.keyTypeUnknown", loss.Warning, "the key type %q is not a type the tool knows: its keys are read as ONE_LEVEL (first: <%s>)", g.Type, n)
+			im.lostOnce("type:"+g.Type, "xkb.keyTypeUnknown", loss.Warning, "the key type %q has no definition here: its keys are read as if they named no type (first: <%s>)", g.Type, n)
 		}
-		if t.Mods&xkb.NumLock != 0 {
-			im.lostOnce("numlock", "xkb.numLockLevelsDropped", loss.Accepted, "keys whose type uses Num Lock are read with Num Lock off (first: <%s>)", n)
+		if t.Mods&^(xkb.Shift|xkb.Lock|xkb.LevelThree|xkb.LevelFive) != 0 && !keypad {
+			im.lostOnce("typemods:"+t.Name, "xkb.typeModifierDropped", loss.Warning, "the states of %s with modifiers other than Shift, Caps Lock, LevelThree and LevelFive are not imported (first: <%s>)", t.Name, n)
 		}
-		pos, ok := keyname.ForKeyName(n)
-		if !ok {
-			im.lostOnce("name:"+n, "xkb.keyNameUnknown", loss.Warning, "the key <%s> has no position in the position table: it is not kept", n)
-			continue
+		if keypad {
+			r, _ := keyname.ForPosition(pos)
+			if nav := xkb.LevelText(g.Levels[0], xkb.WriteOptions{}); r.Keypad == "" || nav != r.Keypad {
+				im.lostOnce("nav:"+n, "xkb.typeModifierDropped", loss.Warning, "the Num Lock off level of <%s> (%s) is not imported: a build gives the position table's navigation keysym", n, nav)
+			}
+			im.numLock[pos] = true
+		} else if known && pinnable(t.Name) {
+			im.types[pos] = t.Name
+		}
+		if !inTable {
+			im.lostOnce("name:"+n, "xkb.keyNameUnknown", loss.Accepted, "the key <%s> has no row in the position table: it is the position %s with its key name pinned", n, pos)
+			im.unknown[pos] = keyname.Canonical(n)
 		}
 		im.posOf[n] = pos
 		im.cells[pos] = &cs
@@ -307,8 +395,8 @@ func (im *importer) binding(c cell) *model.Binding {
 }
 
 // layers writes one layer per state that has a binding. A Caps Lock state lists only what differs from the
-// same state without Caps Lock (settings.capsLockFallback, default true), with {"output": ""} where Caps Lock
-// gives nothing but the state without it types something.
+// same state without Caps Lock (settings.capsLockFallback true), with {"output": ""} where Caps Lock gives
+// nothing but the state without it types something.
 func (im *importer) layers(l *model.Layout) {
 	positions := make([]string, 0, len(im.cells))
 	for p := range im.cells {
@@ -346,149 +434,4 @@ func (im *importer) layers(l *model.Layout) {
 		}
 	}
 	l.Hardware = hw
-}
-
-// node is a prefix of Compose sequences that start with a dead key of the layout.
-type node struct {
-	result string
-	kids   map[xkb.Keysym]*node
-	order  []xkb.Keysym
-	line   int
-}
-
-// deadKeys builds the dead keys of the layout from the Compose file: every sequence that starts with a dead key
-// of the layout becomes an entry (longer ones a chain of dead keys); other sequences are not kept.
-func (im *importer) deadKeys(l *model.Layout) {
-	if len(im.deadSyms) == 0 {
-		if im.o.Compose != nil && hasSequences(im.o.Compose) {
-			im.lost("xkb.composeSequenceDropped", loss.Warning, 0, "the layout has no dead keys: the sequences of %s are not kept", im.o.ComposeName)
-		}
-		return
-	}
-	roots := map[xkb.Keysym]*node{}
-	dropped, includes := 0, 0
-	if c := im.o.Compose; c != nil {
-		for _, ln := range c.Lines {
-			if ln.Seq == nil {
-				includes++
-				continue
-			}
-			if !im.deadSyms[ln.Seq[0]] || ln.Result == "" || !im.typable(ln.Seq[1:]) {
-				dropped++
-				continue
-			}
-			n := roots[ln.Seq[0]]
-			if n == nil {
-				n = &node{}
-				roots[ln.Seq[0]] = n
-			}
-			for _, k := range ln.Seq[1:] {
-				if n.kids == nil {
-					n.kids = map[xkb.Keysym]*node{}
-				}
-				nx := n.kids[k]
-				if nx == nil {
-					nx = &node{}
-					n.kids[k] = nx
-					n.order = append(n.order, k)
-				}
-				n = nx
-			}
-			if n.result == "" {
-				n.result, n.line = ln.Result, ln.Line
-			}
-		}
-	}
-	if dropped > 0 {
-		im.lost("xkb.composeSequenceDropped", loss.Warning, 0, "%d sequences of %s do not start with a dead key of the layout or use keys that type nothing: they are not kept", dropped, im.o.ComposeName)
-	}
-	if includes > 0 {
-		im.lost("xkb.composeSequenceDropped", loss.Accepted, 0, "the include lines of %s (the system's sequences) are not kept: a build writes include \"%%L\" again", im.o.ComposeName)
-	}
-	l.DeadKeys = map[string]*model.DeadKey{}
-	syms := make([]xkb.Keysym, 0, len(im.deadSyms))
-	for k := range im.deadSyms {
-		syms = append(syms, k)
-	}
-	sort.Slice(syms, func(i, j int) bool { return syms[i] < syms[j] })
-	for _, k := range syms {
-		n := roots[k]
-		if n == nil {
-			n = &node{}
-			if im.o.Compose == nil {
-				im.lost("xkb.deadKeyNoCompose", loss.Warning, 0, "the dead key %s has no Compose file: its compositions are those of the system, which a .kbl.json file cannot name", k.Name())
-			} else {
-				im.lost("xkb.deadKeyNoCompose", loss.Warning, 0, "the dead key %s has no sequence in %s", k.Name(), im.o.ComposeName)
-			}
-		}
-		im.addDead(l, deadID(k), k, n)
-	}
-}
-
-func (im *importer) typable(seq []xkb.Keysym) bool {
-	for _, k := range seq {
-		if _, ok := k.Rune(); !ok && !im.deadSyms[k] {
-			return false
-		}
-	}
-	return true
-}
-
-func hasSequences(c *xkb.Compose) bool {
-	for _, l := range c.Lines {
-		if l.Seq != nil {
-			return true
-		}
-	}
-	return false
-}
-
-func (im *importer) addDead(l *model.Layout, id string, k xkb.Keysym, n *node) {
-	dk := &model.DeadKey{NoMatch: "emitNothing", Entries: []model.DeadKeyEntry{}}
-	dk.Spacing = model.TextOrUnits{Text: spacingOf(k, n)}
-	for _, b := range n.order {
-		kid := n.kids[b]
-		var e model.DeadKeyEntry
-		if r, ok := b.Rune(); ok {
-			e.Base = model.Value{Kind: model.ValueText, Text: string(r)}
-		} else {
-			e.Base = model.Value{Kind: model.ValueDeadKey, DeadKey: deadID(b)}
-		}
-		if len(kid.kids) > 0 {
-			if kid.result != "" {
-				im.lost("xkb.composeSequenceDropped", loss.Warning, kid.line, "a sequence that is the start of longer ones gives %q: the longer ones are kept", kid.result)
-			}
-			sub := id + "+" + deadID(b)
-			e.Result = model.Value{Kind: model.ValueDeadKey, DeadKey: sub}
-			im.addDead(l, sub, k, kid)
-		} else {
-			e.Result = model.Value{Kind: model.ValueText, Text: kid.result}
-		}
-		dk.Entries = append(dk.Entries, e)
-	}
-	l.DeadKeys[id] = dk
-}
-
-// spacingOf is the spacing text of a dead key: what <dead> <space> gives in the Compose file, else the spacing
-// form of the accent the keysym names, else its combining mark, else the name.
-func spacingOf(k xkb.Keysym, n *node) string {
-	if kid := n.kids[xkb.Keysym(' ')]; kid != nil && kid.result != "" {
-		return kid.result
-	}
-	if s, ok := deadSpacing[deadID(k)]; ok {
-		return s
-	}
-	return deadID(k)
-}
-
-// deadSpacing is the spacing character of the common accents (Unicode spacing modifier letters and Latin-1).
-var deadSpacing = map[string]string{
-	"grave": "`", "acute": "´", "circumflex": "^", "tilde": "~", "macron": "¯", "breve": "˘", "abovedot": "˙",
-	"diaeresis": "¨", "abovering": "˚", "doubleacute": "˝", "caron": "ˇ", "cedilla": "¸", "ogonek": "˛",
-	"iota": "ͺ", "voiced_sound": "゛", "semivoiced_sound": "゜", "belowdot": "̣", "hook": "̉",
-	"horn": "̛", "stroke": "̵", "abovecomma": "̓", "abovereversedcomma": "̔",
-	"doublegrave": "̏", "belowring": "̥", "belowmacron": "̱", "belowcircumflex": "̭",
-	"belowtilde": "̰", "belowbreve": "̮", "belowdiaeresis": "̤", "invertedbreve": "̑",
-	"belowcomma": "̦", "currency": "¤", "greek": "µ", "lowline": "_", "aboveverticalline": "̍",
-	"belowverticalline": "̩", "longsolidusoverlay": "̸",
 }

@@ -36,6 +36,8 @@ type fileFormat struct {
 type writeOptions struct {
 	extra *model.OnLoss // the command line's policy
 	msklc bool          // -msklc
+	out   string        // the output path
+	side  *[]sideFile   // files a writer makes next to the output (the Compose file of an XKB output)
 }
 
 var formats = []fileFormat{
@@ -45,7 +47,7 @@ var formats = []fileFormat{
 	{name: "dll", report: "dll", ext: ".dll", read: readDLL},
 	{name: "keylayout", report: "keylayout", ext: ".keylayout", read: readKeylayout, write: writeKeylayout},
 	// XKB symbols files have no suffix: convert names the format with -from / -to (internal/cli/xkb.go)
-	{name: "xkb", report: "xkb", read: readXKB},
+	{name: "xkb", report: "xkb", read: readXKB, write: writeXKB},
 }
 
 // formatByPath returns the format of a file by its name's suffix.

@@ -531,7 +531,41 @@ type MacOSDeadKey struct {
 	State string `json:"state,omitempty"`
 }
 
-// XKBTarget is SPEC §16.5 (0.2): the Linux XKB build choices.
+// XKBTarget is SPEC §16.5 (0.2): the Linux XKB build choices (kbl-spec targets/xkb.md).
 type XKBTarget struct {
-	OnLoss *OnLoss `json:"onLoss,omitempty"`
+	SymbolsName      string                 `json:"symbolsName,omitempty"`
+	Variant          string                 `json:"variant,omitempty"`
+	Description      string                 `json:"description,omitempty"`
+	ShortDescription string                 `json:"shortDescription,omitempty"`
+	Languages        []string               `json:"languages,omitempty"`
+	Characters       string                 `json:"characters,omitempty"`
+	Keys             map[string]*XKBKey     `json:"keys,omitempty"`
+	CustomTypes      *bool                  `json:"customTypes,omitempty"`
+	Modifiers        *XKBModifiers          `json:"modifiers,omitempty"`
+	DeadKeys         map[string]*XKBDeadKey `json:"deadKeys,omitempty"`
+	Compose          *XKBCompose            `json:"compose,omitempty"`
+	OnLoss           *OnLoss                `json:"onLoss,omitempty"`
+}
+
+// XKBKey is the XKB data of one position.
+type XKBKey struct {
+	KeyName string `json:"keyName,omitempty"`
+	Type    string `json:"type,omitempty"`
+}
+
+// XKBModifiers names the components that shift XKB levels.
+type XKBModifiers struct {
+	LevelThree string `json:"levelThree,omitempty"`
+	LevelFive  string `json:"levelFive,omitempty"`
+}
+
+// XKBDeadKey is the XKB data of one dead key.
+type XKBDeadKey struct {
+	Keysym string `json:"keysym,omitempty"`
+}
+
+// XKBCompose is targets.xkb.compose.
+type XKBCompose struct {
+	Write         *bool `json:"write,omitempty"`
+	IncludeLocale *bool `json:"includeLocale,omitempty"`
 }

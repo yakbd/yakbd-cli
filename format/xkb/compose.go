@@ -20,6 +20,7 @@ type ComposeLine struct {
 	Seq     []Keysym // the keys of the sequence
 	Result  string   // the text the sequence types
 	Keysym  Keysym   // the keysym the sequence gives, NoSymbol for none
+	Empty   bool     // the result is the empty string "" (types nothing)
 	Line    int
 }
 
@@ -100,11 +101,11 @@ func ReadCompose(data []byte, name string) (*Compose, *loss.Report) {
 				r.Errorf("xkbcompose.syntax", at, "%v", err.(*lexError).msg)
 				return nil, r
 			}
-			if !utf8.ValidString(v) || v == "" {
-				r.Warnf("xkbcompose.lineSkipped", at, "the result is empty or not UTF-8")
+			if !utf8.ValidString(v) {
+				r.Warnf("xkbcompose.lineSkipped", at, "the result is not UTF-8")
 				continue
 			}
-			l.Result = v
+			l.Result, l.Empty = v, v == ""
 			rhs = strings.TrimSpace(rhs[n:])
 		}
 		if rhs != "" && rhs[0] != '#' {
@@ -116,7 +117,7 @@ func ReadCompose(data []byte, name string) (*Compose, *loss.Report) {
 			}
 			l.Keysym = k
 		}
-		if l.Result == "" && l.Keysym == NoSymbol {
+		if l.Result == "" && l.Keysym == NoSymbol && !l.Empty {
 			r.Warnf("xkbcompose.lineSkipped", at, "the sequence gives nothing")
 			continue
 		}
@@ -223,7 +224,7 @@ func WriteCompose(c *Compose, header []string) []byte {
 			b.WriteString("<" + k.Name() + ">")
 		}
 		b.WriteString(" :")
-		if l.Result != "" {
+		if l.Result != "" || l.Empty || l.Keysym == NoSymbol {
 			b.WriteString(" " + quote(l.Result))
 		}
 		if l.Keysym != NoSymbol {

@@ -18,6 +18,7 @@ const (
 	example = "../../testdata/kbl-spec/examples/latin-altgr-deadkeys.kbl.json"
 	cldrPT  = "../../testdata/third_party/cldr-release-49/keyboards/3.0/pt-t-k0-abnt2.xml"
 	xkbFO   = "../../testdata/third_party/xkeyboard-config-2.49/symbols/fo"
+	xkbDemo = "../../testdata/kbl-spec/examples/xkb-caps-deadkeys.kbl.json"
 )
 
 func run(args ...string) (int, string, string) {
@@ -48,18 +49,25 @@ func TestCommands(t *testing.T) {
 		{"compile kbl", []string{"compile", "-o", filepath.Join(dir, "kbl"), example}, ExitOK, "x64", ""},
 		{"compile one", []string{"compile", "-o", filepath.Join(dir, "one"), "-target", "wow64", kbdtst}, ExitOK, "SysWOW64", ""},
 		{"compile arm64x only", []string{"compile", "-o", dir, "-target", "arm64x,arm64", kbdtst}, ExitOK, "arm64x/kbdtst.dll", "plain arm64 build is a test control"},
-		{"compile bad target", []string{"compile", "-target", "mips", kbdtst}, ExitUsage, "", "unknown target \"mips\" (known: macos, windows"},
+		{"compile bad target", []string{"compile", "-target", "mips", kbdtst}, ExitUsage, "", "unknown target \"mips\" (known: macos, windows, xkb"},
 		{"compile bad build in a legacy list", []string{"compile", "-target", "x64,mips", kbdtst}, ExitUsage, "", "unknown build \"mips\""},
 		{"compile -target windows -build", []string{"compile", "-o", filepath.Join(dir, "two"), "-target", "windows", "-build", "wow64", kbdtst}, ExitOK, "SysWOW64", ""},
 		{"compile -target=wow64", []string{"compile", "-o", filepath.Join(dir, "three"), "-target=wow64", kbdtst}, ExitOK, "SysWOW64", ""},
-		{"installer unknown target", []string{"installer", "-target", "amiga", kbdtst}, ExitUsage, "", "unknown target \"amiga\" (known: macos, windows)"},
+		{"installer unknown target", []string{"installer", "-target", "amiga", kbdtst}, ExitUsage, "", "unknown target \"amiga\" (known: macos, windows, xkb)"},
 		{"pin unknown target", []string{"pin", "-target=amiga", example, filepath.Join(dir, "p2.kbl.json")}, ExitUsage, "", "unknown target"},
 		{"validate -target windows", []string{"validate", "-target", "windows", "-strict-defaults", example}, ExitError, "", "error (defaulted)"},
 		{"validate -windows and an unknown -target", []string{"validate", "-windows", "-target", "amiga", example}, ExitUsage, "", "unknown target"},
 		{"convert klc to kbl", []string{"convert", kbdtst, filepath.Join(dir, "k.kbl.json")}, ExitOK, "", "klc.impliedRows"},
 		{"convert kbl to klc", []string{"convert", filepath.Join(dir, "k.kbl.json"), filepath.Join(dir, "k.klc")}, ExitOK, "", ""},
 		{"convert cldr to kbl", []string{"convert", cldrPT, filepath.Join(dir, "pt.kbl.json")}, ExitOK, "", "general.importInlined"},
-		{"convert xkb to kbl", []string{"convert", "-from", "xkb", "-variant", "nodeadkeys", xkbFO, filepath.Join(dir, "fo.kbl.json")}, ExitOK, "", "xkb.keysymNotText"},
+		{"compile -target xkb", []string{"compile", "-target", "xkb", "-o", filepath.Join(dir, "x"), "-emit-expectations", xkbDemo}, ExitOK, "xkb/types/yakbd-fo-xkbdemo-types", "xkb.customKeyType"},
+		{"installer -target xkb", []string{"installer", "-target", "xkb", "-o", filepath.Join(dir, "x.tar.gz"), xkbDemo}, ExitOK, "install.sh (--uninstall)", ""},
+		{"pin -target xkb", []string{"pin", "-target", "xkb", xkbDemo, filepath.Join(dir, "xp.kbl.json")}, ExitOK, "pinned", "xkbDefault.variant"},
+		{"validate -target xkb strict", []string{"validate", "-target", "xkb", "-strict-defaults", xkbDemo}, ExitError, "", "error (defaulted)"},
+		{"validate -target xkb pinned", []string{"validate", "-target", "xkb", "-strict-defaults", filepath.Join(dir, "xp.kbl.json")}, ExitOK, "valid", ""},
+		{"convert kbl to xkb", []string{"convert", "-to", "xkb", xkbDemo, filepath.Join(dir, "demo-symbols")}, ExitOK, "demo-symbols.XCompose", "xkb.deadKeyStacks"},
+		{"convert xkb back to kbl", []string{"convert", "-from", "xkb", "-compose", filepath.Join(dir, "demo-symbols.XCompose"), filepath.Join(dir, "demo-symbols"), filepath.Join(dir, "demo.kbl.json")}, ExitOK, "", "xkb.syntaxDetailsIgnored"},
+		{"convert xkb to kbl", []string{"convert", "-from", "xkb", "-variant", "nodeadkeys", xkbFO, filepath.Join(dir, "fo.kbl.json")}, ExitOK, "", "include latin(type2) inlined"},
 		{"convert xkb with compose", []string{"convert", "-from", "xkb", "-compose", "../../testdata/xkb/test.XCompose", xkbFO, filepath.Join(dir, "fo2.kbl.json")}, ExitOK, "", "xkb.composeSequenceDropped"},
 		{"convert xkb unknown variant", []string{"convert", "-from", "xkb", "-variant", "nope", xkbFO, filepath.Join(dir, "fo3.kbl.json")}, ExitError, "", "io.variant"},
 		{"convert unknown -from", []string{"convert", "-from", "amiga", xkbFO, filepath.Join(dir, "fo4.kbl.json")}, ExitUsage, "", "unknown format \"amiga\""},

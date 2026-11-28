@@ -76,4 +76,4 @@ a name, the report's `input.format`, the file name suffix, a reader (file → mo
 and a writer (model → file, its losses resolved under the file's policies). A native format of a new target
 (`.keylayout`, an XKB symbols file) is one more row, its code in `format/<name>` and `convert/<name>kbl` as for
 `.klc`. A format without a fixed suffix (XKB symbols files have none) needs a way to name it on the command line;
-add that flag with the format, additively.
+add that flag with the format, additively: XKB symbols files are named with `convert -from xkb` / `-to xkb` (`formatByName`), and a writer may add files next to its output (`writeOptions.side`, the Compose file of an XKB output).

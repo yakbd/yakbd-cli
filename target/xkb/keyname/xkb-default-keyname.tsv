@@ -1,0 +1,160 @@
+# The position table of targets/xkb.md (rule keyName): the default XKB key name per position name, with the keycode
+# it has in xkeyboard-config's evdev keycodes, the aliases those keycodes define for it, and the navigation keysym of
+# the number-pad keys (rule keyType, numLock positions).
+# Sources (read 2026-11-28; names and values only, see CLEAN-ROOM.md "Linux (XKB) sources"):
+#   chromium = Chromium ui/events/keycodes/dom/dom_code_data.inc (BSD-3-Clause), its XKB column (X keycode =
+#              Linux evdev code + 8) joined by the W3C code value (the position name) of each row:
+#              https://chromium.googlesource.com/chromium/src/+/refs/heads/main/ui/events/keycodes/dom/dom_code_data.inc
+#   evdev    = the key name that xkeyboard-config's keycodes/evdev (section "evdev") gives that keycode, and the
+#              aliases of keycodes/evdev and keycodes/aliases (section "qwerty") that name it; xkeyboard-config
+#              commit f4d3ed8b (2026-11-06), https://gitlab.freedesktop.org/xkeyboard-config/xkeyboard-config
+#   keypad   = the first-level keysym of the key in xkeyboard-config's symbols/keypad, section "x11"
+# Columns: position, keyName, keycode (X keycode, decimal), aliases ("-" = none), keypad (navigation keysym, "-" =
+# none), source. Every Table A position (targets/windows-default-vk.tsv) has a row except SysRq and Break, which
+# have no key of their own in XKB: SysRq is the second level of <PRSC> (Alt+Print, keycode 107 = evdev KEY_SYSRQ
+# 99 + 8) and Break the second level of <PAUS> (Control+Pause), both in xkeyboard-config's symbols/pc. The
+# positions of SPEC Appendix A that Table A lacks (NumpadEqual, KanaMode, IntlRo, Convert, NonConvert, IntlYen,
+# NumpadComma) and Lang1, Lang2 are added.
+position	keyName	keycode	aliases	keypad	source
+Escape	ESC	9	-	-	chromium, evdev
+Digit1	AE01	10	-	-	chromium, evdev
+Digit2	AE02	11	-	-	chromium, evdev
+Digit3	AE03	12	-	-	chromium, evdev
+Digit4	AE04	13	-	-	chromium, evdev
+Digit5	AE05	14	-	-	chromium, evdev
+Digit6	AE06	15	-	-	chromium, evdev
+Digit7	AE07	16	-	-	chromium, evdev
+Digit8	AE08	17	-	-	chromium, evdev
+Digit9	AE09	18	-	-	chromium, evdev
+Digit0	AE10	19	-	-	chromium, evdev
+Minus	AE11	20	-	-	chromium, evdev
+Equal	AE12	21	-	-	chromium, evdev
+Backspace	BKSP	22	-	-	chromium, evdev
+Tab	TAB	23	-	-	chromium, evdev
+KeyQ	AD01	24	LatQ	-	chromium, evdev
+KeyW	AD02	25	LatW	-	chromium, evdev
+KeyE	AD03	26	LatE	-	chromium, evdev
+KeyR	AD04	27	LatR	-	chromium, evdev
+KeyT	AD05	28	LatT	-	chromium, evdev
+KeyY	AD06	29	LatY	-	chromium, evdev
+KeyU	AD07	30	LatU	-	chromium, evdev
+KeyI	AD08	31	LatI	-	chromium, evdev
+KeyO	AD09	32	LatO	-	chromium, evdev
+KeyP	AD10	33	LatP	-	chromium, evdev
+BracketLeft	AD11	34	-	-	chromium, evdev
+BracketRight	AD12	35	-	-	chromium, evdev
+Enter	RTRN	36	-	-	chromium, evdev
+ControlLeft	LCTL	37	-	-	chromium, evdev
+KeyA	AC01	38	LatA	-	chromium, evdev
+KeyS	AC02	39	LatS	-	chromium, evdev
+KeyD	AC03	40	LatD	-	chromium, evdev
+KeyF	AC04	41	LatF	-	chromium, evdev
+KeyG	AC05	42	LatG	-	chromium, evdev
+KeyH	AC06	43	LatH	-	chromium, evdev
+KeyJ	AC07	44	LatJ	-	chromium, evdev
+KeyK	AC08	45	LatK	-	chromium, evdev
+KeyL	AC09	46	LatL	-	chromium, evdev
+Semicolon	AC10	47	-	-	chromium, evdev
+Quote	AC11	48	-	-	chromium, evdev
+Backquote	TLDE	49	HZTG	-	chromium, evdev
+ShiftLeft	LFSH	50	-	-	chromium, evdev
+Backslash	BKSL	51	AC12	-	chromium, evdev
+KeyZ	AB01	52	LatZ	-	chromium, evdev
+KeyX	AB02	53	LatX	-	chromium, evdev
+KeyC	AB03	54	LatC	-	chromium, evdev
+KeyV	AB04	55	LatV	-	chromium, evdev
+KeyB	AB05	56	LatB	-	chromium, evdev
+KeyN	AB06	57	LatN	-	chromium, evdev
+KeyM	AB07	58	LatM	-	chromium, evdev
+Comma	AB08	59	-	-	chromium, evdev
+Period	AB09	60	-	-	chromium, evdev
+Slash	AB10	61	-	-	chromium, evdev
+ShiftRight	RTSH	62	-	-	chromium, evdev
+NumpadMultiply	KPMU	63	-	-	chromium, evdev
+AltLeft	LALT	64	-	-	chromium, evdev
+Space	SPCE	65	-	-	chromium, evdev
+CapsLock	CAPS	66	-	-	chromium, evdev
+F1	FK01	67	-	-	chromium, evdev
+F2	FK02	68	-	-	chromium, evdev
+F3	FK03	69	-	-	chromium, evdev
+F4	FK04	70	-	-	chromium, evdev
+F5	FK05	71	-	-	chromium, evdev
+F6	FK06	72	-	-	chromium, evdev
+F7	FK07	73	-	-	chromium, evdev
+F8	FK08	74	-	-	chromium, evdev
+F9	FK09	75	-	-	chromium, evdev
+F10	FK10	76	-	-	chromium, evdev
+NumLock	NMLK	77	-	-	chromium, evdev
+ScrollLock	SCLK	78	-	-	chromium, evdev
+Numpad7	KP7	79	-	KP_Home	chromium, evdev, keypad
+Numpad8	KP8	80	-	KP_Up	chromium, evdev, keypad
+Numpad9	KP9	81	-	KP_Prior	chromium, evdev, keypad
+NumpadSubtract	KPSU	82	-	-	chromium, evdev
+Numpad4	KP4	83	-	KP_Left	chromium, evdev, keypad
+Numpad5	KP5	84	-	KP_Begin	chromium, evdev, keypad
+Numpad6	KP6	85	-	KP_Right	chromium, evdev, keypad
+NumpadAdd	KPAD	86	-	-	chromium, evdev
+Numpad1	KP1	87	-	KP_End	chromium, evdev, keypad
+Numpad2	KP2	88	-	KP_Down	chromium, evdev, keypad
+Numpad3	KP3	89	-	KP_Next	chromium, evdev, keypad
+Numpad0	KP0	90	-	KP_Insert	chromium, evdev, keypad
+NumpadDecimal	KPDL	91	-	KP_Delete	chromium, evdev, keypad
+IntlBackslash	LSGT	94	-	-	chromium, evdev
+F11	FK11	95	-	-	chromium, evdev
+F12	FK12	96	-	-	chromium, evdev
+F13	FK13	191	I191	-	chromium, evdev
+F14	FK14	192	I192	-	chromium, evdev
+F15	FK15	193	I193	-	chromium, evdev
+F16	FK16	194	I194	-	chromium, evdev
+F17	FK17	195	I195	-	chromium, evdev
+F18	FK18	196	I196	-	chromium, evdev
+F19	FK19	197	I197	-	chromium, evdev
+F20	FK20	198	I198	-	chromium, evdev
+F21	FK21	199	I199	-	chromium, evdev
+F22	FK22	200	I200	-	chromium, evdev
+F23	FK23	201	I201	-	chromium, evdev
+F24	FK24	202	I202	-	chromium, evdev
+MediaTrackPrevious	I173	173	-	-	chromium, evdev
+MediaTrackNext	I171	171	-	-	chromium, evdev
+NumpadEnter	KPEN	104	-	-	chromium, evdev
+ControlRight	RCTL	105	-	-	chromium, evdev
+AudioVolumeMute	MUTE	121	I121	-	chromium, evdev
+MediaPlayPause	I172	172	-	-	chromium, evdev
+MediaStop	I174	174	-	-	chromium, evdev
+AudioVolumeDown	VOL-	122	I122	-	chromium, evdev
+AudioVolumeUp	VOL+	123	I123	-	chromium, evdev
+BrowserHome	I180	180	-	-	chromium, evdev
+NumpadDivide	KPDV	106	-	-	chromium, evdev
+PrintScreen	PRSC	107	-	-	chromium, evdev
+AltRight	RALT	108	ALGR	-	chromium, evdev
+Home	HOME	110	-	-	chromium, evdev
+ArrowUp	UP	111	-	-	chromium, evdev
+PageUp	PGUP	112	-	-	chromium, evdev
+ArrowLeft	LEFT	113	-	-	chromium, evdev
+ArrowRight	RGHT	114	-	-	chromium, evdev
+End	END	115	-	-	chromium, evdev
+ArrowDown	DOWN	116	-	-	chromium, evdev
+PageDown	PGDN	117	-	-	chromium, evdev
+Insert	INS	118	-	-	chromium, evdev
+Delete	DELE	119	-	-	chromium, evdev
+MetaLeft	LWIN	133	LMTA,I133	-	chromium, evdev
+MetaRight	RWIN	134	RMTA,I134	-	chromium, evdev
+ContextMenu	COMP	135	MENU,I135	-	chromium, evdev
+Sleep	I150	150	-	-	chromium, evdev
+BrowserSearch	I225	225	-	-	chromium, evdev
+BrowserFavorites	I164	164	-	-	chromium, evdev
+BrowserRefresh	I181	181	-	-	chromium, evdev
+BrowserStop	STOP	136	I136	-	chromium, evdev
+BrowserForward	I167	167	-	-	chromium, evdev
+BrowserBack	I166	166	-	-	chromium, evdev
+LaunchMail	I163	163	-	-	chromium, evdev
+Pause	PAUS	127	I127	-	chromium, evdev
+NumpadEqual	KPEQ	125	I125	-	chromium, evdev
+KanaMode	HKTG	101	-	-	chromium, evdev
+IntlRo	AB11	97	-	-	chromium, evdev
+Convert	HENK	100	-	-	chromium, evdev
+NonConvert	MUHE	102	-	-	chromium, evdev
+IntlYen	AE13	132	I132	-	chromium, evdev
+NumpadComma	I129	129	KPPT	-	chromium, evdev
+Lang1	HNGL	130	I130	-	chromium, evdev
+Lang2	HJCV	131	I131	-	chromium, evdev

@@ -54,7 +54,7 @@ func TestKeysyms(t *testing.T) {
 	if FromRune('€') != 0x20ac || FromRune('ǘ') != 0x10001d8 || FromRune('é') != 0xe9 {
 		t.Error("FromRune")
 	}
-	if Keysym('ß').Upper() != FromRune('ẞ') || Keysym('a').Upper() != 'A' || Keysym('1').Upper() != '1' {
+	if Keysym('ß').Upper() != 'ß' || Keysym('a').Upper() != 'A' || Keysym('1').Upper() != '1' {
 		t.Error("Upper")
 	}
 }

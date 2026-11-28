@@ -25,7 +25,7 @@ written forms must be byte-equal (the first read may be lossy; the second round 
 | `FuzzReadTests` | `format/cldr` | CLDR keyboardTest3 XML | each test file: write → read → write is stable |
 | `FuzzRead` | `format/kbljson` | `.kbl.json` bytes | validator and reader; an accepted file writes, the written file validates, and write → read → write is stable |
 | `FuzzRead` | `format/keylayout` | macOS `.keylayout` bytes (UTF-8 or UTF-16, XML 1.0 or 1.1) | write → read → write is stable; the import (`convert/keylayoutkbl`) reports no error on a file the reader accepts, writes as `.kbl.json`, and builds for macOS (`target/macos/build`) |
-| `FuzzRead` | `format/xkb` | XKB symbols file bytes | write → read → write is stable; each section compiles with its includes (from the xkeyboard-config corpus, under the bound of a build) and imports (`convert/xkbkbl`) as a layout that writes as `.kbl.json` |
+| `FuzzRead` | `format/xkb` | XKB symbols file bytes | write → read → write is stable; each section compiles with its includes (from the xkeyboard-config corpus, under the bound of a build), imports (`convert/xkbkbl`) as a layout that writes as `.kbl.json`, and builds for XKB with its release archive (`target/xkb`) |
 | `FuzzReadCompose` | `format/xkb` | Compose file bytes | write → read → write is stable and keeps every line |
 | `FuzzParse` | `pe` | PE image bytes | `Parse` and every table accessor (exports, relocations, resources, load config, CHPE, dynamic relocations, ARM64X view) |
 | `FuzzReadImage` | `target/windows` | layout DLL bytes | an image or an error; tables that compile again for the same architecture read back without `Differences` |
