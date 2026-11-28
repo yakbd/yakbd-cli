@@ -1,7 +1,7 @@
 # yakbd tool repository: agent rules
 
-`yakbd` (Go) converts keyboard layouts between `.kbl.json`, `.klc` and CLDR Keyboard 3.0 XML, validates them, and
-compiles them into Windows layout DLLs and installers. Windows is the first target, not the only one: the official
+`yakbd` (Go) converts keyboard layouts between `.kbl.json`, `.klc`, CLDR Keyboard 3.0 XML and macOS `.keylayout`, validates them, and
+compiles them into Windows layout DLLs and installers and macOS layout bundles. Windows and macOS are the first targets: the official
 formats of other operating systems come next, then third-party formats such as Keyman. The `.kbl.json` format lives
 in the sibling repository `yakbd/kbl-spec` (organisation https://github.com/yakbd). Design and package map:
 `ARCHITECTURE.md`; how a platform plugs in (`-target`, package `target`): `docs/targets.md`.
@@ -37,11 +37,11 @@ with `--repo <named repo>`.
   that test skips unless your Go version equals the recorded one.
 - Spec copies must equal the spec repository: `format/kbljson/schema/<version>/kbl.schema.json`, one per format version
   the reader implements (0.1, 0.2; `Versions` with each `SchemaCommit` in `format/kbljson/kbljson.go`; 0.2 is a
-  draft on the spec branch `spec-0.2`, so its drift test needs that branch checked out), `testdata/kbl-spec/examples/`, `target/windows/vk/windows-default-vk.tsv`
+  draft on the spec branch `spec-0.2`, so its drift test needs that branch checked out), `testdata/kbl-spec/examples/`, `target/macos/keycode/macos-default-keycode.tsv` (`SpecCommit`, a commit of `spec-0.2`), `target/windows/vk/windows-default-vk.tsv`
   (`TableASpecTag` in `target/windows/vk/scancodes.go`: a spec release tag, read at the tag when the checkout has it). Their drift tests skip silently, in CI too, unless the spec
   repo is checked out next to this one as `../kbl-spec` (or under its former name `../kbl-spec-prototype`) or `YAKBD_SPEC_DIR` names it. When you copy new
   versions, copy the files unchanged, move the commit constant, and run
-  `YAKBD_SPEC_DIR=<spec checkout> go test -count=1 ./format/kbljson ./target/windows/vk ./policy`. The spec
+  `YAKBD_SPEC_DIR=<spec checkout> go test -count=1 ./format/kbljson ./target/windows/vk ./target/macos/keycode ./policy`. The spec
   repo's `STATUS.md` changelog names the format changes the tool has to follow.
 - Golden files: an intended change of DLL bytes needs `go test ./target/windows -update`, of `.klc` diagnostics
   `go test ./format/klc -update`. A change in what a CLDR keyboard imports, loses or types fails

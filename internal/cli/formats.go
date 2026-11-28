@@ -1,16 +1,20 @@
 package cli
 
 import (
+	"path/filepath"
 	"strings"
 
 	"github.com/yakbd/yakbd-cli/convert/dllkbl"
+	"github.com/yakbd/yakbd-cli/convert/keylayoutkbl"
 	"github.com/yakbd/yakbd-cli/convert/klckbl"
 	"github.com/yakbd/yakbd-cli/format/cldr"
 	"github.com/yakbd/yakbd-cli/format/kbljson"
+	"github.com/yakbd/yakbd-cli/format/keylayout"
 	"github.com/yakbd/yakbd-cli/format/klc"
 	"github.com/yakbd/yakbd-cli/loss"
 	"github.com/yakbd/yakbd-cli/model"
 	"github.com/yakbd/yakbd-cli/policy"
+	macbuild "github.com/yakbd/yakbd-cli/target/macos/build"
 	"github.com/yakbd/yakbd-cli/target/windows/build"
 )
 
@@ -39,6 +43,7 @@ var formats = []fileFormat{
 	{name: "klc", report: "klc", ext: ".klc", read: readKLC, write: writeKLC},
 	{name: "cldr", report: "cldr", ext: ".xml", read: readCLDR, write: writeCLDR},
 	{name: "dll", report: "dll", ext: ".dll", read: readDLL},
+	{name: "keylayout", report: "keylayout", ext: ".keylayout", read: readKeylayout, write: writeKeylayout},
 }
 
 // formatByPath returns the format of a file by its name's suffix.
@@ -140,4 +145,19 @@ func writeCLDR(l *model.Layout, o writeOptions) ([]byte, *loss.Report) {
 	data, r := cldr.Write(l)
 	policy.Resolve(r, l, "cldr", o.extra)
 	return data, r
+}
+
+func readKeylayout(b []byte, name string) (*model.Layout, *loss.Report) {
+	k, r := keylayout.Read(b, name)
+	if k == nil || r.HasErrors() {
+		return nil, r
+	}
+	l, ir := keylayoutkbl.FromKeylayout(k, filepath.Base(name), "")
+	r.Merge(ir)
+	checked(l, r)
+	return l, r
+}
+
+func writeKeylayout(l *model.Layout, o writeOptions) ([]byte, *loss.Report) {
+	return keylayoutkbl.ToKeylayout(l, macbuild.Options{Policy: o.extra})
 }

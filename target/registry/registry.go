@@ -4,6 +4,7 @@ package registry
 
 import (
 	"github.com/yakbd/yakbd-cli/target"
+	"github.com/yakbd/yakbd-cli/target/macos"
 	"github.com/yakbd/yakbd-cli/target/windows/wintarget"
 )
 
@@ -13,6 +14,7 @@ const Default = "windows"
 // Targets are the known targets.
 var Targets = []target.Target{
 	wintarget.Target{},
+	macos.Target{},
 }
 
 // Lookup returns the target called name.

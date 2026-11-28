@@ -2177,6 +2177,190 @@
         "macos": {
           "type": "object",
           "properties": {
+            "layoutName": {
+              "type": "string",
+              "pattern": "^[^/:\\x00-\\x1f\\x7f]{1,128}$",
+              "description": "Layout name: keyboard/@name, the .keylayout and .icns file names, the KLInfo_<name> key (rule layoutName)."
+            },
+            "bundleName": {
+              "type": "string",
+              "pattern": "^[^/:\\x00-\\x1f\\x7f]{1,128}$",
+              "description": "Bundle folder name without .bundle, and CFBundleName (rule bundleName)."
+            },
+            "bundleId": {
+              "type": "string",
+              "maxLength": 255,
+              "pattern": "^[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)+$",
+              "description": "CFBundleIdentifier (rule bundleId)."
+            },
+            "inputSourceId": {
+              "type": "string",
+              "maxLength": 255,
+              "pattern": "^[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)+$",
+              "description": "TISInputSourceID, the input-source id the system selects by (rule inputSourceId)."
+            },
+            "language": {
+              "type": "string",
+              "pattern": "^[A-Za-z]{2,8}(-[A-Za-z0-9]{1,8})*$",
+              "description": "TISIntendedLanguage, a BCP 47 tag (rule language)."
+            },
+            "localizedNames": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "pattern": "^[A-Za-z]{2,8}(-[A-Za-z0-9]{1,8})*$",
+                "description": "A BCP 47 tag: the <tag>.lproj folder."
+              },
+              "additionalProperties": {
+                "$ref": "#/$defs/Text"
+              },
+              "description": "Localised layout names, one InfoPlist.strings per language (rule localizedNames)."
+            },
+            "bundleVersion": {
+              "type": "string",
+              "pattern": "^[0-9]{1,9}(\\.[0-9]{1,9}){0,2}$",
+              "description": "CFBundleShortVersionString and CFBundleVersion (rule bundleVersion)."
+            },
+            "icon": {
+              "type": "object",
+              "properties": {
+                "icns": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9+/]+={0,2}$",
+                  "description": "The .icns file, base64 (RFC 4648 §4, no line breaks)."
+                },
+                "template": {
+                  "type": "boolean",
+                  "description": "TISIconIsTemplate: the icon is a template image the system tints. Default false."
+                }
+              },
+              "required": [
+                "icns"
+              ],
+              "additionalProperties": false,
+              "description": "The layout's icon, Resources/<layoutName>.icns (no default: the system's generic icon)."
+            },
+            "group": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 32767,
+              "description": "keyboard/@group, the script code; 126 = Unicode (rule group)."
+            },
+            "id": {
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647,
+              "description": "keyboard/@id; Unicode layouts use negative ids (rule keyboardId)."
+            },
+            "maxout": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535,
+              "description": "keyboard/@maxout: most UTF-16 units one key press emits (rule maxout)."
+            },
+            "hardwareRanges": {
+              "minItems": 1,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "first": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 255,
+                    "description": "layout/@first, first hardware keyboard type."
+                  },
+                  "last": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 255,
+                    "description": "layout/@last, last hardware keyboard type."
+                  }
+                },
+                "required": [
+                  "first",
+                  "last"
+                ],
+                "additionalProperties": false,
+                "description": "One <layout> element."
+              },
+              "description": "The <layout> elements, in order, all selecting the one key map set (rule hardwareRanges)."
+            },
+            "keys": {
+              "type": "object",
+              "propertyNames": {
+                "$ref": "#/$defs/PositionId"
+              },
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "keyCode": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 255,
+                    "description": "Virtual key code, key/@code (rule keyCode)."
+                  }
+                },
+                "required": [
+                  "keyCode"
+                ],
+                "additionalProperties": false,
+                "description": "macOS data of one position."
+              },
+              "description": "macOS data per position."
+            },
+            "standardKeys": {
+              "type": "boolean",
+              "description": "true: unbound standard keys (Return, Tab, arrows, …) get the outputs of the position table (rule standardKeys, default true)."
+            },
+            "commandMap": {
+              "type": "string",
+              "enum": [
+                "withoutCommand",
+                "base"
+              ],
+              "description": "States with Command that no layer serves: the table of the same state without Command, or the base table (rule commandMap)."
+            },
+            "controlMap": {
+              "type": "string",
+              "enum": [
+                "controlCharacters",
+                "withoutControl",
+                "nothing"
+              ],
+              "description": "States with Control that no layer serves: the table without Control with ASCII letters turned into U+0001–U+001A, that table unchanged, or no output (rule controlMap)."
+            },
+            "modifiers": {
+              "type": "object",
+              "properties": {
+                "command": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z][A-Za-z0-9]{0,31}$",
+                  "description": "The custom held component that is the Command key."
+                }
+              },
+              "additionalProperties": false,
+              "description": "Which custom components are macOS modifier keys."
+            },
+            "deadKeys": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "state": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9._:-]{1,64}$",
+                    "description": "The dead key's state name (rule stateName)."
+                  }
+                },
+                "additionalProperties": false,
+                "description": "macOS data of one dead key."
+              },
+              "description": "macOS data per dead key."
+            },
             "onLoss": {
               "description": "Loss policy for this target.",
               "$ref": "#/$defs/OnLoss"
@@ -2595,7 +2779,45 @@
               "windowsDefault.versionInfo",
               "windowsDefault.vk",
               "macos.*",
+              "macos.deadKeyNoMatchExpanded",
+              "macos.keyCodeDuplicate",
+              "macos.keyCodeMissing",
+              "macos.keyCodeUnknown",
+              "macos.keyMapSetDropped",
+              "macos.lockUnmapped",
+              "macos.malformed",
+              "macos.markerNotCompiled",
+              "macos.modifierUnmapped",
+              "macos.noHardwareLayers",
+              "macos.numLockIgnored",
+              "macos.outputBeyondMaxout",
+              "macos.outputUnencodable",
+              "macos.rangeActionDropped",
+              "macos.settingNotCompiled",
+              "macos.sideModifierDropped",
+              "macos.sideModifierWidened",
+              "macos.stateNameDuplicate",
+              "macos.stateNotExpressible",
+              "macos.transformNotCompiled",
+              "macos.xmlDetailsIgnored",
               "macosDefault.*",
+              "macosDefault.bundleId",
+              "macosDefault.bundleName",
+              "macosDefault.bundleVersion",
+              "macosDefault.commandMap",
+              "macosDefault.controlMap",
+              "macosDefault.group",
+              "macosDefault.hardwareRanges",
+              "macosDefault.inputSourceId",
+              "macosDefault.isoKeys",
+              "macosDefault.keyCode",
+              "macosDefault.keyboardId",
+              "macosDefault.language",
+              "macosDefault.layoutName",
+              "macosDefault.localizedNames",
+              "macosDefault.maxout",
+              "macosDefault.standardKeys",
+              "macosDefault.stateName",
               "xkb.*",
               "xkbDefault.*"
             ],

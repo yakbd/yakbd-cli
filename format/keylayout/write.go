@@ -12,8 +12,9 @@ const Doctype = `<!DOCTYPE keyboard SYSTEM "file://localhost/System/Library/DTDs
 
 // Write returns the keyboard as XML in one fixed form: XML 1.1 (so that C0 controls can be character
 // references), UTF-8, tabs, elements and keys in the order of k, attributes in TN2056's order. Characters that are
-// markup, controls (C0, DEL, C1) or noncharacters U+FFFE and U+FFFF are written as hexadecimal character
-// references; everything else is written as itself.
+// markup, controls (C0, DEL, C1, which includes NEL), U+2028 (a line end in XML 1.1, which a reader turns into a
+// space) or the noncharacters U+FFFE and U+FFFF are written as hexadecimal character references; everything else
+// is written as itself.
 func Write(k *Keyboard) []byte {
 	var b bytes.Buffer
 	b.WriteString(`<?xml version="1.1" encoding="UTF-8"?>` + "\n")
@@ -122,7 +123,7 @@ func Escape(s string) string {
 	var b strings.Builder
 	for _, r := range s {
 		switch {
-		case r < 0x20, r >= 0x7F && r <= 0x9F, r == 0xFFFE, r == 0xFFFF, r == '&', r == '<', r == '>', r == '"':
+		case r < 0x20, r >= 0x7F && r <= 0x9F, r == 0x2028, r == 0xFFFE, r == 0xFFFF, r == '&', r == '<', r == '>', r == '"':
 			b.WriteString("&#x")
 			h := strings.ToUpper(strconv.FormatInt(int64(r), 16))
 			for len(h) < 4 {

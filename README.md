@@ -20,8 +20,9 @@ Windows architecture.
   was dropped or changed, and the layout file can say whether that is an error, a warning or fine.
 - **Lost the source?** yakbd reads an installed layout DLL back into an editable file.
 
-Windows is the only target so far. The official formats of other operating systems (macOS `.keylayout`, Linux
-XKB and others) are planned next, then third-party formats such as Keyman. The format already keeps the choices of
+macOS is the second target: yakbd converts `.keylayout` files and builds a layout bundle and a release zip
+([`docs/macos.md`](docs/macos.md)); its check on real Macs is in progress. Linux XKB and the formats of other
+operating systems come next, then third-party formats such as Keyman. The format already keeps the choices of
 each target in a section of its own (`targets.*`), and has been checked on paper for macOS and XKB
 ([kbl-spec D105 and D107](https://github.com/yakbd/kbl-spec/blob/main/DECISIONS.md)).
 
@@ -57,16 +58,18 @@ shows how to install the new build next to the old one, check it, and only then 
 
 ## Commands
 
-    yakbd convert in.klc out.kbl.json        # any of .kbl.json, .klc, CLDR .xml, in both directions
+    yakbd convert in.klc out.kbl.json        # any of .kbl.json, .klc, CLDR .xml, .keylayout, in both directions
     yakbd convert kbdmine.dll out.kbl.json   # read an installed layout DLL back
     yakbd validate layout.kbl.json           # the file; add -windows for the Windows build's report
     yakbd compile layout.kbl.json            # the DLLs for x64, WOW64, x86 and ARM64 in folders of their own
     yakbd installer layout.kbl.json          # one installer with every build
     yakbd pin layout.kbl.json                # write every Windows default choice into the file
+    yakbd compile -target macos layout.kbl.json    # the macOS layout bundle
+    yakbd installer -target macos layout.kbl.json  # a zip with the bundle and a README
     yakbd version
 
-`compile`, `installer`, `pin` and `validate -target` build for a target: `-target windows` is the default and today the
-only one (macOS and Linux are planned; [`docs/targets.md`](docs/targets.md)). `yakbd <command> -h` lists a command's options. Every command prints a report (errors, warnings, losses, and each
+`compile`, `installer`, `pin` and `validate -target` build for a target: `-target windows` is the default, `-target macos`
+the second ([`docs/targets.md`](docs/targets.md); Linux is planned). `yakbd <command> -h` lists a command's options. Every command prints a report (errors, warnings, losses, and each
 choice taken from a default rule); `-report report.json` saves it as JSON, in the shape of
 [`docs/report-file.md`](docs/report-file.md) (for programs: JSON pointers into the input file, the tool version). A
 command with an error writes nothing. Flags may come before or after the file names.
@@ -77,6 +80,7 @@ command with an error writes nothing. Flags may come before or after the file na
 |---|---|
 | [`docs/migrating-from-msklc.md`](docs/migrating-from-msklc.md) | from a `.klc` file to an installed layout; what differs from MSKLC; replacing an installed MSKLC layout safely |
 | [`docs/recover-a-layout.md`](docs/recover-a-layout.md) | getting an editable file back from an installed layout DLL |
+| [`docs/macos.md`](docs/macos.md) | macOS: building, installing and selecting a layout; what a `.keylayout` cannot hold |
 | [`docs/windows-security-prompts.md`](docs/windows-security-prompts.md) | Smart App Control, SmartScreen and UAC; checking a download; signing your own layout installer |
 | [`docs/code-signing-policy.md`](docs/code-signing-policy.md) | **Code signing policy** of the YAKBD installers (planned) |
 | [`docs/installer.md`](docs/installer.md), [`docs/installer-cli.md`](docs/installer-cli.md) | what the installers do, their command line and exit codes; the YAKBD installers and their wizard (§12) |

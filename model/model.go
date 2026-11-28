@@ -481,9 +481,54 @@ type DispatcherTable struct {
 	SubType uint32 `json:"subType"`
 }
 
-// MacOSTarget is SPEC §16.4 (0.2): the macOS build choices.
+// MacOSTarget is SPEC §16.4 (0.2): the macOS build choices (kbl-spec targets/macos.md).
 type MacOSTarget struct {
-	OnLoss *OnLoss `json:"onLoss,omitempty"`
+	LayoutName     string                   `json:"layoutName,omitempty"`
+	BundleName     string                   `json:"bundleName,omitempty"`
+	BundleID       string                   `json:"bundleId,omitempty"`
+	InputSourceID  string                   `json:"inputSourceId,omitempty"`
+	Language       string                   `json:"language,omitempty"`
+	LocalizedNames map[string]string        `json:"localizedNames,omitempty"`
+	BundleVersion  string                   `json:"bundleVersion,omitempty"`
+	Icon           *MacOSIcon               `json:"icon,omitempty"`
+	Group          *int                     `json:"group,omitempty"`
+	ID             *int                     `json:"id,omitempty"`
+	MaxOut         *int                     `json:"maxout,omitempty"`
+	HardwareRanges []MacOSHardwareRange     `json:"hardwareRanges,omitempty"`
+	Keys           map[string]*MacOSKey     `json:"keys,omitempty"`
+	StandardKeys   *bool                    `json:"standardKeys,omitempty"`
+	CommandMap     string                   `json:"commandMap,omitempty"`
+	ControlMap     string                   `json:"controlMap,omitempty"`
+	Modifiers      *MacOSModifiers          `json:"modifiers,omitempty"`
+	DeadKeys       map[string]*MacOSDeadKey `json:"deadKeys,omitempty"`
+	OnLoss         *OnLoss                  `json:"onLoss,omitempty"`
+}
+
+// MacOSIcon is targets.macos.icon: the .icns file in base64.
+type MacOSIcon struct {
+	ICNS     string `json:"icns"`
+	Template *bool  `json:"template,omitempty"`
+}
+
+// MacOSHardwareRange is one <layout> element's range of hardware keyboard types.
+type MacOSHardwareRange struct {
+	First int `json:"first"`
+	Last  int `json:"last"`
+}
+
+// MacOSKey is the macOS data of one position.
+type MacOSKey struct {
+	KeyCode int `json:"keyCode"`
+}
+
+// MacOSModifiers names the custom components that are macOS modifier keys.
+type MacOSModifiers struct {
+	Command string `json:"command,omitempty"`
+}
+
+// MacOSDeadKey is the macOS data of one dead key.
+type MacOSDeadKey struct {
+	State string `json:"state,omitempty"`
 }
 
 // XKBTarget is SPEC §16.5 (0.2): the Linux XKB build choices.

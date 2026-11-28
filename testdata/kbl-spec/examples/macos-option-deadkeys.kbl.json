@@ -1,0 +1,333 @@
+{
+  "$schema": "https://yakbd.github.io/kbl-spec/schema/0.2/kbl.schema.json",
+  "kbl": "0.2",
+  "metadata": {
+    "id": "und-Latn-t-k0-macdemo",
+    "name": "macOS demo (example)",
+    "version": "0.2.0",
+    "license": "MIT-0",
+    "localizedNames": {
+      "fo": "macOS dømi (dømi)"
+    },
+    "description": "Example (f), a 0.2 file: an ISO layout (IntlBackslash bound, so rule isoKeys swaps the codes of Backquote and IntlBackslash) with an Option layer (alt), a Caps Lock layer that differs per key (the letters are capitals, Backquote is not), a multi-character output (KeyQ gives ng), dead keys reached with Option, a chained dead key (acute then circumflex), a Command component and a few targets.macos pins; everything else comes from the default rules of the macOS target.",
+    "authors": [
+      {
+        "name": "The YAKBD contributors"
+      }
+    ]
+  },
+  "settings": {
+    "capsLockFallback": false
+  },
+  "positions": {
+    "KeyQ": {
+      "scanCode": "10"
+    },
+    "KeyW": {
+      "scanCode": "11"
+    },
+    "KeyE": {
+      "scanCode": "12"
+    },
+    "KeyA": {
+      "scanCode": "1E"
+    },
+    "KeyS": {
+      "scanCode": "1F"
+    },
+    "KeyO": {
+      "scanCode": "18"
+    },
+    "KeyU": {
+      "scanCode": "16"
+    },
+    "Backquote": {
+      "scanCode": "29"
+    },
+    "IntlBackslash": {
+      "scanCode": "56"
+    },
+    "Digit6": {
+      "scanCode": "07"
+    },
+    "Space": {
+      "scanCode": "39"
+    },
+    "MetaLeft": {
+      "scanCode": "E05B"
+    },
+    "MetaRight": {
+      "scanCode": "E05C"
+    }
+  },
+  "customModifiers": {
+    "cmd": {
+      "kind": "held",
+      "positions": [
+        "MetaLeft",
+        "MetaRight"
+      ]
+    }
+  },
+  "hardware": {
+    "formId": "isoDemo",
+    "layers": [
+      {
+        "id": "base",
+        "modifiers": [
+          []
+        ],
+        "bindings": {
+          "KeyQ": "ng",
+          "KeyW": "w",
+          "KeyE": "e",
+          "KeyA": "a",
+          "KeyS": "s",
+          "KeyO": "o",
+          "KeyU": "u",
+          "Backquote": "§",
+          "IntlBackslash": "<",
+          "Digit6": "6",
+          "Space": " "
+        }
+      },
+      {
+        "id": "shift",
+        "modifiers": [
+          [
+            "shift"
+          ],
+          [
+            "shift",
+            "caps"
+          ]
+        ],
+        "bindings": {
+          "KeyQ": "NG",
+          "KeyW": "W",
+          "KeyE": "E",
+          "KeyA": "A",
+          "KeyS": "S",
+          "KeyO": "O",
+          "KeyU": "U",
+          "Backquote": "±",
+          "IntlBackslash": ">",
+          "Digit6": "&",
+          "Space": " "
+        }
+      },
+      {
+        "id": "caps",
+        "modifiers": [
+          [
+            "caps"
+          ]
+        ],
+        "bindings": {
+          "KeyQ": "NG",
+          "KeyW": "W",
+          "KeyE": "E",
+          "KeyA": "A",
+          "KeyS": "S",
+          "KeyO": "O",
+          "KeyU": "U",
+          "Backquote": "§",
+          "IntlBackslash": "<",
+          "Digit6": "6",
+          "Space": " "
+        }
+      },
+      {
+        "id": "option",
+        "modifiers": [
+          [
+            "alt"
+          ],
+          [
+            "alt",
+            "caps"
+          ]
+        ],
+        "bindings": {
+          "KeyE": {
+            "deadKey": "acute"
+          },
+          "KeyU": {
+            "deadKey": "diaeresis"
+          },
+          "Digit6": {
+            "deadKey": "circumflex"
+          },
+          "KeyA": "æ",
+          "KeyO": "ø",
+          "Space": " "
+        }
+      },
+      {
+        "id": "command",
+        "modifiers": [
+          [
+            "cmd"
+          ],
+          [
+            "cmd",
+            "shift"
+          ]
+        ],
+        "bindings": {
+          "KeyQ": "q",
+          "KeyW": "w",
+          "KeyE": "e",
+          "KeyA": "a",
+          "KeyS": "s",
+          "KeyO": "o",
+          "KeyU": "u"
+        }
+      }
+    ]
+  },
+  "forms": {
+    "isoDemo": {
+      "rows": [
+        [
+          "Backquote",
+          "Digit6"
+        ],
+        [
+          "KeyQ",
+          "KeyW",
+          "KeyE",
+          "KeyU",
+          "KeyO"
+        ],
+        [
+          "KeyA",
+          "KeyS"
+        ],
+        [
+          "IntlBackslash"
+        ],
+        [
+          "Space"
+        ]
+      ]
+    }
+  },
+  "deadKeys": {
+    "acute": {
+      "spacing": "´",
+      "entries": [
+        {
+          "base": "a",
+          "result": "á"
+        },
+        {
+          "base": "e",
+          "result": "é"
+        },
+        {
+          "base": "o",
+          "result": "ó"
+        },
+        {
+          "base": "u",
+          "result": "ú"
+        },
+        {
+          "base": "A",
+          "result": "Á"
+        },
+        {
+          "base": {
+            "deadKey": "circumflex"
+          },
+          "result": {
+            "deadKey": "acuteCircumflex"
+          }
+        },
+        {
+          "base": " ",
+          "result": "´"
+        }
+      ]
+    },
+    "circumflex": {
+      "spacing": "^",
+      "entries": [
+        {
+          "base": "a",
+          "result": "â"
+        },
+        {
+          "base": "e",
+          "result": "ê"
+        },
+        {
+          "base": "o",
+          "result": "ô"
+        },
+        {
+          "base": {
+            "deadKey": "acute"
+          },
+          "result": {
+            "deadKey": "acuteCircumflex"
+          }
+        }
+      ]
+    },
+    "acuteCircumflex": {
+      "spacing": "^´",
+      "noMatch": "emitText",
+      "entries": [
+        {
+          "base": "e",
+          "result": "ế"
+        },
+        {
+          "base": "o",
+          "result": "ố"
+        },
+        {
+          "base": "a",
+          "result": "ấ"
+        }
+      ]
+    },
+    "diaeresis": {
+      "spacing": "¨",
+      "entries": [
+        {
+          "base": "a",
+          "result": "ä"
+        },
+        {
+          "base": "o",
+          "result": "ö"
+        },
+        {
+          "base": "u",
+          "result": "ü"
+        }
+      ]
+    }
+  },
+  "targets": {
+    "macos": {
+      "bundleId": "org.example.keyboardlayout.macdemo",
+      "modifiers": {
+        "command": "cmd"
+      },
+      "deadKeys": {
+        "acuteCircumflex": {
+          "state": "acute-circumflex"
+        }
+      },
+      "onLoss": {
+        "kinds": {
+          "macos.sideModifierWidened": "error"
+        }
+      }
+    }
+  }
+}

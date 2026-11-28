@@ -395,6 +395,6 @@ rejects an unsigned layout bundle while the system still lists, compiles and sel
 - The test layouts of `tools/macos-check/cases/` (this repository) and the measurements recorded in its README: XML
   1.1 with C0 controls as references compiles on macOS 15 and 26; a plain output key in a dead-key state gives the
   terminator followed by the key's output (case `dead-terminator`).
-- The fixtures of `testdata/third_party/keylayout/` (NOTICE section 6, all MIT or Unlicense), read as data to test
+- The fixtures of `testdata/third_party/keylayout/` (NOTICE section 6, all MIT), read as data to test
   the reader: their XML shapes (XML 1.0 and 1.1, `DOCTYPE ... PUBLIC ""`, comments, attribute orders, key codes
   above 127).
