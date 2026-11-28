@@ -422,6 +422,19 @@ right-hand modifier values come from general knowledge of the public macOS SDK a
 `rightShiftKey` and `rightOptionKey` (Carbon), `kVK_RightShift` and `kVK_RightOption`, and the device bits
 `NX_DEVICERSHIFTKEYMASK` (0x04) and `NX_DEVICERALTKEYMASK` (0x40) of IOKit's event flags.
 
+### Empty dead-key outputs and the measured macOS rules (2026-11-28)
+
+The change from `next="none"` to `output=""` in `target/macos/build`, rule `maxout` per output, the emulator's
+handling of a key code without a key, and the cases `gen-spacing`, `twin-empty-output` and the `extra.tsv` lines of
+`gen-pending` and `gen-maxout` are our own code and text, written from the results of this repository's own runs
+46117765009, 46119172899 and 46126097229. Read for them: TN2056 (as above), its `<when>` and `<terminators>`
+sections (a `when` needs `output` or `next`; `next` defaults to the base state); and, for the fact that layouts in use
+write an empty `output=""`, Kiimo's generated `Manoonchai.keylayout` (MIT, as above),
+`Deutsch (Programmieren).keylayout` of https://github.com/bitboxer/de-coding.keylayout (MIT) and
+`old/AndreiRomanian.keylayout` of https://github.com/ysoftwareab/xkb-for-macos (Unlicense), read only, nothing
+copied. `twin-empty-output` (and the two twins of run 46126097229 that were removed) was written from a yakbd build of
+a layout of our own and edited by hand in one `<when>`.
+
 ## Linux / XKB
 
 ### The Linux layout check (2026-11-28)

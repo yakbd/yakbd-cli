@@ -137,3 +137,47 @@ func TestEmptyOutputAndMaxout(t *testing.T) {
 		t.Errorf("macron x e typed %q, want \"e\"", got)
 	}
 }
+
+// TestNextNamesDefinedState: every next="X" names a state that some <when state="X"> or terminator defines; macOS
+// rejects a layout whose next names a state nothing defines (kbl spec targets/macos.md §4). Over the examples, the
+// check cases and a file whose dead keys are bound to no key but chain through an entry.
+func TestNextNamesDefinedState(t *testing.T) {
+	files, _ := filepath.Glob("../../../testdata/kbl-spec/examples/*.kbl.json")
+	cases, _ := filepath.Glob("../../../tools/macos-check/cases/*/layout.kbl.json")
+	srcs := map[string][]byte{"unbound": []byte(`{"kbl": "0.2", "metadata": {"id": "en", "name": "N"},
+	 "positions": {"KeyA": {}, "KeyE": {}},
+	 "hardware": {"layers": [{"modifiers": [[]], "bindings": {"KeyA": "a", "KeyE": "e"}}]},
+	 "deadKeys": {"acute": {"spacing": "´", "entries": [{"base": "e", "result": {"deadKey": "grave"}}]},
+	   "grave": {"spacing": "` + "`" + `", "noMatch": "emitText", "entries": [{"base": "x", "result": "y"}]}}}`)}
+	for _, f := range append(files, cases...) {
+		data, _ := os.ReadFile(f)
+		srcs[f] = data
+	}
+	for name, data := range srcs {
+		l, r := kbljson.Read(data, "t.kbl.json")
+		if r.HasErrors() {
+			t.Fatalf("%s: %s", name, r.Summary())
+		}
+		res, _ := Build(l, Options{})
+		if res == nil {
+			continue
+		}
+		k := res.Keyboard
+		defined := map[string]bool{"none": true}
+		for _, a := range k.Actions {
+			for _, w := range a.Whens {
+				defined[w.State] = true
+			}
+		}
+		for _, w := range k.Terminators {
+			defined[w.State] = true
+		}
+		for _, a := range k.Actions {
+			for _, w := range a.Whens {
+				if w.Next != "" && (w.Next == "none" || !defined[w.Next]) {
+					t.Errorf("%s: action %s: next=%q names no defined state", filepath.Base(name), a.ID, w.Next)
+				}
+			}
+		}
+	}
+}

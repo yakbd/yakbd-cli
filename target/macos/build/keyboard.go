@@ -110,6 +110,33 @@ func (b *builder) keyboard() *keylayout.Keyboard {
 	}
 	k.ModifierMaps = []keylayout.ModifierMap{{ID: ModifierMapID, DefaultIndex: 0, Selects: sels}}
 	k.KeyMapSets = []keylayout.KeyMapSet{{ID: KeyMapSetID, KeyMaps: keyMaps}}
+	// only dead keys a key reaches (bound, or chained from one that is) get states: a next naming a state that no
+	// <when> or terminator defines makes macOS reject the layout (targets/macos.md §4)
+	reach := map[string]bool{}
+	for id := range deadActions {
+		reach[id] = true
+	}
+	for grew := true; grew; {
+		grew = false
+		for _, d := range dead {
+			if !reach[d.id] {
+				continue
+			}
+			for _, e := range d.entries {
+				if e.Result.Kind == model.ValueDeadKey && !reach[e.Result.DeadKey] {
+					reach[e.Result.DeadKey] = true
+					grew = true
+				}
+			}
+		}
+	}
+	var reached []*deadInfo
+	for _, d := range dead {
+		if reach[d.id] {
+			reached = append(reached, d)
+		}
+	}
+	dead = reached
 	// actions: dead keys by state name, then texts by id
 	chainedExpanded := false
 	var deadIDs []string
