@@ -165,8 +165,14 @@ guard let layout = declared.first else {
 emit("INFO", "declared", "layout \(layout.name), source id \(layout.id)")
 emit("INFO", "current-before", currentID())
 
+// The source as the system lists it now. A filtered TISCreateInputSourceList missed a registered layout on the
+// runners (run 1), so this scans the whole list; a fresh object also carries the current enabled state.
+func find() -> TISInputSource? {
+    sources(id: nil).first { stringProp($0, kTISPropertyInputSourceID) == layout.id }
+}
+
 // Sign-out question: is the source known after the copy alone, before any registration?
-if waitFor(5, { sources(id: layout.id).first }) != nil {
+if waitFor(5, find) != nil {
     emit("PASS", "visible-after-copy", "known without TISRegisterInputSource")
 } else {
     emit("INFO", "visible-after-copy", "not known after 5 s without registration")
@@ -175,11 +181,11 @@ if waitFor(5, { sources(id: layout.id).first }) != nil {
 let reg = TISRegisterInputSource(URL(fileURLWithPath: bundlePath) as CFURL)
 emit(reg == noErr ? "PASS" : "FAIL", "register", "TISRegisterInputSource = \(reg)")
 
-var source = waitFor(10, { sources(id: layout.id).first })
-if source != nil {
-    emit("PASS", "visible", "source \(layout.id) listed")
+var source = waitFor(10, find)
+if let s = source {
+    emit("PASS", "visible", "source \(layout.id) listed; filtered list finds it: \(!sources(id: layout.id).isEmpty)")
+    emit("INFO", "properties", "type \(stringProp(s, kTISPropertyInputSourceType) ?? "?"), category \(stringProp(s, kTISPropertyInputSourceCategory) ?? "?"), enable-capable \(boolProp(s, kTISPropertyInputSourceIsEnableCapable)), select-capable \(boolProp(s, kTISPropertyInputSourceIsSelectCapable)), enabled \(boolProp(s, kTISPropertyInputSourceIsEnabled))")
 } else {
-    // Perhaps the system gave the layout another id: look for it by name.
     let byName = sources(id: nil).filter { stringProp($0, kTISPropertyLocalizedName) == layout.name }
     if let s = byName.first {
         emit("FAIL", "visible", "not listed as \(layout.id), but a source named \(layout.name) is: \(stringProp(s, kTISPropertyInputSourceID) ?? "?")")
@@ -189,13 +195,55 @@ if source != nil {
     }
 }
 
+// Enables the source and waits until a freshly listed object says it is enabled.
+func enableAndWait(_ seconds: Double) -> (OSStatus, Bool) {
+    var st: OSStatus = noErr
+    let until = Date(timeIntervalSinceNow: seconds)
+    repeat {
+        guard let s = find() else { spin(0.5); continue }
+        if boolProp(s, kTISPropertyInputSourceIsEnabled) { return (st, true) }
+        st = TISEnableInputSource(s)
+        spin(0.5)
+    } while Date() < until
+    return (st, find().map { boolProp($0, kTISPropertyInputSourceIsEnabled) } ?? false)
+}
+
+// The keyboard's numeric id from the .keylayout, for the preferences fallback.
+func keyboardNumber() -> String? {
+    let file = URL(fileURLWithPath: bundlePath).appendingPathComponent("Contents/Resources/\(layout.name).keylayout")
+    guard let xml = try? String(contentsOf: file, encoding: .utf8),
+          let r = xml.range(of: "<keyboard[^>]*\\sid=\"(-?[0-9]+)\"", options: .regularExpression) else { return nil }
+    let tag = String(xml[r])
+    guard let q = tag.range(of: "id=\"-?[0-9]+\"", options: .regularExpression) else { return nil }
+    return String(tag[q]).replacingOccurrences(of: "id=", with: "").replacingOccurrences(of: "\"", with: "")
+}
+
 var uchr: Data?
-if let s = source {
-    let st = TISEnableInputSource(s)
-    emit(st == noErr ? "PASS" : "FAIL", "enable", "TISEnableInputSource = \(st), enabled = \(boolProp(s, kTISPropertyInputSourceIsEnabled))")
-    let sel = TISSelectInputSource(s)
+if source != nil {
+    var (st, enabled) = enableAndWait(10)
+    emit(enabled ? "PASS" : "FAIL", "enable", "TISEnableInputSource = \(st), enabled = \(enabled)")
+    if !enabled, let num = keyboardNumber() {
+        // Fallback: add the layout to the enabled input sources in the HIToolbox preferences, as the Text Input
+        // settings pane does, and wait for the system to notice.
+        let p = Process()
+        p.executableURL = URL(fileURLWithPath: "/usr/bin/defaults")
+        p.arguments = ["write", "com.apple.HIToolbox", "AppleEnabledInputSources", "-array-add",
+                       "<dict><key>InputSourceKind</key><string>Keyboard Layout</string><key>KeyboardLayout ID</key><integer>\(num)</integer><key>KeyboardLayout Name</key><string>\(layout.name)</string></dict>"]
+        try? p.run(); p.waitUntilExit()
+        (st, enabled) = enableAndWait(10)
+        emit(enabled ? "PASS" : "FAIL", "enable-via-preferences", "defaults exit \(p.terminationStatus), enabled = \(enabled)")
+    }
+    var sel: OSStatus = -1
+    let selUntil = Date(timeIntervalSinceNow: 10)
+    repeat {
+        if let s = find() { sel = TISSelectInputSource(s) }
+        if sel == noErr { break }
+        spin(0.5)
+    } while Date() < selUntil
     emit(sel == noErr ? "PASS" : "FAIL", "select", "TISSelectInputSource = \(sel)")
-    let want = stringProp(s, kTISPropertyInputSourceID) ?? layout.id
+    source = find() ?? source
+    let s = source!
+    let want = layout.id
     var cur = currentID()
     let until = Date(timeIntervalSinceNow: 5)
     while cur != want && Date() < until { spin(0.25); cur = currentID() }

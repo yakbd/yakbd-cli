@@ -371,5 +371,6 @@ sources read 2026-11-28, facts only:
   `TISSelectInputSource`, `TISCreateInputSourceList`, `TISCopyCurrentKeyboardInputSource`,
   `kTISPropertyUnicodeKeyLayoutData`, `UCKeyTranslate`, `LMGetKbdType`, Carbon modifier bits), `CGEvent` keyboard
   events, `AXIsProcessTrusted`, `CGPreflightPostEventAccess`, AppKit, the System Events `key code` command, `xattr`,
-  `spctl` and `com.apple.quarantine`: from general knowledge of the public macOS SDK, as Swift imports it. No header
+  `spctl`, `com.apple.quarantine` and the `AppleEnabledInputSources` entry of the `com.apple.HIToolbox` preferences
+  (`InputSourceKind`, `KeyboardLayout ID`, `KeyboardLayout Name`): from general knowledge of the public macOS SDK, as Swift imports it. No header
   file or page was read for them, and the runner's compiler checks every call.
