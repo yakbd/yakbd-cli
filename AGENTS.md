@@ -1,6 +1,6 @@
 # yakbd tool repository: agent rules
 
-`yakbd` (Go) converts keyboard layouts between `.kbl.json`, `.klc`, CLDR Keyboard 3.0 XML and macOS `.keylayout`, validates them, and
+`yakbd` (Go) converts keyboard layouts between `.kbl.json`, `.klc`, CLDR Keyboard 3.0 XML, macOS `.keylayout` and Linux XKB symbols files (`convert -from xkb`), validates them, and
 compiles them into Windows layout DLLs and installers and macOS layout bundles. Windows and macOS are the first targets: the official
 formats of other operating systems come next, then third-party formats such as Keyman. The `.kbl.json` format lives
 in the sibling repository `yakbd/kbl-spec` (organisation https://github.com/yakbd). Design and package map:
@@ -17,6 +17,7 @@ only, no other setup.
     go build -o /dev/null ./cmd/yakbd           # build check (./yakbd and /dist/ are ignored build output)
     go run ./cmd/yakbd validate testdata/kbl-spec/examples/minimal-qwerty.kbl.json
     go test -run='^$' -fuzz='^FuzzParse$' -fuzztime=10m -fuzzminimizetime=10s -parallel 4 -timeout 0 ./format/klc   # one fuzz target, locally only (docs/fuzzing.md)
+    go run ./tools/genkeysyms -h <keysymdef.h of xorgproto> -version xorgproto-2026.1   # regenerate format/xkb/keysyms_table.go
 
 CI (`.github/workflows/ci.yml`: gofmt, vet, test with the fuzz seeds but never the fuzzer, a cross-build for six
 OS/arch pairs plus `cmd/yakbd-wincheck` for windows/amd64 and 386) runs only on push to `main` and `workflow_dispatch`, and only when

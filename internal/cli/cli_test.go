@@ -17,6 +17,7 @@ const (
 	kbdtst  = "../../testdata/reference-spec/vm/kbdtst.klc"
 	example = "../../testdata/kbl-spec/examples/latin-altgr-deadkeys.kbl.json"
 	cldrPT  = "../../testdata/third_party/cldr-release-49/keyboards/3.0/pt-t-k0-abnt2.xml"
+	xkbFO   = "../../testdata/third_party/xkeyboard-config-2.49/symbols/fo"
 )
 
 func run(args ...string) (int, string, string) {
@@ -58,6 +59,11 @@ func TestCommands(t *testing.T) {
 		{"convert klc to kbl", []string{"convert", kbdtst, filepath.Join(dir, "k.kbl.json")}, ExitOK, "", "klc.impliedRows"},
 		{"convert kbl to klc", []string{"convert", filepath.Join(dir, "k.kbl.json"), filepath.Join(dir, "k.klc")}, ExitOK, "", ""},
 		{"convert cldr to kbl", []string{"convert", cldrPT, filepath.Join(dir, "pt.kbl.json")}, ExitOK, "", "general.importInlined"},
+		{"convert xkb to kbl", []string{"convert", "-from", "xkb", "-variant", "nodeadkeys", xkbFO, filepath.Join(dir, "fo.kbl.json")}, ExitOK, "", "xkb.keysymNotText"},
+		{"convert xkb with compose", []string{"convert", "-from", "xkb", "-compose", "../../testdata/xkb/test.XCompose", xkbFO, filepath.Join(dir, "fo2.kbl.json")}, ExitOK, "", "xkb.composeSequenceDropped"},
+		{"convert xkb unknown variant", []string{"convert", "-from", "xkb", "-variant", "nope", xkbFO, filepath.Join(dir, "fo3.kbl.json")}, ExitError, "", "io.variant"},
+		{"convert unknown -from", []string{"convert", "-from", "amiga", xkbFO, filepath.Join(dir, "fo4.kbl.json")}, ExitUsage, "", "unknown format \"amiga\""},
+		{"convert xkb without -from", []string{"convert", xkbFO, filepath.Join(dir, "fo5.kbl.json")}, ExitError, "", "io.format"},
 		{"convert kbl to cldr", []string{"convert", filepath.Join(dir, "pt.kbl.json"), filepath.Join(dir, "pt.xml")}, ExitOK, "", ""},
 		{"convert unknown", []string{"convert", kbdtst, filepath.Join(dir, "x.txt")}, ExitUsage, "", "unknown output format"},
 		{"pin", []string{"pin", example, filepath.Join(dir, "pinned.kbl.json")}, ExitOK, "pinned", ""},

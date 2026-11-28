@@ -49,7 +49,7 @@ corpus and the CLDR keyboards (each converted to `.kbl.json` first).
 | `tool.name`, `tool.version` | `yakbd` and the version `yakbd version` prints |
 | `command` | the command: `compile`, `installer`, `convert`, `validate` or `pin` |
 | `input.file` | the input file as given on the command line |
-| `input.format` | `kbl.json`, `klc`, `cldr` (CLDR keyboard XML), `dll` or `keylayout` (macOS, since 2026-11-28), by the file's extension; empty for an unknown one |
+| `input.format` | `kbl.json`, `klc`, `cldr` (CLDR keyboard XML), `dll`, `keylayout` (macOS, since 2026-11-28) or `xkb` (an XKB symbols file, named by `convert -from xkb`, since 2026-11-28), by the file's extension or convert's `-from`; empty for an unknown one |
 | `entries` | every entry, in the order the steps made them; an empty list when there is nothing to say |
 | `class` | `diagnostic` (a remark on the input), `loss` (data a conversion or build dropped or changed) or `defaulted` (a value a default rule chose, §4) |
 | `severity` | `info`, `accept` (a loss a policy accepts), `warning` or `error`; any `error` means exit code 1 |

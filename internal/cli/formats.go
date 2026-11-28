@@ -23,7 +23,7 @@ import (
 type fileFormat struct {
 	name   string // internal name: what formatOf returns
 	report string // input.format of the -report file (docs/report-file.md §2)
-	ext    string // the file name suffix, lower case
+	ext    string // the file name suffix, lower case; "" for a format named only by convert's -from and -to
 	// read reads a file of the format into the model, with the checks of SPEC §19 (Layout.Check) for every format
 	// other than .kbl.json, whose reader runs them itself. nil: the format is not read.
 	read func(data []byte, name string) (*model.Layout, *loss.Report)
@@ -44,13 +44,15 @@ var formats = []fileFormat{
 	{name: "cldr", report: "cldr", ext: ".xml", read: readCLDR, write: writeCLDR},
 	{name: "dll", report: "dll", ext: ".dll", read: readDLL},
 	{name: "keylayout", report: "keylayout", ext: ".keylayout", read: readKeylayout, write: writeKeylayout},
+	// XKB symbols files have no suffix: convert names the format with -from / -to (internal/cli/xkb.go)
+	{name: "xkb", report: "xkb", read: readXKB},
 }
 
 // formatByPath returns the format of a file by its name's suffix.
 func formatByPath(path string) *fileFormat {
 	p := strings.ToLower(path)
 	for i := range formats {
-		if strings.HasSuffix(p, formats[i].ext) {
+		if formats[i].ext != "" && strings.HasSuffix(p, formats[i].ext) {
 			return &formats[i]
 		}
 	}
@@ -69,7 +71,7 @@ func formatOf(path string) string {
 func extList(write bool) string {
 	var s []string
 	for _, f := range formats {
-		if (write && f.write != nil) || (!write && f.read != nil) {
+		if f.ext != "" && ((write && f.write != nil) || (!write && f.read != nil)) {
 			s = append(s, f.ext)
 		}
 	}

@@ -170,6 +170,9 @@ func readLayout(path, testsPath string) (*model.Layout, *loss.Report) {
 		return nil, r
 	}
 	f := formatByPath(path)
+	if forcedFormat.path == path && forcedFormat.name != "" {
+		f = formatByName(forcedFormat.name)
+	}
 	if f == nil || f.read == nil {
 		r.Errorf("io.format", loss.Where{File: path}, "unknown format (want %s)", extList(false))
 		return nil, r
@@ -201,6 +204,11 @@ func convert(args []string, stdout, stderr io.Writer) int {
 	outFlag := fs.String("o", "", "the output file (instead of the second argument)")
 	langID := fs.String("langid", "", "LANGID (4 hex digits) to pin as targets.windows.registration.langId when the input has none (a DLL never has one)")
 	keepType := fs.Bool("keep-keyboard-type", false, "keep dwType and dwSubType of an imported DLL (not kept by default: coverage/windows.md §11 item 11)")
+	from := fs.String("from", "", "the input's format by name, for a file without a suffix: "+formatNames())
+	to := fs.String("to", "", "the output's format by name, for a file without a suffix")
+	variant := fs.String("variant", "", "xkb: the xkb_symbols section to read (default: the file's default section)")
+	compose := fs.String("compose", "", "xkb: the Compose file of the layout's dead keys (read with an XKB input)")
+	include := fs.String("include", "", "xkb: folders of the symbols files an include names, separated by ':' (default: the input's folder)")
 	pos, err := parseInterleaved(fs, args)
 	if err != nil {
 		return ExitUsage
@@ -216,6 +224,18 @@ func convert(args []string, stdout, stderr io.Writer) int {
 	}
 	in, outPath := pos[0], pos[1]
 	rf.input = in
+	for _, n := range []string{*from, *to} {
+		if n != "" && formatByName(n) == nil {
+			fmt.Fprintf(stderr, "yakbd convert: unknown format %q (known: %s)\n", n, formatNames())
+			return ExitUsage
+		}
+	}
+	forcedFormat.path, forcedFormat.name = in, *from
+	xkbIO = xkbOptions{variant: *variant, compose: *compose, dir: filepath.Dir(in)}
+	if *include != "" {
+		xkbIO.includes = filepath.SplitList(*include)
+	}
+	defer func() { forcedFormat.path, forcedFormat.name, xkbIO = "", "", xkbOptions{} }()
 	l, r := readLayout(in, *tests)
 	if l == nil || r.HasErrors() {
 		rf.finish(r, stderr)
@@ -226,6 +246,9 @@ func convert(args []string, stdout, stderr io.Writer) int {
 		r.Infof("cli.langid", loss.Where{}, "LANGID %s from -langid", *langID)
 	}
 	f := formatByPath(outPath)
+	if *to != "" {
+		f = formatByName(*to)
+	}
 	if f == nil || f.write == nil {
 		fmt.Fprintf(stderr, "yakbd convert: unknown output format of %s (want %s)\n", outPath, extList(true))
 		return ExitUsage

@@ -64,6 +64,9 @@ func ToolVersion() string {
 
 // inputFormat names a format for the report.
 func inputFormat(path string) string {
+	if forcedFormat.path == path && forcedFormat.name != "" {
+		return formatByName(forcedFormat.name).report
+	}
 	if f := formatOf(path); f != "kbl" {
 		return f
 	}

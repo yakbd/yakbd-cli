@@ -441,3 +441,26 @@ built). Public sources read 2026-11-28, facts only, no code or prose taken:
 - xkeyboard-config's `types/caps` and `types/extra` as installed in the images (the `FOUR_LEVEL_SEMIALPHABETIC`
   type keeps Lock on level 3).
 - Runtime messages of the programs themselves (KWin: the nested X11 backend needs DRI3 1.2; xkbcomp's warnings).
+
+### The XKB reader and writer and the XKB conversion (2026-11-28)
+
+`format/xkb`, `tools/genkeysyms`, `convert/xkbkbl` and `target/xkb/keyname` are our own code, written from these
+public sources (read 2026-11-28, facts only, no code or prose copied):
+- xorgproto `include/X11/keysymdef.h`, release xorgproto-2026.1 (https://gitlab.freedesktop.org/xorg/proto/xorgproto,
+  The Open Group and Digital notices, NOTICE section 7): its header comment (what `U+`, `<U+>` and `(U+)` comments,
+  "deprecated", "alias for" and "non-deprecated alias" mean; first name canonical; Unicode keysyms 0x01000000 + code
+  point) and its `#define` lines, which `tools/genkeysyms` turns into a data table.
+- libxkbcommon at commit 15b2b4e (https://github.com/xkbcommon/libxkbcommon, MIT), read for behaviour:
+  `src/xkbcomp/symbols.c` (the automatic key type rule by level count, letter case and keypad keysyms; how two
+  definitions of a key merge level by level under override and augment), `src/xkbcomp/parser.c` (keysym literals:
+  the digits 0 to 9 are the keysyms 0 to 9, other numbers are raw values, `any`/`NoSymbol` and `none`/`VoidSymbol`,
+  a string literal is a keysym per character).
+- xkeyboard-config 2.49 (https://gitlab.freedesktop.org/xkeyboard-config/xkeyboard-config, MIT/X11-style notices):
+  `types/basic`, `types/extra`, `types/level5`, `types/numpad` (each stock type's modifiers, level map and preserve
+  entries, which `format/xkb/types.go` holds as data), `keycodes/evdev` and `keycodes/aliases` (the key-name
+  aliases layouts use), and the symbols files of `testdata/third_party/xkeyboard-config-2.49/` (NOTICE section 7)
+  as reader and importer test data. Every symbols file of the release was read and written again once, locally, to
+  check the reader; only the subset is committed.
+- The system Compose file of libX11 (`/usr/share/X11/locale/en_US.UTF-8/Compose`, as installed on the build host)
+  was read once, locally, to check the Compose reader on a large file; it is not committed. The Compose test file
+  `testdata/xkb/test.XCompose` was written for this repository.

@@ -1,0 +1,31 @@
+# A Compose file for the tests of format/xkb and convert/xkbkbl (written for this repository, MIT-0).
+include "%L"
+
+<dead_acute> <space> : "´" acute
+<dead_acute> <a> : "á" aacute
+<dead_acute> <A> : "Á" Aacute
+<dead_acute> <e> : "é" eacute
+<dead_acute> <y> : "ý"
+<dead_acute> <dead_acute> : "´"
+<dead_acute> <dead_diaeresis> <u> : "ǘ"
+<dead_grave> <space> : "`" grave
+<dead_grave> <a> : "à" agrave
+<dead_grave> <e> : "è"
+<dead_diaeresis> <space> : "¨"
+<dead_diaeresis> <a> : "ä"
+<dead_diaeresis> <o> : "ö"
+<dead_diaeresis> <u> : "ü"
+<dead_circumflex> <space> : "^"
+<dead_circumflex> <o> : "ô"
+<dead_tilde> <n> : "ñ"
+<dead_tilde> <space> : "~"
+<dead_caron> <c> : "č"
+<dead_caron> <s> : "š"
+<dead_doubleacute> <o> : "ő"
+<dead_cedilla> <c> : "ç"
+<dead_ogonek> <a> : "ą"
+<dead_abovering> <a> : "å"
+<dead_macron> <a> : "ā"
+<dead_acute> <x> : "x́"
+<Multi_key> <a> <e> : "æ" ae
+<Multi_key> <o> <slash> : "ø"
