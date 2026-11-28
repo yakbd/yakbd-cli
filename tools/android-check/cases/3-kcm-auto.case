@@ -1,0 +1,9 @@
+# Questions 2a and 3: nothing selects a layout; the system picks check_auto because its language (eo) is the
+# language of the current keyboard subtype. A uinput keyboard types Q (remapped), AltGr+W, dead acute E + A.
+kind=uinput
+device=yakbd-check-auto
+vid=0x1209
+pid=0xa001
+select=auto
+keys=Q RALT+W E A
+expect=ðøá

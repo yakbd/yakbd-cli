@@ -31,3 +31,5 @@ executes; nothing here runs on Windows.
 - A bundle holds only our own files. MSKLC is never part of one, and nothing MSKLC produces leaves the guest except
   the text the guest driver writes.
 - When the runner reports back, record the run (date, guest, commit, pass counts) in the contract document.
+
+`tools/android-check` is not Go: a code-free layout APK, a small Kotlin check app (Gradle) and shell drivers for the Android emulator on GitHub's Linux runners (workflow `android-check.yml`, `workflow_dispatch` only; contract `tools/android-check/README.md`). Run it once per relevant change, not in loops.

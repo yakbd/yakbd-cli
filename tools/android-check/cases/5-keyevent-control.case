@@ -1,0 +1,4 @@
+# Question 3, control: input keyevent goes through the virtual keyboard's map, never through a chosen layout.
+kind=keyevent
+keys=KEYCODE_Q KEYCODE_E KEYCODE_A
+expect=qea

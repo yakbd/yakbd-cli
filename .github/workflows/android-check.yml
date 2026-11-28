@@ -1,0 +1,83 @@
+# Android check: builds a code-free keyboard-layout APK (aapt2) and a small check app (Gradle), then boots the
+# Android emulator on GitHub's Linux runners (KVM) per API level and runs tools/android-check/cases
+# (tools/android-check/README.md). Manual only; it costs nothing until someone runs it.
+name: android-check
+on:
+  workflow_dispatch:
+    inputs:
+      cases:
+        description: "only these cases (names separated by spaces; empty: all)"
+        type: string
+        default: ""
+      apis:
+        description: "API levels as a JSON list"
+        type: string
+        default: "[34, 35, 36]"
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      - name: build
+        run: tools/android-check/build.sh "$RUNNER_TEMP/apks"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-check-apks
+          path: |
+            ${{ runner.temp }}/apks/kcm.apk
+            ${{ runner.temp }}/apks/app.apk
+            ${{ runner.temp }}/apks/build.txt
+          if-no-files-found: ignore
+  check:
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        api: ${{ fromJSON(inputs.apis) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: start
+        run: echo "ANDROID_CHECK_T0=$(date +%s)" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-check-apks
+          path: ${{ runner.temp }}/apks
+      - name: enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: check
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          ANDROID_CHECK_CASES: ${{ inputs.cases }}
+        with:
+          api-level: ${{ matrix.api }}
+          target: google_apis
+          arch: x86_64
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: tools/android-check/run.sh "$RUNNER_TEMP/android-check" "$RUNNER_TEMP/apks"
+      - name: summary
+        if: always()
+        run: |
+          { echo "### API ${{ matrix.api }}"; echo '```'; cat "$RUNNER_TEMP/android-check/summary.txt"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-check-api${{ matrix.api }}
+          path: ${{ runner.temp }}/android-check/
+          if-no-files-found: ignore

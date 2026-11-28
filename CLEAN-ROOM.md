@@ -548,3 +548,36 @@ sources read 2026-11-28, facts only:
   `insertText`, `deleteBackward`, `documentContextBeforeInput`.
 - `simctl`, `xcodebuild`, XCTest/XCUITest and UIKit calls: from general knowledge of the public tools and SDK; the
   runner's tools and compiler check every call.
+
+## Android
+
+### The Android emulator check (2026-11-28)
+
+`tools/android-check/` (the layout APK sources, the three test `.kcm` files, the check app, `build.sh`, `run.sh`,
+the cases) and `.github/workflows/android-check.yml` are our own text and code; no layout and no code was copied.
+Public sources read 2026-11-28, facts only (Apache-2.0 unless named):
+- AOSP documentation (https://source.android.com/docs/core/interaction/input/key-layout-files,
+  `key-character-map-files`, `input-device-configuration-files`; CC BY 4.0 text): the `.kl`, `.kcm` and `.idc`
+  search paths, the `.kcm` key properties and the five combining accents that act as dead keys.
+- AOSP platform sources (https://android.googlesource.com/platform/frameworks/base): `services/core/java/com/
+  android/server/input/KeyboardLayoutManager.java` (how layouts are found through the receiver's meta-data, the
+  descriptor `package/receiver/name`, the automatic choice by vendor/product id, keyboard language and keyboard
+  subtype language, the keys under which a choice is stored), `PersistentDataStore.java` (the elements of
+  `input-manager-state.xml`), `InputManagerService.java`, `InputShellCommand.java` (that `input keyevent` uses the
+  virtual keyboard), `core/java/android/hardware/input/InputManager.java` (the hidden `setKeyboardLayoutForInputDevice`,
+  `getKeyboardLayoutForInputDevice`, `getKeyboardLayoutListForInputDevice`, `getKeyboardLayouts`),
+  `core/res/res/values/attrs.xml` (the `keyboard-layout` attributes), `core/res/AndroidManifest.xml`,
+  `packages/Shell/AndroidManifest.xml` (the shell holds `SET_KEYBOARD_LAYOUT`), `core/java/com/android/internal/pm/
+  pkg/parsing/ParsingPackageUtils.java` (`hasCode`), the `uinput` command's README (`cmds/uinput/README.md`: the
+  JSON commands `register`, `inject`, `delay`), and `services/core/java/com/android/server/inputmethod/
+  InputMethodManagerService.java` (the `ime` shell commands).
+- AOSP CTS (https://android.googlesource.com/platform/cts): `tests/input/src/android/input/cts/KeyboardLayoutTest.kt`
+  and the module's manifest (a receiver that declares layouts; shell permission identity around the hidden calls).
+- ExKeyMo (https://github.com/ris58h/exkeymo-web, Unlicense) and Kiimo (https://github.com/Manoonchai/kiimo, MIT):
+  one layout APK's manifest and one generated `.kcm` were looked at for the shape of a layout APK; nothing taken.
+- `reactivecircus/android-emulator-runner` (https://github.com/ReactiveCircus/android-emulator-runner, Apache-2.0)
+  README: its inputs, and the udev rule that gives the runner access to KVM.
+- The public Android SDK (`InputMethodService`, `Instrumentation`, `UiAutomation.adoptShellPermissionIdentity`,
+  `InputDevice`, `KeyEvent`, the input-method `subtype` attributes) and the `am`, `ime`, `input`, `settings`,
+  `run-as`, `abx2xml`/`xml2abx` shell commands: from general knowledge of the public SDK; the compiler and the
+  emulator check every call.

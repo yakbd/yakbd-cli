@@ -1,0 +1,10 @@
+# Question 4: with the check keyboard active, a uinput keyboard's keys reach its onKeyDown (with the character
+# of the layout the system chose: U+00F0 = 240) and then the text field.
+kind=imehw
+device=yakbd-check-hw
+vid=0x1209
+pid=0xa004
+select=auto
+keys=Q
+expect=ð
+expect_ime=down KEYCODE_Q scan=16 unicode=240 device=yakbd-check-hw

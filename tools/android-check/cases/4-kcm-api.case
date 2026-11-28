@@ -1,0 +1,9 @@
+# Questions 2b and 3: the layout tool selects check_api for this keyboard with the shell's permissions.
+kind=uinput
+device=yakbd-check-api
+vid=0x1209
+pid=0xa002
+select=api
+layout=check_api
+keys=Q RALT+W E A
+expect=þøá

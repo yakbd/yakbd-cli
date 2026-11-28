@@ -1,0 +1,10 @@
+# Questions 2c and 3: as root, write the selection of check_root for this keyboard into
+# /data/system/input-manager-state.xml and restart the system; then type.
+kind=uinput
+device=yakbd-check-root
+vid=0x1209
+pid=0xa003
+select=root
+layout=check_root
+keys=Q RALT+W E A
+expect=æøá

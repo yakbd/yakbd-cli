@@ -1,0 +1,21 @@
+# yakbd android-check layout check_auto: Q types eth, AltGr+W types o-slash, E is a dead acute accent.
+type OVERLAY
+
+key Q {
+    label:                              'Q'
+    base:                               'ð'
+    shift, capslock:                    'Ð'
+}
+
+key W {
+    label:                              'W'
+    base:                               'w'
+    shift, capslock:                    'W'
+    ralt:                               'ø'
+}
+
+key E {
+    label:                              'E'
+    base:                               '́'
+    shift, capslock:                    'E'
+}

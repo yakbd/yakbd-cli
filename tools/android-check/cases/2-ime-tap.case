@@ -1,0 +1,4 @@
+# Question 4: the check keyboard reports its key rectangles; taps at their centres type the keys' text.
+kind=tap
+taps=U+015D U+011D U+0061 U+0020 U+016D
+expect=ŝĝa ŭ
