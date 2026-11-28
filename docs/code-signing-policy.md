@@ -1,8 +1,8 @@
 # Releases are not code-signed
 
 No file of a YAKBD release is code-signed: not the Windows installers (`yakbd-cli-setup.exe`,
-`yakbd-gui-setup.exe`), not the programs they install, not the macOS or Linux downloads, and not the layout installers
-that `yakbd installer` writes. Like most software on GitHub, YAKBD has no free code-signing certificate available to
+`yakbd-gui-setup.exe`), not the programs they install, not the macOS or Linux downloads (the macOS binary has only the ad-hoc signature
+arm64 code needs to run), and not the layout installers that `yakbd installer` writes. Like most software on GitHub, YAKBD has no free code-signing certificate available to
 it (the free open-source signing programme it applied to found that it does not qualify), so signing is dropped until further notice.
 
 ## How to check a download
