@@ -79,6 +79,7 @@ All on GitHub's arm64 images, `macos-15` (15.8.2) and `macos-26` (26.7.2), 2026-
 | 46102900903 | aeee2c4 | the same; an enabled-sources entry written by the checker itself, mid-run, did not help |
 | 46103925085 | 39c126d | control (Apple's German) enables, selects and types at once; our layouts: `TISEnableInputSource` alone enabled one in `/Library` but none in `~/Library`; after the enabled-sources entry, a new checker process found every layout enabled, selected it, and every typing case passed, quarantined copy included, in both folders on both images; no restart of the text-input agents or sign-out needed |
 | 46104372309 | 0a17aee | entry written right after the copy, then one checker run: `check` passed everywhere, `quarantined` was selected only on macos-15 in `/Library` (enable stayed false elsewhere, with the entry present), so the entry's timing matters, not the quarantine |
+| 46104797718 | 5c091fb | register, entry, checker: all four jobs (both images, `~/Library` and `/Library`) 102 PASS, 0 FAIL, 4 SKIP (caps cases through System Events): control, every UCKeyTranslate case, every typing case by `CGEvent` and by System Events, the quarantined copy included |
 
 What this settles: an unsigned, hand-copied layout bundle (and one carrying `com.apple.quarantine`,
 set by `xattr` here, not by a real download) is listed, compiled and usable at once in the same session;
