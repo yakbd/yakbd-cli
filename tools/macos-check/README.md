@@ -109,6 +109,7 @@ All on GitHub's arm64 images, `macos-15` (15.8.2) and `macos-26` (26.7.2), 2026-
 | 46104372309 | 0a17aee | entry written right after the copy, then one checker run: `check` passed everywhere, `quarantined` was selected only on macos-15 in `/Library` (enable stayed false elsewhere, with the entry present), so the entry's timing matters, not the quarantine |
 | 46104797718 | 5c091fb | register, entry, checker: all four jobs (both images, `~/Library` and `/Library`) 102 PASS, 0 FAIL, 4 SKIP (caps cases through System Events): control, every UCKeyTranslate case, every typing case by `CGEvent` and by System Events, the quarantined copy included |
 | 46105185134 | 38e2165 | the same with layouts that type differently (`þ` against `` ` ``) and selection checked before and after typing: all four jobs 114 PASS, 0 FAIL, 4 SKIP |
+| 46108712955 | 0ea9ff3 | first run with the cases yakbd generates from a `.kbl.json` (gen-corpus, gen-demo, gen-remap: bundle by `compile -target macos`, expectations from the model): all four jobs 661 PASS, 0 FAIL, 27 SKIP (Caps Lock cases through System Events); a smoke run, the round's verifier runs it again |
 
 What this settles: an unsigned, hand-copied layout bundle (and one carrying `com.apple.quarantine`,
 set by `xattr` here, not by a real download) is listed, compiled and usable at once in the same session;
