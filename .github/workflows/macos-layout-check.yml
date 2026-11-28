@@ -17,6 +17,9 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.8' # builds yakbd for the cases generated from a .kbl.json (README.md)
       - name: check
         env:
           MACOS_CHECK_PLACE: ${{ matrix.place }}
@@ -32,6 +35,8 @@ jobs:
           path: |
             ${{ runner.temp }}/macos-check/summary.txt
             ${{ runner.temp }}/macos-check/build.txt
+            ${{ runner.temp }}/macos-check/build-yakbd.txt
+            ${{ runner.temp }}/macos-check/cases/
             ${{ runner.temp }}/macos-check/stderr.txt
             ${{ runner.temp }}/macos-check/log.txt
             ${{ runner.temp }}/macos-check/hitoolbox.txt

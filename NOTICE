@@ -118,3 +118,6 @@ used only as test fixtures. Each folder has the licence text of its source:
 - adobe-keyboard-layouts/: tests/dummy.keylayout and tests/sgcap.keylayout of
   https://github.com/adobe-type-tools/keyboard-layouts at commit 0c2a8cbcef9dc82588a6021a1a8e34353232d7d8; MIT
   License, Copyright (c) 2013-2021 Adobe Systems Incorporated.
+
+tools/macos-check/cases/gen-corpus/layout.kbl.json is us_ee.keylayout above, converted to .kbl.json by yakbd, with its
+names, group and id changed for the check; MIT License, Copyright (C) 2013 Madis Pink (LICENSE beside it).

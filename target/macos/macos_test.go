@@ -3,8 +3,10 @@ package macos
 import (
 	"archive/zip"
 	"bytes"
+	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -111,5 +113,54 @@ func TestExpectations(t *testing.T) {
 	tsv := string(FormatExpectations(es))
 	if !strings.Contains(tsv, "dead-acute-twice\t14+option 14+option\t´´\n") {
 		t.Errorf("expect.tsv:\n%s", tsv)
+	}
+}
+
+// TestCheckCases: the cases of tools/macos-check that yakbd generates build, have the shape run.sh needs (one name
+// for bundle, .keylayout and KLInfo_; a keyboard id of their own) and give expectations with key codes below 128.
+func TestCheckCases(t *testing.T) {
+	files, _ := filepath.Glob("../../tools/macos-check/cases/*/layout.kbl.json")
+	if len(files) < 3 {
+		t.Fatalf("generated cases: %v", files)
+	}
+	ids := map[int]string{}
+	names := map[string]string{}
+	for _, f := range files {
+		data, _ := os.ReadFile(f)
+		l, r := kbljson.Read(data, f)
+		if r.HasErrors() {
+			t.Fatalf("%s: %s", f, r.Summary())
+		}
+		res, br := build.Build(l, build.Options{})
+		if res == nil {
+			t.Fatalf("%s: %s", f, br.Summary())
+		}
+		p := res.Pins
+		if p.BundleName != p.LayoutName || strings.ContainsAny(p.LayoutName, " /:") {
+			t.Errorf("%s: bundle %q and layout %q must be one plain name", f, p.BundleName, p.LayoutName)
+		}
+		if o, dup := ids[*p.ID]; dup {
+			t.Errorf("%s: keyboard id %d also in %s", f, *p.ID, o)
+		}
+		ids[*p.ID] = f
+		if o, dup := names[p.InputSourceID]; dup {
+			t.Errorf("%s: input source %s also in %s", f, p.InputSourceID, o)
+		}
+		names[p.InputSourceID] = f
+		es := Expectations(l, res, 60)
+		if len(es) < 20 {
+			t.Errorf("%s: only %d expectations", f, len(es))
+		}
+		for _, e := range es {
+			for _, s := range e.Strokes {
+				if s.Code >= 128 {
+					t.Errorf("%s: %s uses key code %d", f, e.Name, s.Code)
+				}
+			}
+		}
+		kl := string(keylayout.Write(res.Keyboard))
+		if !strings.Contains(kl, fmt.Sprintf(`<keyboard group="%d" id="%d" name=`, *p.Group, *p.ID)) {
+			t.Errorf("%s: the <keyboard> line run.sh reads the id from", f)
+		}
 	}
 }

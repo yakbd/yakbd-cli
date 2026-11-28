@@ -1,0 +1,1008 @@
+{
+  "kbl": "0.2",
+  "metadata": {
+    "id": "und-x-u-s-with-estonian-keys",
+    "name": "U.S. with Estonian keys",
+    "provenance": {
+      "source": "us_ee.keylayout",
+      "format": "keylayout"
+    }
+  },
+  "settings": {
+    "normalization": "disabled",
+    "capsLockFallback": false
+  },
+  "positions": {
+    "AudioVolumeUp": {},
+    "Backquote": {},
+    "Backslash": {},
+    "BracketLeft": {},
+    "BracketRight": {},
+    "Comma": {},
+    "Digit0": {},
+    "Digit1": {},
+    "Digit2": {},
+    "Digit3": {},
+    "Digit4": {},
+    "Digit5": {},
+    "Digit6": {},
+    "Digit7": {},
+    "Digit8": {},
+    "Digit9": {},
+    "Equal": {},
+    "F17": {},
+    "F18": {},
+    "F19": {},
+    "IntlBackslash": {},
+    "KeyA": {},
+    "KeyB": {},
+    "KeyC": {},
+    "KeyD": {},
+    "KeyE": {},
+    "KeyF": {},
+    "KeyG": {},
+    "KeyH": {},
+    "KeyI": {},
+    "KeyJ": {},
+    "KeyK": {},
+    "KeyL": {},
+    "KeyM": {},
+    "KeyN": {},
+    "KeyO": {},
+    "KeyP": {},
+    "KeyQ": {},
+    "KeyR": {},
+    "KeyS": {},
+    "KeyT": {},
+    "KeyU": {},
+    "KeyV": {},
+    "KeyW": {},
+    "KeyX": {},
+    "KeyY": {},
+    "KeyZ": {},
+    "MacKey108": {},
+    "MacKey112": {},
+    "MacKey52": {},
+    "MacKey66": {},
+    "MacKey70": {},
+    "MacKey77": {},
+    "MetaLeft": {},
+    "MetaRight": {},
+    "Minus": {},
+    "Period": {},
+    "Quote": {},
+    "Semicolon": {},
+    "Slash": {},
+    "Space": {}
+  },
+  "customModifiers": {
+    "cmd": {
+      "kind": "held",
+      "positions": [
+        "MetaLeft",
+        "MetaRight"
+      ]
+    }
+  },
+  "hardware": {
+    "layers": [
+      {
+        "modifiers": [
+          [],
+          [
+            "cmd"
+          ],
+          [
+            "shift",
+            "cmd"
+          ],
+          [
+            "caps",
+            "cmd"
+          ],
+          [
+            "shift",
+            "caps",
+            "cmd"
+          ]
+        ],
+        "bindings": {
+          "AudioVolumeUp": "\u001f",
+          "Backquote": "§",
+          "Backslash": "\\",
+          "BracketLeft": "[",
+          "BracketRight": "]",
+          "Comma": ",",
+          "Digit0": "0",
+          "Digit1": "1",
+          "Digit2": "2",
+          "Digit3": "3",
+          "Digit4": "4",
+          "Digit5": "5",
+          "Digit6": "6",
+          "Digit7": "7",
+          "Digit8": "8",
+          "Digit9": "9",
+          "Equal": "=",
+          "F17": "\u0010",
+          "F18": "\u0010",
+          "F19": "\u0010",
+          "IntlBackslash": "`",
+          "KeyA": "a",
+          "KeyB": "b",
+          "KeyC": "c",
+          "KeyD": "d",
+          "KeyE": "e",
+          "KeyF": "f",
+          "KeyG": "g",
+          "KeyH": "h",
+          "KeyI": "i",
+          "KeyJ": "j",
+          "KeyK": "k",
+          "KeyL": "l",
+          "KeyM": "m",
+          "KeyN": "n",
+          "KeyO": "o",
+          "KeyP": "p",
+          "KeyQ": "q",
+          "KeyR": "r",
+          "KeyS": "s",
+          "KeyT": "t",
+          "KeyU": "u",
+          "KeyV": "v",
+          "KeyW": "w",
+          "KeyX": "x",
+          "KeyY": "y",
+          "KeyZ": "z",
+          "MacKey108": "\u0010",
+          "MacKey112": "\u0010",
+          "MacKey52": "\u0003",
+          "MacKey66": "\u001d",
+          "MacKey70": "\u001c",
+          "MacKey77": "\u001e",
+          "Minus": "-",
+          "Period": ".",
+          "Quote": "'",
+          "Semicolon": ";",
+          "Slash": "/",
+          "Space": " "
+        }
+      },
+      {
+        "modifiers": [
+          [
+            "shift"
+          ],
+          [
+            "shift",
+            "caps"
+          ]
+        ],
+        "bindings": {
+          "AudioVolumeUp": "=",
+          "Backquote": "±",
+          "Backslash": "|",
+          "BracketLeft": "{",
+          "BracketRight": "}",
+          "Comma": "<",
+          "Digit0": ")",
+          "Digit1": "!",
+          "Digit2": "@",
+          "Digit3": "#",
+          "Digit4": "$",
+          "Digit5": "%",
+          "Digit6": "^",
+          "Digit7": "&",
+          "Digit8": "*",
+          "Digit9": "(",
+          "Equal": "+",
+          "F17": "\u0010",
+          "F18": "\u0010",
+          "F19": "\u0010",
+          "IntlBackslash": "~",
+          "KeyA": "A",
+          "KeyB": "B",
+          "KeyC": "C",
+          "KeyD": "D",
+          "KeyE": "E",
+          "KeyF": "F",
+          "KeyG": "G",
+          "KeyH": "H",
+          "KeyI": "I",
+          "KeyJ": "J",
+          "KeyK": "K",
+          "KeyL": "L",
+          "KeyM": "M",
+          "KeyN": "N",
+          "KeyO": "O",
+          "KeyP": "P",
+          "KeyQ": "Q",
+          "KeyR": "R",
+          "KeyS": "S",
+          "KeyT": "T",
+          "KeyU": "U",
+          "KeyV": "V",
+          "KeyW": "W",
+          "KeyX": "X",
+          "KeyY": "Y",
+          "KeyZ": "Z",
+          "MacKey108": "\u0010",
+          "MacKey112": "\u0010",
+          "MacKey52": "\u0003",
+          "MacKey66": "*",
+          "MacKey70": "+",
+          "MacKey77": "/",
+          "Minus": "_",
+          "Period": ">",
+          "Quote": "\"",
+          "Semicolon": ":",
+          "Slash": "?",
+          "Space": " "
+        }
+      },
+      {
+        "modifiers": [
+          [
+            "caps"
+          ]
+        ],
+        "bindings": {
+          "AudioVolumeUp": "\u001f",
+          "Backquote": "§",
+          "Backslash": "\\",
+          "BracketLeft": "[",
+          "BracketRight": "]",
+          "Comma": ",",
+          "Digit0": "0",
+          "Digit1": "1",
+          "Digit2": "2",
+          "Digit3": "3",
+          "Digit4": "4",
+          "Digit5": "5",
+          "Digit6": "6",
+          "Digit7": "7",
+          "Digit8": "8",
+          "Digit9": "9",
+          "Equal": "=",
+          "F17": "\u0010",
+          "F18": "\u0010",
+          "F19": "\u0010",
+          "IntlBackslash": "`",
+          "KeyA": "A",
+          "KeyB": "B",
+          "KeyC": "C",
+          "KeyD": "D",
+          "KeyE": "E",
+          "KeyF": "F",
+          "KeyG": "G",
+          "KeyH": "H",
+          "KeyI": "I",
+          "KeyJ": "J",
+          "KeyK": "K",
+          "KeyL": "L",
+          "KeyM": "M",
+          "KeyN": "N",
+          "KeyO": "O",
+          "KeyP": "P",
+          "KeyQ": "Q",
+          "KeyR": "R",
+          "KeyS": "S",
+          "KeyT": "T",
+          "KeyU": "U",
+          "KeyV": "V",
+          "KeyW": "W",
+          "KeyX": "X",
+          "KeyY": "Y",
+          "KeyZ": "Z",
+          "MacKey108": "\u0010",
+          "MacKey112": "\u0010",
+          "MacKey52": "\u0003",
+          "MacKey66": "\u001d",
+          "MacKey70": "\u001c",
+          "MacKey77": "\u001e",
+          "Minus": "-",
+          "Period": ".",
+          "Quote": "'",
+          "Semicolon": ";",
+          "Slash": "/",
+          "Space": " "
+        }
+      },
+      {
+        "modifiers": [
+          [
+            "alt"
+          ]
+        ],
+        "bindings": {
+          "AudioVolumeUp": "\u001f",
+          "Backquote": "§",
+          "Backslash": "«",
+          "BracketLeft": "ü",
+          "BracketRight": "õ",
+          "Comma": "≤",
+          "Digit0": "º",
+          "Digit1": "¡",
+          "Digit2": "™",
+          "Digit3": "£",
+          "Digit4": "¢",
+          "Digit5": "∞",
+          "Digit6": "§",
+          "Digit7": "¶",
+          "Digit8": "•",
+          "Digit9": "ª",
+          "Equal": "≠",
+          "F17": "\u0010",
+          "F18": "\u0010",
+          "F19": "\u0010",
+          "IntlBackslash": {
+            "deadKey": "s2"
+          },
+          "KeyA": "å",
+          "KeyB": "∫",
+          "KeyC": "ç",
+          "KeyD": "∂",
+          "KeyE": "€",
+          "KeyF": "ƒ",
+          "KeyG": "©",
+          "KeyH": "˙",
+          "KeyI": {
+            "deadKey": "s3"
+          },
+          "KeyJ": "∆",
+          "KeyK": "˚",
+          "KeyL": "¬",
+          "KeyM": "µ",
+          "KeyN": {
+            "deadKey": "s5"
+          },
+          "KeyO": "ø",
+          "KeyP": "π",
+          "KeyQ": "œ",
+          "KeyR": "®",
+          "KeyS": "š",
+          "KeyT": "†",
+          "KeyU": {
+            "deadKey": "s4"
+          },
+          "KeyV": "√",
+          "KeyW": "∑",
+          "KeyX": "≈",
+          "KeyY": "¥",
+          "KeyZ": "ž",
+          "MacKey108": "\u0010",
+          "MacKey112": "\u0010",
+          "MacKey52": "\u0003",
+          "MacKey66": "\u001d",
+          "MacKey70": "\u001c",
+          "MacKey77": "\u001e",
+          "Minus": "–",
+          "Period": "≥",
+          "Quote": "ä",
+          "Semicolon": "ö",
+          "Slash": "÷",
+          "Space": " "
+        }
+      },
+      {
+        "modifiers": [
+          [
+            "shift",
+            "alt"
+          ],
+          [
+            "shift",
+            "alt",
+            "cmd"
+          ],
+          [
+            "shift",
+            "alt",
+            "caps"
+          ],
+          [
+            "shift",
+            "alt",
+            "caps",
+            "cmd"
+          ]
+        ],
+        "bindings": {
+          "AudioVolumeUp": "=",
+          "Backquote": "±",
+          "Backslash": "»",
+          "BracketLeft": "Ü",
+          "BracketRight": "Õ",
+          "Comma": "¯",
+          "Digit0": "‚",
+          "Digit1": "⁄",
+          "Digit2": "€",
+          "Digit3": "‹",
+          "Digit4": "›",
+          "Digit5": "ﬁ",
+          "Digit6": "ﬂ",
+          "Digit7": "‡",
+          "Digit8": "°",
+          "Digit9": "·",
+          "Equal": "±",
+          "F17": "\u0010",
+          "F18": "\u0010",
+          "F19": "\u0010",
+          "IntlBackslash": "`",
+          "KeyA": "Å",
+          "KeyB": "ı",
+          "KeyC": "Ç",
+          "KeyD": "Î",
+          "KeyE": "´",
+          "KeyF": "Ï",
+          "KeyG": "˝",
+          "KeyH": "Ó",
+          "KeyI": "ˆ",
+          "KeyJ": "Ô",
+          "KeyK": "",
+          "KeyL": "Ò",
+          "KeyM": "Â",
+          "KeyN": "˜",
+          "KeyO": "Ø",
+          "KeyP": "∏",
+          "KeyQ": "Œ",
+          "KeyR": "‰",
+          "KeyS": "Š",
+          "KeyT": "ˇ",
+          "KeyU": "¨",
+          "KeyV": "◊",
+          "KeyW": "„",
+          "KeyX": "˛",
+          "KeyY": "Á",
+          "KeyZ": "Ž",
+          "MacKey108": "\u0010",
+          "MacKey112": "\u0010",
+          "MacKey52": "\u0003",
+          "MacKey66": "*",
+          "MacKey70": "+",
+          "MacKey77": "/",
+          "Minus": "—",
+          "Period": "˘",
+          "Quote": "Ä",
+          "Semicolon": "Ö",
+          "Slash": "¿",
+          "Space": " "
+        }
+      },
+      {
+        "modifiers": [
+          [
+            "alt",
+            "caps"
+          ]
+        ],
+        "bindings": {
+          "AudioVolumeUp": "\u001f",
+          "Backquote": "§",
+          "Backslash": "«",
+          "BracketLeft": "“",
+          "BracketRight": "‘",
+          "Comma": "≤",
+          "Digit0": "º",
+          "Digit1": "¡",
+          "Digit2": "™",
+          "Digit3": "£",
+          "Digit4": "¢",
+          "Digit5": "∞",
+          "Digit6": "§",
+          "Digit7": "¶",
+          "Digit8": "•",
+          "Digit9": "ª",
+          "Equal": "≠",
+          "F17": "\u0010",
+          "F18": "\u0010",
+          "F19": "\u0010",
+          "IntlBackslash": "`",
+          "KeyA": "Å",
+          "KeyB": "ı",
+          "KeyC": "Ç",
+          "KeyD": "Î",
+          "KeyE": "´",
+          "KeyF": "Ï",
+          "KeyG": "©",
+          "KeyH": "Ó",
+          "KeyI": "ˆ",
+          "KeyJ": "Ô",
+          "KeyK": "˚",
+          "KeyL": "Ò",
+          "KeyM": "Â",
+          "KeyN": "˜",
+          "KeyO": "Ø",
+          "KeyP": "∏",
+          "KeyQ": "Œ",
+          "KeyR": "®",
+          "KeyS": "Í",
+          "KeyT": "†",
+          "KeyU": "¨",
+          "KeyV": "√",
+          "KeyW": "∑",
+          "KeyX": "≈",
+          "KeyY": "Á",
+          "KeyZ": "Ω",
+          "MacKey108": "\u0010",
+          "MacKey112": "\u0010",
+          "MacKey52": "\u0003",
+          "MacKey66": "\u001d",
+          "MacKey70": "\u001c",
+          "MacKey77": "\u001e",
+          "Minus": "–",
+          "Period": "≥",
+          "Quote": "Æ",
+          "Semicolon": "…",
+          "Slash": "÷",
+          "Space": " "
+        }
+      },
+      {
+        "modifiers": [
+          [
+            "alt",
+            "cmd"
+          ],
+          [
+            "alt",
+            "caps",
+            "cmd"
+          ]
+        ],
+        "bindings": {
+          "AudioVolumeUp": "\u001f",
+          "Backquote": "§",
+          "Backslash": "«",
+          "BracketLeft": "“",
+          "BracketRight": "‘",
+          "Comma": "≤",
+          "Digit0": "º",
+          "Digit1": "¡",
+          "Digit2": "™",
+          "Digit3": "£",
+          "Digit4": "¢",
+          "Digit5": "∞",
+          "Digit6": "§",
+          "Digit7": "¶",
+          "Digit8": "•",
+          "Digit9": "ª",
+          "Equal": "≠",
+          "F17": "\u0010",
+          "F18": "\u0010",
+          "F19": "\u0010",
+          "IntlBackslash": "`",
+          "KeyA": "å",
+          "KeyB": "∫",
+          "KeyC": "ç",
+          "KeyD": "∂",
+          "KeyE": "´",
+          "KeyF": "ƒ",
+          "KeyG": "©",
+          "KeyH": "˙",
+          "KeyI": "^",
+          "KeyJ": "∆",
+          "KeyK": "˚",
+          "KeyL": "¬",
+          "KeyM": "µ",
+          "KeyN": "~",
+          "KeyO": "ø",
+          "KeyP": "π",
+          "KeyQ": "œ",
+          "KeyR": "®",
+          "KeyS": "ß",
+          "KeyT": "†",
+          "KeyU": "¨",
+          "KeyV": "√",
+          "KeyW": "∑",
+          "KeyX": "≈",
+          "KeyY": "¥",
+          "KeyZ": "Ω",
+          "MacKey108": "\u0010",
+          "MacKey112": "\u0010",
+          "MacKey52": "\u0003",
+          "MacKey66": "\u001d",
+          "MacKey70": "\u001c",
+          "MacKey77": "\u001e",
+          "Minus": "–",
+          "Period": "≥",
+          "Quote": "æ",
+          "Semicolon": "…",
+          "Slash": "÷",
+          "Space": " "
+        }
+      },
+      {
+        "modifiers": [
+          [
+            "ctrl"
+          ],
+          [
+            "shift",
+            "ctrl"
+          ],
+          [
+            "alt",
+            "ctrl"
+          ],
+          [
+            "shift",
+            "alt",
+            "ctrl"
+          ],
+          [
+            "ctrl",
+            "cmd"
+          ],
+          [
+            "shift",
+            "ctrl",
+            "cmd"
+          ],
+          [
+            "alt",
+            "ctrl",
+            "cmd"
+          ],
+          [
+            "shift",
+            "alt",
+            "ctrl",
+            "cmd"
+          ],
+          [
+            "ctrl",
+            "caps"
+          ],
+          [
+            "shift",
+            "ctrl",
+            "caps"
+          ],
+          [
+            "alt",
+            "ctrl",
+            "caps"
+          ],
+          [
+            "shift",
+            "alt",
+            "ctrl",
+            "caps"
+          ],
+          [
+            "ctrl",
+            "caps",
+            "cmd"
+          ],
+          [
+            "shift",
+            "ctrl",
+            "caps",
+            "cmd"
+          ],
+          [
+            "alt",
+            "ctrl",
+            "caps",
+            "cmd"
+          ],
+          [
+            "shift",
+            "alt",
+            "ctrl",
+            "caps",
+            "cmd"
+          ]
+        ],
+        "bindings": {
+          "AudioVolumeUp": "\u001f",
+          "Backquote": "0",
+          "Backslash": "\u001c",
+          "BracketLeft": "\u001b",
+          "BracketRight": "\u001d",
+          "Comma": ",",
+          "Digit0": "0",
+          "Digit1": "1",
+          "Digit2": "2",
+          "Digit3": "3",
+          "Digit4": "4",
+          "Digit5": "5",
+          "Digit6": "6",
+          "Digit7": "7",
+          "Digit8": "8",
+          "Digit9": "9",
+          "Equal": "=",
+          "F17": "\u0010",
+          "F18": "\u0010",
+          "F19": "\u0010",
+          "IntlBackslash": "`",
+          "KeyA": "\u0001",
+          "KeyB": "\u0002",
+          "KeyC": "\u0003",
+          "KeyD": "\u0004",
+          "KeyE": "\u0005",
+          "KeyF": "\u0006",
+          "KeyG": "\u0007",
+          "KeyH": "\b",
+          "KeyI": "\t",
+          "KeyJ": "\n",
+          "KeyK": "\u000b",
+          "KeyL": "\f",
+          "KeyM": "\r",
+          "KeyN": "\u000e",
+          "KeyO": "\u000f",
+          "KeyP": "\u0010",
+          "KeyQ": "\u0011",
+          "KeyR": "\u0012",
+          "KeyS": "\u0013",
+          "KeyT": "\u0014",
+          "KeyU": "\u0015",
+          "KeyV": "\u0016",
+          "KeyW": "\u0017",
+          "KeyX": "\u0018",
+          "KeyY": "\u0019",
+          "KeyZ": "\u001a",
+          "MacKey108": "\u0010",
+          "MacKey112": "\u0010",
+          "MacKey52": "\u0003",
+          "MacKey66": "\u001d",
+          "MacKey70": "\u001c",
+          "MacKey77": "\u001e",
+          "Minus": "\u001f",
+          "Period": ".",
+          "Quote": "'",
+          "Semicolon": ";",
+          "Slash": "/",
+          "Space": " "
+        }
+      }
+    ]
+  },
+  "deadKeys": {
+    "s2": {
+      "spacing": "`",
+      "entries": [
+        {
+          "base": "a",
+          "result": "à"
+        },
+        {
+          "base": "e",
+          "result": "è"
+        },
+        {
+          "base": "o",
+          "result": "ò"
+        },
+        {
+          "base": "u",
+          "result": "ù"
+        },
+        {
+          "base": "i",
+          "result": "ì"
+        },
+        {
+          "base": " ",
+          "result": "`"
+        },
+        {
+          "base": "A",
+          "result": "À"
+        },
+        {
+          "base": "E",
+          "result": "È"
+        },
+        {
+          "base": "O",
+          "result": "Ò"
+        },
+        {
+          "base": "U",
+          "result": "Ù"
+        },
+        {
+          "base": "I",
+          "result": "Ì"
+        }
+      ]
+    },
+    "s3": {
+      "spacing": "ˆ",
+      "entries": [
+        {
+          "base": "a",
+          "result": "â"
+        },
+        {
+          "base": "e",
+          "result": "ê"
+        },
+        {
+          "base": "o",
+          "result": "ô"
+        },
+        {
+          "base": "u",
+          "result": "û"
+        },
+        {
+          "base": "i",
+          "result": "î"
+        },
+        {
+          "base": " ",
+          "result": "ˆ"
+        },
+        {
+          "base": "A",
+          "result": "Â"
+        },
+        {
+          "base": "E",
+          "result": "Ê"
+        },
+        {
+          "base": "O",
+          "result": "Ô"
+        },
+        {
+          "base": "U",
+          "result": "Û"
+        },
+        {
+          "base": "I",
+          "result": "Î"
+        }
+      ]
+    },
+    "s4": {
+      "spacing": "¨",
+      "entries": [
+        {
+          "base": "a",
+          "result": "ä"
+        },
+        {
+          "base": "e",
+          "result": "ë"
+        },
+        {
+          "base": "y",
+          "result": "ÿ"
+        },
+        {
+          "base": "o",
+          "result": "ö"
+        },
+        {
+          "base": "u",
+          "result": "ü"
+        },
+        {
+          "base": "i",
+          "result": "ï"
+        },
+        {
+          "base": " ",
+          "result": "¨"
+        },
+        {
+          "base": "A",
+          "result": "Ä"
+        },
+        {
+          "base": "E",
+          "result": "Ë"
+        },
+        {
+          "base": "Y",
+          "result": "Ÿ"
+        },
+        {
+          "base": "O",
+          "result": "Ö"
+        },
+        {
+          "base": "U",
+          "result": "Ü"
+        },
+        {
+          "base": "I",
+          "result": "Ï"
+        }
+      ]
+    },
+    "s5": {
+      "spacing": "˜",
+      "entries": [
+        {
+          "base": "a",
+          "result": "ã"
+        },
+        {
+          "base": "o",
+          "result": "õ"
+        },
+        {
+          "base": "n",
+          "result": "ñ"
+        },
+        {
+          "base": " ",
+          "result": "˜"
+        },
+        {
+          "base": "A",
+          "result": "Ã"
+        },
+        {
+          "base": "O",
+          "result": "Õ"
+        },
+        {
+          "base": "N",
+          "result": "Ñ"
+        }
+      ]
+    }
+  },
+  "targets": {
+    "macos": {
+      "layoutName": "YAKBDGenCorpus",
+      "bundleName": "YAKBDGenCorpus",
+      "bundleId": "org.yakbd.keyboardlayout.check.gencorpus",
+      "inputSourceId": "org.yakbd.keyboardlayout.check.gencorpus.yakbdgencorpus",
+      "group": 126,
+      "id": -14844,
+      "hardwareRanges": [
+        {
+          "first": 0,
+          "last": 17
+        }
+      ],
+      "keys": {
+        "MacKey108": {
+          "keyCode": 108
+        },
+        "MacKey112": {
+          "keyCode": 112
+        },
+        "MacKey52": {
+          "keyCode": 52
+        },
+        "MacKey66": {
+          "keyCode": 66
+        },
+        "MacKey70": {
+          "keyCode": 70
+        },
+        "MacKey77": {
+          "keyCode": 77
+        }
+      },
+      "standardKeys": true,
+      "commandMap": "withoutCommand",
+      "controlMap": "controlCharacters",
+      "modifiers": {
+        "command": "cmd"
+      },
+      "deadKeys": {
+        "s2": {
+          "state": "s2"
+        },
+        "s3": {
+          "state": "s3"
+        },
+        "s4": {
+          "state": "s4"
+        },
+        "s5": {
+          "state": "s5"
+        }
+      }
+    }
+  }
+}

@@ -14,7 +14,7 @@ executes; nothing here runs on Windows.
 | `go run ./tools/instbundle -guest w11suite -assets DIR -old DIR -o OUT` | the two YAKBD installers: the release's clean checks, a silent state-table subset with the takeover of the published earlier installers, the wizard in eight states with screenshots | `docs/installer-cli.md` §12.7 |
 | `go run ./tools/cldrbundle -o DIR` | CLDR conformance: every CLDR test case a Windows build can express, typed by both `yakbd-wincheck` runners | `docs/cldr.md` §4 |
 
-`tools/macos-check` is not Go: a Swift checker and a shell driver for GitHub's Mac runners (workflow `macos-layout-check.yml`, contract `tools/macos-check/README.md`).
+`tools/macos-check` is not Go: a Swift checker and a shell driver for GitHub's Mac runners (workflow `macos-layout-check.yml`, contract `tools/macos-check/README.md`); a case may be a `layout.kbl.json` that the driver builds with yakbd (`compile -target macos -emit-expectations`).
 
 `tools/buildstub` and `tools/toolsetup` belong to `installer/AGENTS.md`; `tools/release` (every release asset, reproducible) to `docs/release.md`; `tools/genucd` to
 `internal/unicode/norm/AGENTS.md`.

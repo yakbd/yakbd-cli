@@ -1,0 +1,70 @@
+{
+  "kbl": "0.2",
+  "metadata": {
+    "id": "en-t-k0-yakbdremap",
+    "name": "YAKBDGenRemap",
+    "description": "A test layout for tools/macos-check (MIT-0, written for this repository): swapped and moved letters, an Option layer, a Caps Lock layer that differs from Shift, a two-character output, an explicit nothing under Caps Lock, and a dead key with noMatch emitText."
+  },
+  "settings": {
+    "capsLockFallback": false
+  },
+  "positions": { "KeyQ": {}, "KeyW": {}, "KeyE": {}, "KeyR": {}, "KeyT": {}, "KeyY": {}, "KeyU": {}, "KeyI": {}, "KeyO": {}, "KeyP": {}, "KeyA": {}, "KeyS": {}, "KeyD": {}, "KeyF": {}, "KeyG": {}, "KeyH": {}, "KeyJ": {}, "KeyK": {}, "KeyL": {}, "KeyZ": {}, "KeyX": {}, "KeyC": {}, "KeyV": {}, "KeyB": {}, "KeyN": {}, "KeyM": {}, "Digit1": {}, "Digit2": {}, "Semicolon": {}, "Quote": {}, "Space": {}, "Equal": {} },
+  "hardware": {
+    "layers": [
+      {
+        "id": "base",
+        "modifiers": [[]],
+        "bindings": {
+          "KeyQ": "q", "KeyW": "w", "KeyE": "e", "KeyR": "r", "KeyT": "t", "KeyY": "z", "KeyU": "u", "KeyI": "i",
+          "KeyO": "o", "KeyP": "p", "KeyA": "a", "KeyS": "s", "KeyD": "d", "KeyF": "f", "KeyG": "g", "KeyH": "h",
+          "KeyJ": "j", "KeyK": "k", "KeyL": "l", "KeyZ": "y", "KeyX": "x", "KeyC": "c", "KeyV": "v", "KeyB": "b",
+          "KeyN": "n", "KeyM": "m", "Digit1": "1", "Digit2": "2", "Semicolon": "ŋ", "Quote": "ch", "Space": " ",
+          "Equal": { "deadKey": "ring" }
+        }
+      },
+      {
+        "id": "shift",
+        "modifiers": [["shift"]],
+        "bindings": {
+          "KeyQ": "Q", "KeyW": "W", "KeyE": "E", "KeyR": "R", "KeyT": "T", "KeyY": "Z", "KeyU": "U", "KeyI": "I",
+          "KeyO": "O", "KeyP": "P", "KeyA": "A", "KeyS": "S", "KeyD": "D", "KeyF": "F", "KeyG": "G", "KeyH": "H",
+          "KeyJ": "J", "KeyK": "K", "KeyL": "L", "KeyZ": "Y", "KeyX": "X", "KeyC": "C", "KeyV": "V", "KeyB": "B",
+          "KeyN": "N", "KeyM": "M", "Digit1": "!", "Digit2": "@", "Semicolon": "Ŋ", "Quote": "Ch", "Space": " "
+        }
+      },
+      {
+        "id": "caps",
+        "modifiers": [["caps"]],
+        "bindings": {
+          "KeyQ": "Q", "KeyW": "W", "KeyE": "E", "KeyY": "Z", "KeyA": "A", "KeyZ": "Y", "Digit1": "1",
+          "Semicolon": "Ŋ", "Quote": "CH", "Space": " ", "Digit2": { "output": "" }, "Equal": { "deadKey": "ring" }
+        }
+      },
+      {
+        "id": "option",
+        "modifiers": [["alt"]],
+        "bindings": {
+          "KeyA": "å", "KeyO": "ø", "KeyE": "€", "KeyS": "ß", "KeyQ": "þ", "Space": " "
+        }
+      }
+    ]
+  },
+  "deadKeys": {
+    "ring": {
+      "spacing": "˚",
+      "noMatch": "emitText",
+      "entries": [
+        { "base": "a", "result": "å" },
+        { "base": "A", "result": "Å" },
+        { "base": "u", "result": "ů" },
+        { "base": " ", "result": "˚" }
+      ]
+    }
+  },
+  "targets": {
+    "macos": {
+      "bundleId": "org.yakbd.keyboardlayout.check.genremap",
+      "inputSourceId": "org.yakbd.keyboardlayout.check.genremap.yakbdgenremap"
+    }
+  }
+}

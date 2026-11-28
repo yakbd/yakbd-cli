@@ -42,8 +42,29 @@ hitoolbox "before"
 # The control: one of Apple's own layouts, installed but not enabled, through the same steps.
 pass control -control - 5
 
+# Cases with a layout.kbl.json and no bundle are generated here by yakbd itself: the bundle by
+# `yakbd compile -target macos` and expect.tsv from the .kbl.json (the model), so the run checks the tool's build.
+yakbd=
 for c in "$here"/cases/*/; do
 	name=$(basename "$c")
+	if [ -f "$c/layout.kbl.json" ] && ! ls -d "$c"*.bundle >/dev/null 2>&1; then
+		if [ -z "$yakbd" ]; then
+			yakbd=$out/yakbd
+			if ! (cd "$here/../.." && go build -o "$yakbd" ./cmd/yakbd) 2>"$out/build-yakbd.txt"; then
+				echo "FAIL build yakbd : go build failed, see build-yakbd.txt" >>"$sum"
+				yakbd=none
+			fi
+		fi
+		gen=$out/cases/$name
+		mkdir -p "$gen"
+		[ -f "$c/quarantine" ] && cp "$c/quarantine" "$gen/"
+		if [ "$yakbd" = none ] || ! "$yakbd" compile -target macos -q -emit-expectations -max-expectations 60 -o "$gen" "$c/layout.kbl.json" >"$gen/compile.txt" 2>&1; then
+			echo "FAIL $name generate : yakbd compile -target macos failed: $(tr '\n' ' ' <"$gen/compile.txt" | cut -c1-300)" >>"$sum"
+			continue
+		fi
+		echo "INFO $name generate : $(grep -c . "$gen/expect.tsv") expectation lines from layout.kbl.json" >>"$sum"
+		c=$gen/
+	fi
 	bundle=$(ls -d "$c"*.bundle 2>/dev/null | head -1)
 	if [ -z "$bundle" ] || [ ! -f "$c/expect.tsv" ]; then
 		echo "FAIL $name case : needs one *.bundle and expect.tsv" >>"$sum"
