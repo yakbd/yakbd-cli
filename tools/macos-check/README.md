@@ -26,8 +26,8 @@ with the preinstalled `swiftc`, then:
 
 Before the checker runs, `run.sh` registers the layout (`<case>/register`: a checker run with
 `MACOS_CHECK_REGISTER_ONLY=1` that stops after registration) and then adds it to `AppleEnabledInputSources` in
-the `com.apple.HIToolbox` preferences (its keyboard `id` and `name` from the `.keylayout`), as the Text Input
-settings do; the checker, a new process, then finds it enabled. Without that entry, `TISEnableInputSource`
+the `com.apple.HIToolbox` preferences (its keyboard `id` and `name` from the `.keylayout`), in the same shape
+as the entry for U.S. that the runners already have (`hitoolbox.txt`). The checker, a new process, then finds it enabled. Without that entry, `TISEnableInputSource`
 returned 0 but did not enable a bundle in `~/Library/Keyboard Layouts`; an entry written before registration
 was not always honoured (see Runs).
 `MACOS_CHECK_WAIT` sets how long the checker waits for a registered layout to be listed (60 s).
@@ -35,7 +35,8 @@ was not always honoured (see Runs).
 ## summary.txt
 
 There is one line per check: `PASS|FAIL|SKIP|INFO <case> <check> [: detail]`. Typing is `SKIP` while
-the layout is not the current input source. A failure gives what came out and
+the layout is not the current input source; `current-before-typing` and `current-after-typing` check that it
+stayed selected. A failure gives what came out and
 what was expected, with code points. The checker never stops at the first failure. A 300-second deadline ends a
 hung case with `FAIL <case> deadline`. When any line is `FAIL`, the artifact also holds `log.txt`, a filtered
 `log show` of the last ten minutes, and the job fails.
@@ -46,7 +47,11 @@ Make a folder `cases/<case>/` with:
 
 - `<Name>.bundle/` holding `Contents/Info.plist` (with `KLInfo_<Name>` → `TISInputSourceID`, `TISIntendedLanguage`)
   and `Contents/Resources/<Name>.keylayout`. Every case needs its own input-source id and its own negative keyboard
-  `id`, because all cases are installed side by side.
+  `id`, because all cases are installed side by side. `run.sh` takes the name for the preference entry from the
+  bundle's base name, so `<Name>` must be the same in the bundle, the `.keylayout` file, its `name` attribute and
+  `KLInfo_<Name>`. It reads the keyboard `id` from the line holding `<keyboard`, so keep that start tag on one line
+  with `id` after another attribute (as `group="126" id="..."`); otherwise the case fails with `FAIL <case> case`.
+  Give each case at least one output the other cases lack, so typing on the wrong layout cannot pass.
 - `expect.tsv`: one expectation per line, `name<TAB>strokes<TAB>expected`. Strokes are virtual key codes
   (0 to 127) separated by spaces, each with optional `+shift`, `+option` or `+caps`. For example, `24 14` is two
   strokes, and `0+shift+option` is one. The expected text is UTF-8; `\s` is a space, `\t` a tab, `\\` a backslash,
@@ -61,7 +66,7 @@ No other change is needed. The cases run in name order.
 - `check`: a US-like layout written for this check. It has two swapped keys (Y and Z), `ø` on the semicolon key,
   a two-character output (`ng`), Option outputs (`ß`, `æ`, `Æ`), a dead acute key on `=` (`é`, `á`, the terminator
   `´`), and a caps-lock table that differs from the shift table (caps + 1 gives `1`, not `!`).
-- `quarantined`: the same layout under another name and id, installed with the quarantine attribute, to see
+- `quarantined`: the same layout under another name and id, but with `þ` on the grave key (`` ` `` in `check`), installed with the quarantine attribute, to see
   whether Gatekeeper blocks an unsigned layout bundle that was downloaded.
 
 ## Locally
@@ -77,7 +82,7 @@ All on GitHub's arm64 images, `macos-15` (15.8.2) and `macos-26` (26.7.2), 2026-
 |---|---|---|
 | 46102612485 | cff8cb5 | UCKeyTranslate: every case passes on both images. Key codes typed into the text view arrive by both methods (AXIsProcessTrusted and CGPreflightPostEventAccess true), but come out as US, because the layout was not selected: registered (0), enable 0 but still disabled, select -50 |
 | 46102900903 | aeee2c4 | the same; an enabled-sources entry written by the checker itself, mid-run, did not help |
-| 46103925085 | 39c126d | control (Apple's German) enables, selects and types at once; our layouts: `TISEnableInputSource` alone enabled one in `/Library` but none in `~/Library`; after the enabled-sources entry, a new checker process found every layout enabled, selected it, and every typing case passed, quarantined copy included, in both folders on both images; no restart of the text-input agents or sign-out needed |
+| 46103925085 | 39c126d | control (Apple's German) enables, selects and types at once; our layouts: `TISEnableInputSource` alone enabled one in `/Library` but none in `~/Library`; after the enabled-sources entry, a new checker process found every layout enabled, selected it, and every typing case passed, quarantined copy included, in both folders on both images; no restart of the text-input agents needed |
 | 46104372309 | 0a17aee | entry written right after the copy, then one checker run: `check` passed everywhere, `quarantined` was selected only on macos-15 in `/Library` (enable stayed false elsewhere, with the entry present), so the entry's timing matters, not the quarantine |
 | 46104797718 | 5c091fb | register, entry, checker: all four jobs (both images, `~/Library` and `/Library`) 102 PASS, 0 FAIL, 4 SKIP (caps cases through System Events): control, every UCKeyTranslate case, every typing case by `CGEvent` and by System Events, the quarantined copy included |
 
@@ -85,4 +90,5 @@ What this settles: an unsigned, hand-copied layout bundle (and one carrying `com
 set by `xattr` here, not by a real download) is listed, compiled and usable at once in the same session;
 `spctl` rejects it ("no usable signature"), but nothing enforces that for a layout. Selection by a script
 needs `TISRegisterInputSource`, then the enabled-sources preference entry, then `TISSelectInputSource` from a
-process started after the entry was written; no sign-out.
+process started after the entry was written. That order has passed in one run of four jobs. No sign-out is
+needed for a scripted install; the path through System Settings was not exercised.

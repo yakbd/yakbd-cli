@@ -219,7 +219,8 @@ if control {
 } else {
     // Is the source known after the copy alone, before any registration?
     if waitFor(5, find) != nil {
-        emit("INFO", "visible-after-copy", "known without TISRegisterInputSource (\(seenText()))")
+        let ids = sources(id: nil).filter { stringProp($0, kTISPropertyLocalizedName) == layout.name }.map { stringProp($0, kTISPropertyInputSourceID) ?? "?" }
+        emit("INFO", "visible-after-copy", "known without TISRegisterInputSource (\(seenText())); listed by name with id \(ids.joined(separator: ", "))")
     } else {
         emit("INFO", "visible-after-copy", "not known after 5 s without registration")
     }
@@ -377,7 +378,9 @@ if !typing.isEmpty && !selected {
     emit(front?.processIdentifier == getpid() ? "PASS" : "FAIL", "frontmost",
          "frontmost app \(front?.localizedName ?? "?") pid \(front?.processIdentifier ?? -1), ours \(getpid()), key window \(window.isKeyWindow)")
     emit("INFO", "permissions", "AXIsProcessTrusted \(AXIsProcessTrusted()), CGPreflightPostEventAccess \(CGPreflightPostEventAccess())")
-    emit("INFO", "current-before-typing", currentID())
+    let wantID = layout.id
+    let before = currentID()
+    emit(before == wantID ? "PASS" : "FAIL", "current-before-typing", before)
 
     func post(_ k: Stroke) {
         var flags: CGEventFlags = []
@@ -440,6 +443,8 @@ if !typing.isEmpty && !selected {
             }
         }
     }
+    let after = currentID()
+    emit(after == wantID ? "PASS" : "FAIL", "current-after-typing", after)
     window.orderOut(nil)
 }
 

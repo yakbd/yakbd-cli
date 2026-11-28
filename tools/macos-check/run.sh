@@ -65,6 +65,10 @@ for c in "$here"/cases/*/; do
 	echo "INFO $name/register exit : $?" >>"$sum"
 	kname=$(basename "$bundle" .bundle)
 	kid=$(sed -n 's/.*<keyboard [^>]* id="\(-\{0,1\}[0-9]*\)".*/\1/p' "$inst/Contents/Resources/$kname.keylayout" | head -1)
+	if [ -z "$kid" ] || [ ! -f "$inst/Contents/Resources/$kname.keylayout" ]; then
+		echo "FAIL $name case : no Contents/Resources/$kname.keylayout with a <keyboard ... id=\"N\"> line" >>"$sum"
+		continue
+	fi
 	defaults write com.apple.HIToolbox AppleEnabledInputSources -array-add \
 		"<dict><key>InputSourceKind</key><string>Keyboard Layout</string><key>KeyboardLayout ID</key><integer>$kid</integer><key>KeyboardLayout Name</key><string>$kname</string></dict>"
 	echo "INFO $name preferences : enabled-sources entry KeyboardLayout ID $kid, Name $kname (exit $?)" >>"$sum"
