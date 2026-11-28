@@ -290,7 +290,7 @@ func Readme(res *build.Result) []byte {
 	}
 	s.WriteString("\n\nInstall for your user (no root):   ./install.sh\nRemove it again:                    ./install.sh --uninstall\n\n")
 	s.WriteString("What install.sh changes:\n")
-	fmt.Fprintf(&s, "- copies xkb/symbols/%s to ~/.config/xkb/symbols/ (libxkbcommon 1.7 and later read it from there)\n", p.SymbolsName)
+	fmt.Fprintf(&s, "- adds the layout as a marked block (%s) to ~/.config/xkb/symbols/%s, creating the file if needed; other\n  variants of the layout keep their own blocks there (libxkbcommon 1.7 and later read the file from there)\n", BlockName(res), p.SymbolsName)
 	if res.Types != nil {
 		fmt.Fprintf(&s, "- copies xkb/types/%s to ~/.config/xkb/types/ and adds a marked block to ~/.config/xkb/rules/evdev.post\n  (key types of this layout; read by libxkbcommon 1.13 and later, older versions give those keys a default type)\n", res.TypesName)
 	}
@@ -302,7 +302,7 @@ func Readme(res *build.Result) []byte {
 			"  GTK 4 programs on sway, KDE Plasma and GNOME without an input method drop dead keys unless\n" +
 			"  GTK_IM_MODULE=simple is set; IBus and fcitx5 read Compose files of their own.\n")
 	}
-	s.WriteString("Uninstall removes exactly these files and blocks.\n\nSelecting the layout:\n")
+	s.WriteString("Uninstall removes exactly these blocks and files, and the symbols file once no other block is left in it.\n\nSelecting the layout:\n")
 	for _, l := range Selection(res) {
 		s.WriteString("- " + l + "\n")
 	}
