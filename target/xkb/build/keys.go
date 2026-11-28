@@ -92,6 +92,9 @@ func (b *builder) fit(t *xkb.KeyType, vals []Value) ([]Value, int) {
 	levels := make([]Value, max(t.Levels, 1))
 	set := make([]bool, len(levels))
 	for s := range vals {
+		if b.unused(s) {
+			continue
+		}
 		lv, _ := t.Level(Mods(s))
 		if lv <= len(levels) && !set[lv-1] {
 			levels[lv-1], set[lv-1] = vals[s], true
@@ -99,6 +102,10 @@ func (b *builder) fit(t *xkb.KeyType, vals []Value) ([]Value, int) {
 	}
 	exact := 0
 	for s, want := range vals {
+		if b.unused(s) {
+			exact++ // the modifier is never on: any level is right
+			continue
+		}
 		lv, consumed := t.Level(Mods(s))
 		var got Value
 		if lv <= len(levels) {
@@ -157,6 +164,9 @@ func (b *builder) key(p string) {
 		}
 		k.Type, k.Levels = f.Type, levels
 		pin.Type = f.Type
+		if strings.HasPrefix(f.Type, "YAKBD_") {
+			b.lost("xkb.customKeyType", path, "%s has the yakbd key type %s, installed with the layout", p, f.Type)
+		}
 		b.keys = append(b.keys, k)
 		return
 	}
@@ -203,10 +213,8 @@ func (b *builder) yakbdType(p string, vals []Value) (string, []Value) {
 	var levels []Value
 	var digits strings.Builder
 	for s := 0; s < n; s++ {
-		v := Value{}
-		if s < len(vals) {
-			v = vals[s]
-		}
+		// a state with a modifier the build does not use gets the digit of the state without it
+		v := vals[b.reduce(s)]
 		lv := -1
 		for i, x := range levels {
 			if x == v {
@@ -237,4 +245,18 @@ func (b *builder) check(p, t string) {
 	if len([]rune(t)) > 1 && b.once("multi:"+p+t) {
 		b.multi = append(b.multi, fmt.Sprintf("%s %q", p, t))
 	}
+}
+
+// unused reports a state with a level modifier the build does not use.
+func (b *builder) unused(s int) bool { return s&StL3 != 0 && !b.usesL3 || s&StL5 != 0 && !b.usesL5 }
+
+// reduce is the state without the level modifiers the build does not use.
+func (b *builder) reduce(s int) int {
+	if !b.usesL3 {
+		s &^= StL3
+	}
+	if !b.usesL5 {
+		s &^= StL5
+	}
+	return s
 }

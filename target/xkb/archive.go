@@ -117,10 +117,7 @@ func Selection(res *build.Result) []string {
 // InstallScript is install.sh: install for the current user (targets/xkb.md §5), or remove with --uninstall.
 func InstallScript(res *build.Result) []byte {
 	n, v := res.Pins.SymbolsName, build.VariantOf(res.Pins)
-	id := n
-	if v != "" {
-		id = n + "(" + v + ")"
-	}
+	id := n // the marker blocks are named by the layout (targets/xkb.md §5)
 	types := ""
 	if res.Types != nil {
 		types = res.TypesName
@@ -150,7 +147,9 @@ XKB=$CONF/xkb
 strip() {
 	[ -f "$1" ] || return 0
 	awk -v b="$2" -v e="$3" '$0 == b { skip = 1; next } $0 == e { skip = 0; next } !skip' "$1" > "$1.yakbd-tmp"
-	mv "$1.yakbd-tmp" "$1"
+	# written back in place: a symbolic link and the file's mode stay
+	cat "$1.yakbd-tmp" > "$1"
+	rm -f "$1.yakbd-tmp"
 }
 
 # block FILE BEGIN END TEXT: replace the marked block of FILE by TEXT, at the end of the file.
@@ -201,34 +200,41 @@ install() {
 			'<xkbConfigRegistry version="1.1">' '  <layoutList>' '  </layoutList>' '</xkbConfigRegistry>' > "$XKB/rules/evdev.xml"
 	fi
 	strip "$XKB/rules/evdev.xml" "$XB" "$XE"
-	if ! grep -q '</layoutList>' "$XKB/rules/evdev.xml"; then
-		echo "install.sh: $XKB/rules/evdev.xml has no </layoutList> line; add the layout to it by hand:" >&2
+	if ! grep -q '^[[:space:]]*</layoutList>[[:space:]]*$' "$XKB/rules/evdev.xml"; then
+		echo "install.sh: $XKB/rules/evdev.xml has no line that is only </layoutList>; add the layout to it by hand:" >&2
 		printf '%s\n' "$REGISTRY" >&2
 		exit 1
 	fi
-	R="$REGISTRY" awk -v b="$XB" -v e="$XE" '!done && /<\/layoutList>/ { print b; printf "%s", ENVIRON["R"]; print e; done = 1 } { print }' \
+	R="$REGISTRY" awk -v b="$XB" -v e="$XE" '!done && /^[[:space:]]*<\/layoutList>[[:space:]]*$/ { print b; printf "%s", ENVIRON["R"]; print e; done = 1 } { print }' \
 		"$XKB/rules/evdev.xml" > "$XKB/rules/evdev.xml.yakbd-tmp"
-	mv "$XKB/rules/evdev.xml.yakbd-tmp" "$XKB/rules/evdev.xml"
+	cat "$XKB/rules/evdev.xml.yakbd-tmp" > "$XKB/rules/evdev.xml"
+	rm -f "$XKB/rules/evdev.xml.yakbd-tmp"
 	if [ -n "$TYPES" ]; then
 		touch "$XKB/rules/evdev.post"
 		block "$XKB/rules/evdev.post" "$RB" "$RE" "$(printf '%s' "$RULES")"
 	fi
 	if [ -n "$COMPOSE" ]; then
 		SEQ=$(grep -v '^#' "$HERE/$COMPOSE" | grep -v '^include ' || true)
-		FILES=$(composefiles)
-		if [ -z "$FILES" ]; then
-			{ echo "# Created by yakbd"; grep '^include ' "$HERE/$COMPOSE" || true; } > "$HOME/.XCompose"
-			block "$HOME/.XCompose" "$CB" "$CE" "$SEQ"
-			echo "Dead keys: wrote ~/.XCompose."
-		else
-			printf '%s\n' "$FILES" | while IFS= read -r f; do
-				if [ -f "$f" ] && [ ! -f "$f.yakbd-backup" ] && [ "$(head -n 1 "$f")" != "# Created by yakbd" ]; then
-					cp "$f" "$f.yakbd-backup"
-				fi
-				block "$f" "$CB" "$CE" "$SEQ"
-				echo "Dead keys: added to $f."
-			done
+		# Two targets (targets/xkb.md §5): the file libxkbcommon and Qt read, and the one GTK 4 reads.
+		LXC=
+		if [ -n "${XCOMPOSEFILE:-}" ]; then LXC=$XCOMPOSEFILE
+		elif [ -f "$CONF/XCompose" ]; then LXC=$CONF/XCompose
+		elif [ -f "$HOME/.XCompose" ]; then LXC=$HOME/.XCompose
 		fi
+		GTK=$LXC
+		[ -f "$CONF/gtk-4.0/Compose" ] && GTK=$CONF/gtk-4.0/Compose
+		for f in "$LXC" "$GTK"; do
+			if [ -z "$f" ] || [ ! -f "$f" ]; then
+				f=$HOME/.XCompose
+				if [ ! -f "$f" ]; then
+					{ echo "# Created by yakbd"; grep '^include ' "$HERE/$COMPOSE" || true; } > "$f"
+				fi
+			elif [ ! -f "$f.yakbd-backup" ] && [ "$(head -n 1 "$f")" != "# Created by yakbd" ]; then
+				cp "$f" "$f.yakbd-backup"
+			fi
+			block "$f" "$CB" "$CE" "$SEQ"
+			echo "Dead keys: in $f."
+		done
 	fi
 	echo "Installed the layout $BLOCK for $(id -un). Select it:"
 `)
@@ -264,9 +270,9 @@ func Readme(res *build.Result) []byte {
 	}
 	s.WriteString("- adds a marked block with the layout to ~/.config/xkb/rules/evdev.xml, so that the settings apps list it\n")
 	if res.ComposeText != nil {
-		s.WriteString("- dead keys: writes ~/.XCompose when you have no Compose file, otherwise adds a marked block to each of\n" +
-			"  ~/.config/XCompose, ~/.XCompose, ~/.config/gtk-4.0/Compose and $XCOMPOSEFILE that exists (keeping a\n" +
-			"  copy as <file>.yakbd-backup). Programs read the Compose file when they start.\n" +
+		s.WriteString("- dead keys: adds a marked block to the Compose file libxkbcommon and Qt read ($XCOMPOSEFILE, else\n" +
+			"  ~/.config/XCompose or ~/.XCompose) and to the one GTK 4 reads (~/.config/gtk-4.0/Compose when it exists),\n" +
+			"  keeping a copy as <file>.yakbd-backup; with no such file it writes ~/.XCompose. Programs read it when they start.\n" +
 			"  GTK 4 programs on sway, KDE Plasma and GNOME without an input method drop dead keys unless\n" +
 			"  GTK_IM_MODULE=simple is set; IBus and fcitx5 read Compose files of their own.\n")
 	}

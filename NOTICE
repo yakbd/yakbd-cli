@@ -63,8 +63,10 @@ Files taken from it:
 
 - From the `.kbl.json` specification (yakbd/kbl-spec, MIT-0; prototype-history commit
   a264cf0 for the 0.1 schema, 0e76bf8 for the examples (unchanged since 858a7d9), Table A unchanged since 5fd540c;
-  branch spec-0.2 at cf27333 for the 0.2 draft schema): format/kbljson/schema/0.1/kbl.schema.json, format/kbljson/schema/0.2/kbl.schema.json,
-  target/windows/vk/windows-default-vk.tsv (Table A) and testdata/kbl-spec/examples/*.kbl.json, unchanged;
+  branch spec-0.2 for the 0.2 draft): format/kbljson/schema/0.1/kbl.schema.json, format/kbljson/schema/0.2/kbl.schema.json,
+  target/windows/vk/windows-default-vk.tsv (Table A) and testdata/kbl-spec/examples/*.kbl.json, unchanged (branch spec-0.2 at
+  ab9b0f2 for the 0.2 schema and examples/xkb-caps-deadkeys.kbl.json, at 6972db4 for
+  target/xkb/keyname/xkb-default-keyname.tsv, at 36f5685 for target/macos/keycode/macos-default-keycode.tsv);
   testdata/kbl-spec/examples/cldr-pt-abnt2.kbl.json holds CLDR data under the Unicode License v3 (section 4).
 
 3. Facts from public documentation

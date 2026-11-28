@@ -43,9 +43,9 @@ later; older versions give the key a default type.
 
 The script copies the symbols file (and types) into `~/.config/xkb/`, adds the layout to
 `~/.config/xkb/rules/evdev.xml` between marker lines, and puts the dead-key sequences where every program finds
-them: a new `~/.XCompose` when you have no Compose file, otherwise a marked block in each of `~/.config/XCompose`,
-`~/.XCompose`, `~/.config/gtk-4.0/Compose` and `$XCOMPOSEFILE` that exists (a copy of each is kept as
-`<file>.yakbd-backup`). Uninstall removes exactly those files and blocks. It then says how to select the layout:
+them: a marked block in the file libxkbcommon and Qt read (`$XCOMPOSEFILE`, else `~/.config/XCompose` or
+`~/.XCompose`) and in the one GTK 4 reads (`~/.config/gtk-4.0/Compose` when it exists), keeping a copy of each as
+`<file>.yakbd-backup`; with no such file, a new `~/.XCompose`. Uninstall removes exactly those files and blocks. It then says how to select the layout:
 
 - **GNOME**: Settings › Keyboard › Input Sources, or `gsettings set org.gnome.desktop.input-sources sources
   "[('xkb', 'us'), ('xkb', 'N')]"`.

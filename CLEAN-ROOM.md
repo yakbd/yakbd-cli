@@ -456,8 +456,10 @@ public sources (read 2026-11-28, facts only, no code or prose copied):
   the digits 0 to 9 are the keysyms 0 to 9, other numbers are raw values, `any`/`NoSymbol` and `none`/`VoidSymbol`,
   a string literal is a keysym per character).
 - xkeyboard-config 2.49 (https://gitlab.freedesktop.org/xkeyboard-config/xkeyboard-config, MIT/X11-style notices):
-  `types/basic`, `types/extra`, `types/level5`, `types/numpad` (each stock type's modifiers, level map and preserve
-  entries, which `format/xkb/types.go` holds as data), `keycodes/evdev` and `keycodes/aliases` (the key-name
+  `types/basic`, `types/extra`, `types/level5`, `types/numpad` (sections `numlock_only_base` and
+  `numlock_only_extra`) and `types/complete` (each stock type's modifiers, level map and preserve entries, which
+  `format/xkb/types.go` holds as data), `symbols/level3`, `symbols/level5` and `symbols/pc` (the level-shift keys and
+  their modifier mapping), `keycodes/evdev` and `keycodes/aliases` (the key-name
   aliases layouts use), and the symbols files of `testdata/third_party/xkeyboard-config-2.49/` (NOTICE section 7)
   as reader and importer test data. Every symbols file of the release was read and written again once, locally, to
   check the reader; only the subset is committed.

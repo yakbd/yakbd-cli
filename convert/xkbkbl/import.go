@@ -188,7 +188,10 @@ func FromXKB(km *xkb.Keymap, name string, o Options) (*model.Layout, *loss.Repor
 	return l, im.r
 }
 
-var fileNameRE = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{0,63}$`)
+var (
+	fileNameRE = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{0,63}$`)
+	keyNameRE  = regexp.MustCompile(`^[0-9A-Za-z_+-]{1,4}$`)
+)
 
 // switches finds the keys that set LevelThree and LevelFive.
 func (im *importer) switches() {
@@ -278,6 +281,9 @@ func (im *importer) keys() {
 			}
 		}
 	}
+	if len(im.km.Defaults) > 0 {
+		im.lostOnce("defaults", "xkb.actionsDropped", loss.Warning, "the key defaults %s are not kept", strings.Join(im.km.Defaults, "; "))
+	}
 	if modmaps {
 		im.lostOnce("modmap", "xkb.actionsDropped", loss.Warning, "modifier_map statements are not kept")
 	}
@@ -357,6 +363,10 @@ func (im *importer) keys() {
 			im.numLock[pos] = true
 		} else if known && pinnable(t.Name) {
 			im.types[pos] = t.Name
+		}
+		if !inTable && !keyNameRE.MatchString(keyname.Canonical(n)) {
+			im.lostOnce("name:"+n, "xkb.keyNameUnknown", loss.Warning, "the key <%s> has no row in the position table and a name targets.xkb.keys cannot hold: it is not kept", n)
+			continue
 		}
 		if !inTable {
 			im.lostOnce("name:"+n, "xkb.keyNameUnknown", loss.Accepted, "the key <%s> has no row in the position table: it is the position %s with its key name pinned", n, pos)

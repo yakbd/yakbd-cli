@@ -339,3 +339,28 @@ func TestKblRoundTrip(t *testing.T) {
 		t.Errorf("only %d examples built", n)
 	}
 }
+
+// TestKeyNames: a key the position table lacks is a position Xkb<name> with its key name pinned; a name a pin
+// cannot hold is not kept; both write as .kbl.json and build again.
+func TestKeyNames(t *testing.T) {
+	src := `xkb_symbols "t" { key <I219> { [ a, A ] }; key <ABCDE> { [ b ] }; key <A.B> { [ c ] }; key <K+1> { [ d ] }; };`
+	f, r := xkb.Read([]byte(src), "t")
+	if f == nil {
+		t.Fatal(r.Summary())
+	}
+	km, _ := xkb.Compile(f, f.Sections[0], "t", nil)
+	l, ir := FromXKB(km, "t", Options{})
+	if l.Positions["XkbI219"] == nil || l.Targets.XKB.Keys["XkbI219"].KeyName != "I219" || l.Positions["XkbK_1"] == nil {
+		t.Errorf("positions %v", l.Positions)
+	}
+	if l.Positions["XkbABCDE"] != nil || l.Positions["XkbA_B"] != nil || !hasCode(ir, "xkb.keyNameUnknown") {
+		t.Errorf("long names kept: %v", l.Positions)
+	}
+	data, wr := kbljson.Write(l)
+	if data == nil || wr.HasErrors() {
+		t.Fatal(wr.Summary())
+	}
+	if res, br := build.Build(l, build.Options{}); res == nil || !strings.Contains(string(res.SymbolsText), "key <I219>") {
+		t.Errorf("build: %s", br.Summary())
+	}
+}

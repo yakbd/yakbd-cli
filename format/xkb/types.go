@@ -34,13 +34,14 @@ type TypeEntry struct {
 }
 
 // The key types of xkeyboard-config's types "complete" (types/basic, extra, level5, numpad) that layouts use,
-// written from those files' definitions as data. Types that read Control or Alt (types/pc, FOUR_LEVEL_X) are not
-// layout types and are left out: a key that names one is read as ONE_LEVEL and reported.
+// written from those files' definitions as data (numpad: its default section numlock_only_base and
+// numlock_only_extra, which types/extra includes). Types that read Control or Alt (types/pc, FOUR_LEVEL_X) are not
+// layout types and are left out: a key that names one is read with the type it would have without one, and reported.
 var stockTypes = []KeyType{
 	{Name: "ONE_LEVEL", Levels: 1},
 	{Name: "TWO_LEVEL", Mods: Shift, Levels: 2, Map: []TypeEntry{{Shift, 2, 0}}},
 	{Name: "ALPHABETIC", Mods: Shift | Lock, Levels: 2, Map: []TypeEntry{{Shift, 2, 0}, {Lock, 2, 0}}},
-	{Name: "KEYPAD", Mods: Shift | NumLock, Levels: 2, Map: []TypeEntry{{Shift, 2, 0}, {NumLock, 2, 0}}},
+	{Name: "KEYPAD", Mods: NumLock, Levels: 2, Map: []TypeEntry{{NumLock, 2, 0}}},
 	{Name: "FOUR_LEVEL", Mods: Shift | LevelThree, Levels: 4, Map: []TypeEntry{
 		{Shift, 2, 0}, {LevelThree, 3, 0}, {Shift | LevelThree, 4, 0}}},
 	{Name: "FOUR_LEVEL_ALPHABETIC", Mods: Shift | Lock | LevelThree, Levels: 4, Map: []TypeEntry{
@@ -59,11 +60,11 @@ var stockTypes = []KeyType{
 		{Shift, 2, 0}, {LevelFive, 2, 0}, {Shift | LevelFive, 1, 0},
 		{LevelThree, 3, 0}, {Shift | LevelThree, 4, 0}, {LevelFive | LevelThree, 3, 0}, {Shift | LevelFive | LevelThree, 4, 0}}},
 	{Name: "FOUR_LEVEL_KEYPAD", Mods: Shift | NumLock | LevelThree, Levels: 4, Map: []TypeEntry{
-		{Shift, 2, 0}, {NumLock, 2, 0}, {Shift | NumLock, 1, 0},
+		{Shift, 1, Shift}, {NumLock, 2, 0}, {Shift | NumLock, 2, Shift},
 		{LevelThree, 3, 0}, {Shift | LevelThree, 4, 0}, {NumLock | LevelThree, 4, 0}, {Shift | NumLock | LevelThree, 3, 0}}},
 	{Name: "FOUR_LEVEL_MIXED_KEYPAD", Mods: Shift | NumLock | LevelThree, Levels: 4, Map: []TypeEntry{
-		{NumLock, 2, 0}, {Shift, 2, 0}, {Shift | NumLock, 1, 0},
-		{LevelThree, 3, 0}, {NumLock | LevelThree, 3, 0}, {Shift | LevelThree, 4, 0}, {Shift | NumLock | LevelThree, 4, 0}}},
+		{Shift, 1, Shift}, {NumLock, 2, 0}, {Shift | NumLock, 2, Shift},
+		{LevelThree, 3, 0}, {Shift | LevelThree, 4, 0}, {NumLock | LevelThree, 3, 0}, {Shift | NumLock | LevelThree, 4, 0}}},
 	{Name: "EIGHT_LEVEL", Mods: Shift | LevelThree | LevelFive, Levels: 8, Map: eight(false, false)},
 	{Name: "EIGHT_LEVEL_ALPHABETIC", Mods: Shift | Lock | LevelThree | LevelFive, Levels: 8, Map: eight(true, false)},
 	{Name: "EIGHT_LEVEL_SEMIALPHABETIC", Mods: Shift | Lock | LevelThree | LevelFive, Levels: 8, Map: eight(true, true)},

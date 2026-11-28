@@ -30,6 +30,8 @@ type Keymap struct {
 	ModMaps []ModMapDef
 	// Inlined lists the includes read, as file(section), in the order first read.
 	Inlined []string
+	// Defaults are the key defaults other than key.type (key.repeat = ...), as written after "key.".
+	Defaults []string
 }
 
 // ResolvedKey is a key after merging.
@@ -150,6 +152,8 @@ func (c *compiler) section(f *File, sec *Section, file string, stack []string) *
 				if i := strings.IndexByte(st.Text, '"'); i >= 0 {
 					defType = strings.Trim(st.Text[i:], `"`)
 				}
+			} else {
+				km.Defaults = append(km.Defaults, st.Text)
 			}
 		}
 	}
@@ -279,6 +283,7 @@ func merge(into, from *Keymap, mode string) {
 		}
 	}
 	into.ModMaps = append(into.ModMaps, from.ModMaps...)
+	into.Defaults = append(into.Defaults, from.Defaults...)
 }
 
 func cloneKey(k *ResolvedKey) *ResolvedKey {
