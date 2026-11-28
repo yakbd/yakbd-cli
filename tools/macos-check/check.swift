@@ -4,7 +4,7 @@
 //
 // usage: macos-check CASE BUNDLE EXPECT [METHODS]
 //   CASE     name printed in every result line
-//   BUNDLE   the bundle as installed in ~/Library/Keyboard Layouts
+//   BUNDLE   the bundle as installed in a Keyboard Layouts folder, or -control for the control run (README.md)
 //   EXPECT   expectation file (see README.md)
 //   METHODS  comma-separated typing methods: cgevent, sysevents (default both); "none" skips typing
 //
@@ -148,106 +148,134 @@ func currentID() -> String {
     return stringProp(cur, kTISPropertyInputSourceID) ?? "(no id)"
 }
 
-// The layouts the bundle declares: KLInfo_<name> entries of its Info.plist.
-let plistURL = URL(fileURLWithPath: bundlePath).appendingPathComponent("Contents/Info.plist")
-var declared: [(name: String, id: String)] = []
-if let plist = NSDictionary(contentsOf: plistURL) as? [String: Any] {
-    for (k, v) in plist where k.hasPrefix("KLInfo_") {
-        if let d = v as? [String: Any], let id = d["TISInputSourceID"] as? String {
-            declared.append((String(k.dropFirst("KLInfo_".count)), id))
+let start = Date()
+func elapsed() -> String { String(format: "%.1f s", Date().timeIntervalSince(start)) }
+let waitSeconds = Double(ProcessInfo.processInfo.environment["MACOS_CHECK_WAIT"] ?? "") ?? 60
+
+func describe(_ s: TISInputSource) -> String {
+    "type \(stringProp(s, kTISPropertyInputSourceType) ?? "?"), category \(stringProp(s, kTISPropertyInputSourceCategory) ?? "?"), enable-capable \(boolProp(s, kTISPropertyInputSourceIsEnableCapable)), select-capable \(boolProp(s, kTISPropertyInputSourceIsSelectCapable)), enabled \(boolProp(s, kTISPropertyInputSourceIsEnabled)), selected \(boolProp(s, kTISPropertyInputSourceIsSelected))"
+}
+
+// Control mode (BUNDLE "-control"): the same enable, select and typing steps on one of Apple's own layouts that is
+// installed but not enabled, with the expectations taken from its own UCKeyTranslate output. It tells a runner
+// session where enabling works at all from one where only a freshly installed bundle fails.
+let control = bundlePath == "-control"
+var layout: (name: String, id: String) = ("", "")
+if control {
+    let all = sources(id: nil).filter {
+        stringProp($0, kTISPropertyInputSourceType) == (kTISTypeKeyboardLayout as String)
+            && (stringProp($0, kTISPropertyInputSourceID) ?? "").hasPrefix("com.apple.keylayout.")
+            && !boolProp($0, kTISPropertyInputSourceIsEnabled)
+    }
+    let pick = all.first { stringProp($0, kTISPropertyInputSourceID) == "com.apple.keylayout.German" } ?? all.first
+    guard let p = pick else {
+        emit("FAIL", "control", "no installed, disabled Apple keyboard layout found")
+        exit(1)
+    }
+    layout = (stringProp(p, kTISPropertyLocalizedName) ?? "?", stringProp(p, kTISPropertyInputSourceID) ?? "?")
+    emit("INFO", "control", "\(layout.id) (\(layout.name)), \(all.count) disabled Apple layouts; \(describe(p))")
+} else {
+    // The layouts the bundle declares: KLInfo_<name> entries of its Info.plist.
+    let plistURL = URL(fileURLWithPath: bundlePath).appendingPathComponent("Contents/Info.plist")
+    var declared: [(name: String, id: String)] = []
+    if let plist = NSDictionary(contentsOf: plistURL) as? [String: Any] {
+        for (k, v) in plist where k.hasPrefix("KLInfo_") {
+            if let d = v as? [String: Any], let id = d["TISInputSourceID"] as? String {
+                declared.append((String(k.dropFirst("KLInfo_".count)), id))
+            }
         }
     }
+    guard let first = declared.first else {
+        emit("FAIL", "info-plist", "no KLInfo_<name> entry with a TISInputSourceID in \(plistURL.path)")
+        exit(1)
+    }
+    layout = first
+    emit("INFO", "declared", "layout \(layout.name), source id \(layout.id)")
 }
-guard let layout = declared.first else {
-    emit("FAIL", "info-plist", "no KLInfo_<name> entry with a TISInputSourceID in \(plistURL.path)")
-    exit(1)
-}
-emit("INFO", "declared", "layout \(layout.name), source id \(layout.id)")
 emit("INFO", "current-before", currentID())
 
-// The source as the system lists it now. A filtered TISCreateInputSourceList missed a registered layout on the
-// runners (run 1), so this scans the whole list; a fresh object also carries the current enabled state.
+// Three lookups, each with the time it first saw the source: the ID filter, a scan of the whole list by ID, and a
+// scan by name. The ID filter missed a registered layout in the first runs; find() takes the first that answers.
+var seen: [String: String] = [:]
 func find() -> TISInputSource? {
-    sources(id: nil).first { stringProp($0, kTISPropertyInputSourceID) == layout.id }
+    var hit: TISInputSource?
+    if let s = sources(id: layout.id).first { hit = s; if seen["filter"] == nil { seen["filter"] = elapsed() } }
+    let all = sources(id: nil)
+    if let s = all.first(where: { stringProp($0, kTISPropertyInputSourceID) == layout.id }) {
+        hit = hit ?? s; if seen["scan-id"] == nil { seen["scan-id"] = elapsed() }
+    }
+    if let s = all.first(where: { stringProp($0, kTISPropertyLocalizedName) == layout.name }) {
+        hit = hit ?? s; if seen["scan-name"] == nil { seen["scan-name"] = elapsed() }
+    }
+    return hit
+}
+func seenText() -> String {
+    ["filter", "scan-id", "scan-name"].map { "\($0) \(seen[$0] ?? "never")" }.joined(separator: ", ")
 }
 
-// Sign-out question: is the source known after the copy alone, before any registration?
-if waitFor(5, find) != nil {
-    emit("PASS", "visible-after-copy", "known without TISRegisterInputSource")
+var source: TISInputSource?
+if control {
+    source = find()
 } else {
-    emit("INFO", "visible-after-copy", "not known after 5 s without registration")
-}
-
-let reg = TISRegisterInputSource(URL(fileURLWithPath: bundlePath) as CFURL)
-emit(reg == noErr ? "PASS" : "FAIL", "register", "TISRegisterInputSource = \(reg)")
-
-var source = waitFor(10, find)
-if let s = source {
-    emit("PASS", "visible", "source \(layout.id) listed; filtered list finds it: \(!sources(id: layout.id).isEmpty)")
-    emit("INFO", "properties", "type \(stringProp(s, kTISPropertyInputSourceType) ?? "?"), category \(stringProp(s, kTISPropertyInputSourceCategory) ?? "?"), enable-capable \(boolProp(s, kTISPropertyInputSourceIsEnableCapable)), select-capable \(boolProp(s, kTISPropertyInputSourceIsSelectCapable)), enabled \(boolProp(s, kTISPropertyInputSourceIsEnabled))")
-} else {
-    let byName = sources(id: nil).filter { stringProp($0, kTISPropertyLocalizedName) == layout.name }
-    if let s = byName.first {
-        emit("FAIL", "visible", "not listed as \(layout.id), but a source named \(layout.name) is: \(stringProp(s, kTISPropertyInputSourceID) ?? "?")")
-        source = s
+    // Is the source known after the copy alone, before any registration?
+    if waitFor(5, find) != nil {
+        emit("INFO", "visible-after-copy", "known without TISRegisterInputSource (\(seenText()))")
     } else {
-        emit("FAIL", "visible", "no source \(layout.id) or named \(layout.name) after registration")
+        emit("INFO", "visible-after-copy", "not known after 5 s without registration")
+    }
+    let reg = TISRegisterInputSource(URL(fileURLWithPath: bundlePath) as CFURL)
+    emit(reg == noErr ? "PASS" : "FAIL", "register", "TISRegisterInputSource = \(reg) at \(elapsed())")
+    source = waitFor(waitSeconds, find)
+    // Let every lookup have its chance before reporting.
+    if source != nil { for _ in 0..<8 { _ = find(); spin(0.25) } }
+    if let s = source {
+        let found = stringProp(s, kTISPropertyInputSourceID) ?? "?"
+        emit(found == layout.id ? "PASS" : "FAIL", "visible", "source \(found); first seen: \(seenText())")
+    } else {
+        emit("FAIL", "visible", "not listed \(Int(waitSeconds)) s after registration; first seen: \(seenText())")
     }
 }
+if let s = source { emit("INFO", "properties", describe(s)) }
 
-// Enables the source and waits until a freshly listed object says it is enabled.
-func enableAndWait(_ seconds: Double) -> (OSStatus, Bool) {
-    var st: OSStatus = noErr
+// Calls TISEnableInputSource every 2 s until a freshly listed object says it is enabled.
+func enableAndWait(_ seconds: Double) -> (calls: Int, last: OSStatus, enabled: Bool) {
+    var calls = 0
+    var last: OSStatus = noErr
+    var lastCall = Date.distantPast
     let until = Date(timeIntervalSinceNow: seconds)
     repeat {
-        guard let s = find() else { spin(0.5); continue }
-        if boolProp(s, kTISPropertyInputSourceIsEnabled) { return (st, true) }
-        st = TISEnableInputSource(s)
-        spin(0.5)
+        if let s = find() {
+            if boolProp(s, kTISPropertyInputSourceIsEnabled) { return (calls, last, true) }
+            if Date().timeIntervalSince(lastCall) >= 2 {
+                last = TISEnableInputSource(s); calls += 1; lastCall = Date()
+            }
+        }
+        spin(0.25)
     } while Date() < until
-    return (st, find().map { boolProp($0, kTISPropertyInputSourceIsEnabled) } ?? false)
-}
-
-// The keyboard's numeric id from the .keylayout, for the preferences fallback.
-func keyboardNumber() -> String? {
-    let file = URL(fileURLWithPath: bundlePath).appendingPathComponent("Contents/Resources/\(layout.name).keylayout")
-    guard let xml = try? String(contentsOf: file, encoding: .utf8),
-          let r = xml.range(of: "<keyboard[^>]*\\sid=\"(-?[0-9]+)\"", options: .regularExpression) else { return nil }
-    let tag = String(xml[r])
-    guard let q = tag.range(of: "id=\"-?[0-9]+\"", options: .regularExpression) else { return nil }
-    return String(tag[q]).replacingOccurrences(of: "id=", with: "").replacingOccurrences(of: "\"", with: "")
+    return (calls, last, find().map { boolProp($0, kTISPropertyInputSourceIsEnabled) } ?? false)
 }
 
 var uchr: Data?
-if source != nil {
-    var (st, enabled) = enableAndWait(10)
-    emit(enabled ? "PASS" : "FAIL", "enable", "TISEnableInputSource = \(st), enabled = \(enabled)")
-    if !enabled, let num = keyboardNumber() {
-        // Fallback: add the layout to the enabled input sources in the HIToolbox preferences, as the Text Input
-        // settings pane does, and wait for the system to notice.
-        let p = Process()
-        p.executableURL = URL(fileURLWithPath: "/usr/bin/defaults")
-        p.arguments = ["write", "com.apple.HIToolbox", "AppleEnabledInputSources", "-array-add",
-                       "<dict><key>InputSourceKind</key><string>Keyboard Layout</string><key>KeyboardLayout ID</key><integer>\(num)</integer><key>KeyboardLayout Name</key><string>\(layout.name)</string></dict>"]
-        try? p.run(); p.waitUntilExit()
-        (st, enabled) = enableAndWait(10)
-        emit(enabled ? "PASS" : "FAIL", "enable-via-preferences", "defaults exit \(p.terminationStatus), enabled = \(enabled)")
-    }
+var selected = false
+if let s0 = source {
+    let e = enableAndWait(15)
+    emit(e.enabled ? "PASS" : "FAIL", "enable", "\(e.calls) TISEnableInputSource calls, last = \(e.last), enabled = \(e.enabled) at \(elapsed())")
     var sel: OSStatus = -1
+    var selCalls = 0
     let selUntil = Date(timeIntervalSinceNow: 10)
     repeat {
-        if let s = find() { sel = TISSelectInputSource(s) }
+        if let s = find() { sel = TISSelectInputSource(s); selCalls += 1 }
         if sel == noErr { break }
-        spin(0.5)
+        spin(1)
     } while Date() < selUntil
-    emit(sel == noErr ? "PASS" : "FAIL", "select", "TISSelectInputSource = \(sel)")
-    source = find() ?? source
-    let s = source!
-    let want = layout.id
+    emit(sel == noErr ? "PASS" : "FAIL", "select", "\(selCalls) TISSelectInputSource calls, last = \(sel)")
+    let s = find() ?? s0
+    let want = stringProp(s, kTISPropertyInputSourceID) ?? layout.id
     var cur = currentID()
     let until = Date(timeIntervalSinceNow: 5)
     while cur != want && Date() < until { spin(0.25); cur = currentID() }
-    emit(cur == want ? "PASS" : "FAIL", "current", "current keyboard input source \(cur)")
+    selected = cur == want
+    emit(selected ? "PASS" : "FAIL", "current", "current keyboard input source \(cur)")
     if let p = TISGetInputSourceProperty(s, kTISPropertyUnicodeKeyLayoutData) {
         uchr = Unmanaged<CFData>.fromOpaque(p).takeUnretainedValue() as Data
         emit("PASS", "uchr", "system compiled the layout: \(uchr!.count) bytes")
@@ -256,8 +284,6 @@ if source != nil {
     }
 }
 
-let cases = loadCases()
-
 // ---- (a) UCKeyTranslate ----
 
 func modState(_ k: Stroke) -> UInt32 {
@@ -265,21 +291,39 @@ func modState(_ k: Stroke) -> UInt32 {
     (k.shift ? 0x02 : 0) | (k.caps ? 0x04 : 0) | (k.option ? 0x08 : 0)
 }
 
-if let data = uchr {
+// Translates a stroke sequence, carrying the dead-key state; returns the text, the status and the state left.
+func translate(_ data: Data, _ strokes: [Stroke]) -> (String, OSStatus, UInt32) {
     let kbdType = UInt32(LMGetKbdType())
-    data.withUnsafeBytes { (raw: UnsafeRawBufferPointer) in
+    return data.withUnsafeBytes { (raw: UnsafeRawBufferPointer) -> (String, OSStatus, UInt32) in
         let ptr = raw.baseAddress!.assumingMemoryBound(to: UCKeyboardLayout.self)
+        var dead: UInt32 = 0
+        var got = ""
+        for k in strokes {
+            var buf = [UniChar](repeating: 0, count: 16)
+            var n = 0
+            let err = UCKeyTranslate(ptr, k.code, UInt16(kUCKeyActionDown), modState(k), kbdType, 0, &dead, buf.count, &n, &buf)
+            if err != noErr { return (got, err, dead) }
+            got += String(utf16CodeUnits: buf, count: n)
+        }
+        return (got, noErr, dead)
+    }
+}
+
+var cases: [Case] = []
+if control {
+    // The control's expectations are what its own layout data says, so nothing of Apple's is written down here.
+    if let data = uchr {
+        for code: UInt16 in [6, 16, 12, 41] {
+            let k = [Stroke(code: code, shift: false, option: false, caps: false)]
+            cases.append(Case(name: "key-\(code)", strokes: k, want: translate(data, k).0))
+        }
+        emit("INFO", "control-expect", cases.map { "\($0.name) \(show($0.want))" }.joined(separator: ", "))
+    }
+} else {
+    cases = loadCases()
+    if let data = uchr {
         for c in cases {
-            var dead: UInt32 = 0
-            var got = ""
-            var err: OSStatus = noErr
-            for k in c.strokes {
-                var buf = [UniChar](repeating: 0, count: 16)
-                var n = 0
-                err = UCKeyTranslate(ptr, k.code, UInt16(kUCKeyActionDown), modState(k), kbdType, 0, &dead, buf.count, &n, &buf)
-                if err != noErr { break }
-                got += String(utf16CodeUnits: buf, count: n)
-            }
+            let (got, err, dead) = translate(data, c.strokes)
             if err != noErr {
                 emit("FAIL", "translate:\(c.name)", "UCKeyTranslate = \(err)")
             } else if got == c.want {
@@ -288,15 +332,17 @@ if let data = uchr {
                 emit("FAIL", "translate:\(c.name)", "got \(show(got)) want \(show(c.want))" + (dead != 0 ? " (dead-key state \(dead) left)" : ""))
             }
         }
+    } else {
+        for c in cases { emit("SKIP", "translate:\(c.name)", "no layout data") }
     }
-} else {
-    for c in cases { emit("SKIP", "translate:\(c.name)", "no layout data") }
 }
 
 // ---- (b) typing key codes into a text view ----
 
 let typing = methods.filter { $0 != "none" }
-if !typing.isEmpty {
+if !typing.isEmpty && !selected {
+    for m in typing { for c in cases { emit("SKIP", "type-\(m):\(c.name)", "the layout is not the current input source") } }
+} else if !typing.isEmpty {
     let app = NSApplication.shared
     app.setActivationPolicy(.regular)
     app.finishLaunching()
@@ -394,6 +440,12 @@ if !typing.isEmpty {
         }
     }
     window.orderOut(nil)
+}
+
+if control, let s = find() {
+    // Leave the runner as it was: US selected, the control layout disabled again.
+    if let us = sources(id: "com.apple.keylayout.US").first { _ = TISSelectInputSource(us) }
+    _ = TISDisableInputSource(s)
 }
 
 exit(failed ? 1 : 0)

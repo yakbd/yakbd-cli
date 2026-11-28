@@ -1,10 +1,17 @@
 # macOS layout check
 
 Checks keyboard-layout bundles on a real Mac, GitHub's Mac runners, without anyone at the keyboard. The workflow
-`.github/workflows/macos-layout-check.yml` (manual only, `macos-15` and `macos-26`) runs `run.sh`, which writes
-one `summary.txt` per runner. It is uploaded as the artifact `macos-check-<runner>` and shown on the run's summary page.
+`.github/workflows/macos-layout-check.yml` (manual only) runs `run.sh` on `macos-15` and `macos-26`, once with
+the bundles in `~/Library/Keyboard Layouts` and once in `/Library/Keyboard Layouts` (`MACOS_CHECK_PLACE=system`,
+with sudo). Each job writes one `summary.txt`, uploaded as the artifact `macos-check-<runner>-<user|system>`
+together with `hitoolbox.txt` (the `com.apple.HIToolbox` preferences before and after each pass) and shown on the
+run's summary page.
 
-For each case, `run.sh` copies the bundle into `~/Library/Keyboard Layouts`. `check.swift`, compiled on the runner
+First comes a control pass (`control`): one of Apple's own layouts that is installed but not enabled goes through the
+same enable, select and typing steps, with expectations taken from its own `UCKeyTranslate` output. If the control
+fails too, the runner session cannot switch layouts at all.
+
+For each case, `run.sh` copies the bundle into the folder. `check.swift`, compiled on the runner
 with the preinstalled `swiftc`, then:
 
 1. reads the `KLInfo_<name>` entry of the bundle's `Info.plist` for the input-source id;
@@ -17,9 +24,16 @@ with the preinstalled `swiftc`, then:
    (`type-sysevents:<name>`). It then reads the text back. System Events has no caps-lock modifier, so caps cases are
    `SKIP` there.
 
+Until the layout is the current input source, `run.sh` repeats the checker in further passes, tagged in the
+case name: `<case>/again` (a fresh process), `<case>/prefs` (after adding the layout to `AppleEnabledInputSources`
+in the HIToolbox preferences) and `<case>/restart` (after restarting `cfprefsd` and the text-input agents). A
+pass that a later pass repeats keeps its failures as `RETRY`. `MACOS_CHECK_WAIT` sets how long the checker
+waits for a registered layout to be listed (60 s on the first pass).
+
 ## summary.txt
 
-There is one line per check: `PASS|FAIL|SKIP|INFO <case> <check> [: detail]`. A failure gives what came out and
+There is one line per check: `PASS|FAIL|SKIP|RETRY|INFO <case> <check> [: detail]`. Typing is `SKIP` while
+the layout is not the current input source. A failure gives what came out and
 what was expected, with code points. The checker never stops at the first failure. A 300-second deadline ends a
 hung case with `FAIL <case> deadline`. When any line is `FAIL`, the artifact also holds `log.txt`, a filtered
 `log show` of the last ten minutes, and the job fails.

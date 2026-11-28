@@ -12,23 +12,27 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-15, macos-26]
+        place: [user, system]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 20
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - name: check
+        env:
+          MACOS_CHECK_PLACE: ${{ matrix.place }}
         run: tools/macos-check/run.sh "$RUNNER_TEMP/macos-check"
       - name: summary
         if: always()
         run: |
-          { echo "### ${{ matrix.os }}"; echo '```'; cat "$RUNNER_TEMP/macos-check/summary.txt"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          { echo "### ${{ matrix.os }}, ${{ matrix.place }}"; echo '```'; cat "$RUNNER_TEMP/macos-check/summary.txt"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: macos-check-${{ matrix.os }}
+          name: macos-check-${{ matrix.os }}-${{ matrix.place }}
           path: |
             ${{ runner.temp }}/macos-check/summary.txt
             ${{ runner.temp }}/macos-check/build.txt
             ${{ runner.temp }}/macos-check/stderr.txt
             ${{ runner.temp }}/macos-check/log.txt
+            ${{ runner.temp }}/macos-check/hitoolbox.txt
           if-no-files-found: ignore
