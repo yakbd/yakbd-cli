@@ -1,6 +1,6 @@
-# name<TAB>strokes<TAB>expected (README.md). One of twin-next-none, twin-empty-output and twin-next-sink, three small
-# layouts that differ only in one <when> (dead key ring on Minus 27, key x 7): here <when state="ring" output=""/>. A layout the system does not
-# list fails at "visible". Expected: ring then x types nothing, then e types e.
+# name<TAB>strokes<TAB>expected (README.md). One of three small layouts (README.md, twin-empty-output) that
+# differed only in one <when> (dead key ring on Minus 27, key x 7): here <when state="ring" output=""/>; the twins with
+# next="none" and with next to an empty state were not listed (run 46126097229). Ring, x types nothing, then e.
 plain-a	0	a
 plain-m	46	ʭ
 shift-a	0+shift	A

@@ -109,13 +109,14 @@ follows it), its own `inputSourceId` and a keyboard id of its own (pinned, or th
 - `gen-spacing` (generated, with `extra.tsv`): `gen-pending` with `noMatch` `emitSpacing`: the same build path (every
   text an action, control characters in `<when>` outputs) without an empty output, to tell that path apart from the
   empty output.
-- `twin-next-none`, `twin-empty-output`, `twin-next-sink` (hand-written from one yakbd build): three small layouts that
-  differ only in one `<when>` of a dead key on a printable key: `next="none"` alone, `output=""`, and `next` to a state
-  with no `<when>` and no terminator. Which of them the system lists says which form of "nothing" macOS accepts.
+- `twin-empty-output` (hand-written from a yakbd build): a small layout whose dead key gives one printable key
+  `<when state="ring" output=""/>`. Run 46126097229 also had two twins that differed only in that `<when>`:
+  `next="none"` alone, and `next` to a state with no `<when>` and no terminator; the system listed neither, so they
+  were removed.
 - `gen-maxout` (generated, with `extra.tsv`): the same press with `maxout` pinned to 2, the longest single output and
   one less than terminator and output together (§8 item 7), and a key code without a key pressed while the dead key is
-  pending (§8 item 1, in a layout that is listed). It also shows that key codes without a key do not stop a layout
-  from loading.
+  pending (§8 item 1: measured, macOS types the terminator and drops the dead key). It also shows that key codes
+  without a key do not stop a layout from loading.
 - `gen-lproj-hyphen`, `gen-lproj-utf8` (generated, with `name.txt`): the localised name only in a hyphenated
   `en-US.lproj`, and one with letters outside ASCII in the UTF-8 `InfoPlist.strings` the build writes (§8 item 4).
 - `gen-klc` (generated): the repository's `testdata/klc/msklc-style.klc` converted by `yakbd convert` (rows MSKLC adds,
@@ -147,6 +148,7 @@ All on GitHub's arm64 images, `macos-15` (15.8.2) and `macos-26` (26.7.2), 2026-
 | 46108712955 | 0ea9ff3 | first run with the cases yakbd generates from a `.kbl.json` (gen-corpus, gen-demo, gen-remap: bundle by `compile -target macos`, expectations from the model): all four jobs 661 PASS, 0 FAIL, 27 SKIP (Caps Lock cases through System Events); a smoke run, the round's verifier runs it again |
 | 46117765009 | 649858d | the round's verification run, 12 cases: every job 1476 PASS, 7 FAIL, 276 SKIP. Right Shift and Right Option type with the left-hand key map (`sides`); localised names from `en-US.lproj` and from a UTF-8 `InfoPlist.strings` shown (`AppleLanguages` `en-US`); `gen-klc`, `gen-cldr`, `gen-specg` and `gen-demo`'s terminator plus `ng` pass; `gen-pending` not listed at all |
 | 46119172899 | 042a5f5 | re-run of `sides`, `gen-pending`, `gen-maxout` (`cases` input): `sides` passes; with `maxout` 2 the system still types terminator and `ng` in one press (3 units); `gen-pending` (now without the `maxout` pin) is still not listed: the system rejects the layout with `noMatch` `emitNothing` (`next="none"`) or the key code without a key |
+| 46126097229 | c9d54b4 | 14 cases: every job 2061 PASS, 10 FAIL, 156 SKIP (all four identical). `gen-pending` with `output=""` is listed and types (`emitNothing`: nothing, then `e`); `gen-spacing` (same path, no empty output) passes; of the twins only `output=""` is listed, `next="none"` alone and `next` to a state with no `<when>` are not; a key code without a key while a dead key is pending types the terminator and drops the dead key (`´e`, not the model's `é`; expectations changed to that); `maxout` 2 types terminator and `ng` in one press. The rejected twins were removed afterwards |
 
 What this settles: an unsigned, hand-copied layout bundle (and one carrying `com.apple.quarantine`,
 set by `xattr` here, not by a real download) is listed, compiled and usable at once in the same session;

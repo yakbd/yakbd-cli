@@ -22,8 +22,8 @@ func NewTypist(k *Keyboard) *Typist {
 
 // Press types key code in modifier state s and returns the output. The rules (TN2056, and the macOS check's
 // case dead-terminator): a key whose action has a <when> for the current state does what it says; any other key
-// in a pending state first emits that state's terminator (if any) and then acts as in the base state. A key that
-// does nothing leaves a pending state pending (unmeasured; the kbl model's reading). Range actions are not run.
+// in a pending state first emits that state's terminator (if any) and then acts as in the base state; so does a key
+// code without a key, which then types nothing (measured, kbl spec targets/macos.md §4). Range actions are not run.
 func (t *Typist) Press(code int, s State) string {
 	if t.mods == nil {
 		return ""
@@ -34,13 +34,19 @@ func (t *Typist) Press(code int, s State) string {
 		keys = t.k.Keys(t.set, idx)
 		t.maps[idx] = keys
 	}
-	key, ok := keys[code]
-	if !ok {
-		return ""
-	}
 	cur := t.State
 	if cur == "" {
 		cur = "none"
+	}
+	key, ok := keys[code]
+	if !ok {
+		// a key code without a key in a pending state: the terminator, then the base state (measured, like any key)
+		out := ""
+		if cur != "none" {
+			out, _ = t.k.Terminator(cur)
+			t.State = "none"
+		}
+		return out
 	}
 	out := ""
 	if a := t.k.KeyAction(key); a != nil {
