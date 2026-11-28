@@ -1,0 +1,24 @@
+{
+  "name": "YAKBD Check",
+  "rows": [
+    [
+      {"id": "k-Q", "label": "æ", "output": "æ"},
+      {"id": "k-W", "output": "w"},
+      {"id": "k-E", "output": "e", "longPress": ["é", "ë"]},
+      {"id": "k-O", "output": "o", "longPress": ["ø", "ó"]},
+      {"id": "k-A", "output": "a"}
+    ],
+    [
+      {"id": "k-dead", "label": "´", "output": "´"},
+      {"id": "k-S", "output": "s"},
+      {"id": "k-bksp", "label": "⌫", "special": "backspace"}
+    ],
+    [
+      {"id": "k-globe", "label": "🌐", "special": "globe"},
+      {"id": "k-space", "label": "space", "special": "space"}
+    ]
+  ],
+  "deadKeys": {
+    "´": {"a": "á", "e": "é", "o": "ó"}
+  }
+}

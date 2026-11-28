@@ -520,3 +520,31 @@ of `gen-chars` was chosen by us over the rows of rule `characters` (kbl spec `ta
 relies on libxkbcommon turning a UTF-8 string into a keysym with `xkb_utf32_to_keysym`, as the XKB sources above
 record. The output format of `xkbcli list` and `xkbcli compile-keymap` was read from the tools' own output in the
 test images.
+
+## iOS
+
+### The iOS keyboard check (2026-11-28)
+
+`tools/ios-check/` (the check app, its keyboard extension, the UI and unit tests, the layout and case files,
+`project.yml`, `run.sh`) and `.github/workflows/ios-check.yml` are our own code and text; no code was copied. Public
+sources read 2026-11-28, facts only:
+- TinyKeyboard (https://github.com/trillium/TinyKeyboard, MIT): `scripts/run-tests.sh`, `TESTING.md` and two UI-test
+  files. Facts taken: an app with an embedded keyboard extension builds and runs its tests in the simulator with
+  `CODE_SIGNING_ALLOWED=NO`; the extension is enabled by the simulator's global `AppleKeyboards` default plus
+  `AppleKeyboardsExpanded`, followed by a reboot; the extension's views show up to XCUITest as `app.buttons` by
+  accessibility identifier, not as `app.keyboards`; the system next-keyboard key's labels; after the first app launch
+  in a boot the simulator may connect the Mac's hardware keyboard, hence one test method per boot; an extension's
+  sources can be compiled into a unit-test bundle hosted in the app.
+- XcodeGen (https://github.com/yonaskolb/XcodeGen, MIT): the `project.yml` keys for targets, dependencies, embedding,
+  build settings and schemes, from general knowledge of its documentation (no page opened). It is installed in the job with Homebrew and is not part of
+  this repository.
+- The runner-images README (https://github.com/actions/runner-images, MIT): the `macos-15` and `macos-26` labels and
+  their Xcode and simulator lists (read during planning).
+- Apple's custom keyboard documentation (App Extension Programming Guide, "Custom Keyboard", and the
+  `UIInputViewController` / `UITextDocumentProxy` reference, developer.apple.com), from general knowledge, no page
+  opened: the `com.apple.keyboard-service`
+  extension point and its `NSExtensionAttributes` (`IsASCIICapable`, `PrefersRightToLeft`, `PrimaryLanguage`,
+  `RequestsOpenAccess`), `needsInputModeSwitchKey` with `handleInputModeList(from:with:)`, and the proxy calls
+  `insertText`, `deleteBackward`, `documentContextBeforeInput`.
+- `simctl`, `xcodebuild`, XCTest/XCUITest and UIKit calls: from general knowledge of the public tools and SDK; the
+  runner's tools and compiler check every call.

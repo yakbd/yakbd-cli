@@ -1,0 +1,10 @@
+# name<TAB>steps<TAB>expected (README.md, "Cases")
+# k-Q is the Q position, remapped to æ: the system QWERTY keyboard cannot type it there.
+remap	k-Q	æ
+plain	k-W k-A k-S	was
+longpress	long:k-O=lp-k-O-1	ø
+dead	k-dead k-A	á
+dead-space	k-dead k-space	´
+dead-other	k-dead k-S	´s
+backspace	k-W k-A k-bksp	w
+mixed	k-Q k-dead k-E long:k-E=lp-k-E-2 k-bksp k-space k-S	æé\ss

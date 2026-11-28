@@ -1,0 +1,84 @@
+# iOS keyboard check: builds the check app with its keyboard extension unsigned on GitHub's Mac runners and types
+# with the extension in fresh simulators, every iOS runtime each Xcode can use (tools/ios-check/README.md).
+# Manual only; it costs nothing until someone runs it.
+name: ios-check
+on:
+  workflow_dispatch:
+    inputs:
+      signing:
+        description: "none (CODE_SIGNING_ALLOWED=NO) or adhoc (CODE_SIGN_IDENTITY=-)"
+        type: choice
+        options: [none, adhoc]
+        default: none
+      runtimes:
+        description: "iOS runtimes to test, separated by spaces (all: every one the job's Xcode can use)"
+        type: string
+        default: all
+permissions:
+  contents: read
+concurrency:
+  group: ios-check-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  check:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            xcode: '16.4'
+          - os: macos-15
+            xcode: '26'
+          - os: macos-26
+            xcode: latest
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - name: xcodegen
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: '1'
+          HOMEBREW_NO_INSTALL_CLEANUP: '1'
+        run: command -v xcodegen || brew install xcodegen
+      - name: check
+        env:
+          IOS_CHECK_XCODE: ${{ matrix.xcode }}
+          IOS_CHECK_SIGNING: ${{ inputs.signing }}
+          IOS_CHECK_RUNTIMES: ${{ inputs.runtimes }}
+        run: tools/ios-check/run.sh "$RUNNER_TEMP/ios-check"
+      - name: summary
+        if: always()
+        run: |
+          { echo "### ${{ matrix.os }}, Xcode ${{ matrix.xcode }}"; echo '```'; cat "$RUNNER_TEMP/ios-check/summary.txt"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-check-${{ matrix.os }}-xcode-${{ matrix.xcode }}
+          path: |
+            ${{ runner.temp }}/ios-check/summary.txt
+            ${{ runner.temp }}/ios-check/*.txt
+            ${{ runner.temp }}/ios-check/*.json
+            ${{ runner.temp }}/ios-check/*.pbxproj
+            ${{ runner.temp }}/ios-check/*/
+            !${{ runner.temp }}/ios-check/build/
+          if-no-files-found: ignore
+  summary:
+    needs: check
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: ios-check-*
+          path: parts
+      - name: one summary.txt
+        run: |
+          for d in parts/*/; do
+            job="$(basename "$d")"; job="${job#ios-check-}"
+            [ -f "$d/summary.txt" ] && sed "s|^\([A-Z]*\) |\1 $job |" "$d/summary.txt"
+          done > summary.txt
+          { echo '```'; cat summary.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: summary
+          path: summary.txt

@@ -1,0 +1,85 @@
+# XcodeGen spec of the check: an app with one keyboard extension, a UI-test target that drives the extension, and a
+# unit-test target hosted in the app that compiles the extension's sources (README.md). run.sh copies this folder
+# and one case's layout.json and expect.tsv (as Case/) into a build folder and runs `xcodegen generate` there.
+name: YakCheck
+options:
+  deploymentTarget:
+    iOS: "17.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    TARGETED_DEVICE_FAMILY: "1"
+    GENERATE_INFOPLIST_FILE: NO
+targets:
+  YakCheck:
+    type: application
+    platform: iOS
+    sources:
+      - App
+    settings:
+      base:
+        PRODUCT_NAME: YakCheck
+        PRODUCT_BUNDLE_IDENTIFIER: org.yakbd.check
+        INFOPLIST_FILE: Plists/App-Info.plist
+    dependencies:
+      - target: YakCheckKeyboard
+        embed: true
+  YakCheckKeyboard:
+    type: app-extension
+    platform: iOS
+    sources:
+      - Keyboard
+      - path: Case/layout.json
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_NAME: YakCheckKeyboard
+        PRODUCT_BUNDLE_IDENTIFIER: org.yakbd.check.keyboard
+        INFOPLIST_FILE: Plists/Keyboard-Info.plist
+        APPLICATION_EXTENSION_API_ONLY: YES
+  YakCheckUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - UITests
+      - Shared
+      - path: Case/expect.tsv
+        buildPhase: resources
+    dependencies:
+      - target: YakCheck
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.yakbd.check.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: YakCheck
+  YakCheckUnitTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - UnitTests
+      - Shared
+      - Keyboard
+      - path: Case/layout.json
+        buildPhase: resources
+      - path: Case/expect.tsv
+        buildPhase: resources
+    dependencies:
+      - target: YakCheck
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.yakbd.check.unittests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/YakCheck.app/YakCheck"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+schemes:
+  YakCheck:
+    build:
+      targets:
+        YakCheck: all
+        YakCheckUITests: [test]
+        YakCheckUnitTests: [test]
+    test:
+      config: Debug
+      targets:
+        - YakCheckUnitTests
+        - YakCheckUITests
