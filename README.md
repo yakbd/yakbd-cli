@@ -20,11 +20,11 @@ Windows architecture.
   was dropped or changed, and the layout file can say whether that is an error, a warning or fine.
 - **Lost the source?** yakbd reads an installed layout DLL back into an editable file.
 
-macOS is the second target: yakbd converts `.keylayout` files and builds a layout bundle and a release zip
-([`docs/macos.md`](docs/macos.md)); its check on real Macs is in progress. Linux XKB and the formats of other
-operating systems come next, then third-party formats such as Keyman. The format already keeps the choices of
-each target in a section of its own (`targets.*`), and has been checked on paper for macOS and XKB
-([kbl-spec D105 and D107](https://github.com/yakbd/kbl-spec/blob/main/DECISIONS.md)).
+macOS is the second target: yakbd converts `.keylayout` files and builds a layout bundle and a zip with install
+steps (`-target macos`, [`docs/macos.md`](docs/macos.md)), on any computer and without Apple's tools. Linux XKB and
+the formats of other operating systems come next, then third-party formats such as Keyman. The format keeps the
+choices of each target in a section of its own (`targets.*`); `targets.macos` and `targets.xkb` are new in format
+version 0.2 ([kbl-spec](https://github.com/yakbd/kbl-spec)), and yakbd writes 0.2 only for a file that uses them.
 
 ## Install
 
@@ -55,6 +55,14 @@ With Go 1.26 or later you can also build it yourself:
 Run the `-setup.exe` on Windows. `yakbd installer my-layout.klc` also works directly on the `.klc` file. If the
 same layout is installed from MSKLC, read [`docs/migrating-from-msklc.md`](docs/migrating-from-msklc.md) first: it
 shows how to install the new build next to the old one, check it, and only then remove the old one.
+
+For a Mac, build the same file with `-target macos`:
+
+    yakbd validate -target macos my-layout.kbl.json  # check that it builds for macOS
+    yakbd installer -target macos my-layout.kbl.json # writes <name>.zip: the layout bundle and a README
+
+Copy the bundle from the zip into `~/Library/Keyboard Layouts`, then add the layout in System Settings ›
+Keyboard › Text Input ([`docs/macos.md`](docs/macos.md)).
 
 ## Commands
 
@@ -94,8 +102,10 @@ command with an error writes nothing. Flags may come before or after the file na
 
 A preview: commands, options and reports may still change. Layouts built by yakbd have been tested in Windows 10
 and Windows 11 virtual machines (x64 and x86): they load, type as expected, and install, upgrade and uninstall
-cleanly. ARM64 support is tested in emulation only. Every CLDR release 49 keyboard imports and builds. Builds for
-other operating systems are planned and not available yet.
+cleanly. ARM64 support is tested in emulation only. Every CLDR release 49 keyboard imports and builds. macOS
+layout bundles have been installed, selected and typed on GitHub's macOS 15 and 26 runners (Apple silicon), by
+script ([`tools/macos-check/README.md`](tools/macos-check/README.md)); the steps in System Settings and Intel Macs
+have not been tested.
 
 ## Code signing policy
 
