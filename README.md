@@ -66,6 +66,14 @@ For a Mac, build the same file with `-target macos`:
 Copy the bundle from the zip into `~/Library/Keyboard Layouts`, then add the layout in System Settings ›
 Keyboard › Text Input ([`docs/macos.md`](docs/macos.md)).
 
+For Linux (Wayland and X11), build it with `-target xkb`:
+
+    yakbd validate -target xkb my-layout.kbl.json    # check that it builds for XKB
+    yakbd installer -target xkb my-layout.kbl.json   # writes <name>.tar.gz: the layout files, install.sh, a README
+
+Unpack it and run `<name>/install.sh` as yourself (no root), then pick the layout in your desktop's keyboard
+settings ([`docs/linux.md`](docs/linux.md)).
+
 ## Commands
 
     yakbd convert in.klc out.kbl.json        # any of .kbl.json, .klc, CLDR .xml, .keylayout, in both directions
@@ -77,10 +85,13 @@ Keyboard › Text Input ([`docs/macos.md`](docs/macos.md)).
     yakbd pin layout.kbl.json                # write every Windows default choice into the file
     yakbd compile -target macos layout.kbl.json    # the macOS layout bundle
     yakbd installer -target macos layout.kbl.json  # a zip with the bundle and a README
+    yakbd compile -target xkb -o out layout.kbl.json   # the XKB symbols, registry and Compose files
+    yakbd installer -target xkb layout.kbl.json    # a .tar.gz with the files and an install script
     yakbd version
 
 `compile`, `installer`, `pin` and `validate -target` build for a target: `-target windows` is the default, `-target macos`
-the second ([`docs/targets.md`](docs/targets.md); Linux is planned). `yakbd <command> -h` lists a command's options. Every command prints a report (errors, warnings, losses, and each
+and `-target xkb` (Linux) the others ([`docs/targets.md`](docs/targets.md)). `yakbd <command> -h` lists a
+command's options. Every command prints a report (errors, warnings, losses, and each
 choice taken from a default rule); `-report report.json` saves it as JSON, in the shape of
 [`docs/report-file.md`](docs/report-file.md) (for programs: JSON pointers into the input file, the tool version). A
 command with an error writes nothing. Flags may come before or after the file names.
@@ -109,7 +120,10 @@ and Windows 11 virtual machines (x64 and x86): they load, type as expected, and 
 cleanly. ARM64 support is tested in emulation only. Every CLDR release 49 keyboard imports and builds. macOS
 layout bundles have been installed, selected and typed on GitHub's macOS 15 and 26 runners (Apple silicon), by
 script ([`tools/macos-check/README.md`](tools/macos-check/README.md)); the steps in System Settings and Intel Macs
-have not been tested.
+have not been tested. Test layouts installed the way the Linux build installs them have been typed under
+libxkbcommon (Debian 13, Ubuntu 26.04, Fedora 45, Arch Linux), X11, weston, sway, KWin and mutter in containers,
+by key code ([`tools/xkb-check/README.md`](tools/xkb-check/README.md)); a full GNOME Shell session, IBus and
+real keyboards have not been tested.
 
 ## Code signing policy
 
