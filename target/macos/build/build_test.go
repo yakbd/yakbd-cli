@@ -102,3 +102,38 @@ func TestBuildKeepsInput(t *testing.T) {
 		t.Errorf("the result is not NFC")
 	}
 }
+
+// TestEmptyOutputAndMaxout: noMatch emitNothing is written as output="" (a <when> with only next="none" made macOS
+// reject the layout), and rule maxout counts each output on its own, not a terminator and an output together.
+func TestEmptyOutputAndMaxout(t *testing.T) {
+	src := `{"kbl": "0.2", "metadata": {"id": "en", "name": "N"},
+	 "positions": {"KeyA": {}, "KeyE": {}, "KeyN": {}, "KeyX": {}, "Equal": {}, "Minus": {}},
+	 "hardware": {"layers": [{"modifiers": [[]], "bindings": {"KeyA": "a", "KeyE": "e", "KeyN": "ng", "KeyX": "x",
+	   "Equal": {"deadKey": "acute"}, "Minus": {"deadKey": "macron"}}}]},
+	 "deadKeys": {"acute": {"spacing": "´", "entries": [{"base": "e", "result": "é"}]},
+	   "macron": {"spacing": "¯", "noMatch": "emitNothing", "entries": [{"base": "a", "result": "ā"}]}}}`
+	l, r := kbljson.Read([]byte(src), "t.kbl.json")
+	if r.HasErrors() {
+		t.Fatal(r.Summary())
+	}
+	res, br := Build(l, Options{})
+	if res == nil {
+		t.Fatal(br.Summary())
+	}
+	out := string(keylayout.Write(res.Keyboard))
+	if strings.Contains(out, `next="none"`) {
+		t.Errorf("a <when> has next=\"none\":\n%s", out)
+	}
+	if !strings.Contains(out, `<when state="macron" output=""/>`) {
+		t.Errorf("emitNothing is not written as output=\"\":\n%s", out)
+	}
+	if res.Keyboard.MaxOut == nil || *res.Keyboard.MaxOut != 2 {
+		t.Errorf("maxout %v, want 2 (ng; the terminator ´ is not added)", res.Keyboard.MaxOut)
+	}
+	k, _ := keylayout.Read([]byte(out), "x")
+	ty := keylayout.NewTypist(k)
+	// macron (Minus 27), x (7), e (14): nothing, then e
+	if got := ty.Press(27, 0) + ty.Press(7, 0) + ty.Press(14, 0); got != "e" {
+		t.Errorf("macron x e typed %q, want \"e\"", got)
+	}
+}

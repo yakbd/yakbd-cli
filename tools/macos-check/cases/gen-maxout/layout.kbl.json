@@ -4,7 +4,7 @@
   "metadata": {
     "id": "en-t-k0-yakbdmaxout",
     "name": "YAKBDGenMaxout",
-    "description": "A test layout for tools/macos-check (MIT-0, written for this repository): a dead key with a terminator and a two-character output, with maxout pinned to 2, one less than a terminator and that output in one press need; the build reports macos.outputBeyondMaxout, made a warning here, so the run shows what macOS does with such a file."
+    "description": "A test layout for tools/macos-check (MIT-0, written for this repository): a dead key with a terminator and a two-character output, with maxout pinned to 2, the longest single output and one less than the terminator and that output together; the run shows that macOS applies maxout to each output (rule maxout counts them separately), and a key code without a key while the dead key is pending."
   },
   "positions": {
     "KeyQ": {},
@@ -137,12 +137,7 @@
       "bundleName": "YAKBDGenMaxout",
       "bundleId": "org.yakbd.keyboardlayout.check.genmaxout",
       "inputSourceId": "org.yakbd.keyboardlayout.check.genmaxout.yakbdgenmaxout",
-      "maxout": 2,
-      "onLoss": {
-        "kinds": {
-          "macos.outputBeyondMaxout": "warning"
-        }
-      }
+      "maxout": 2
     }
   }
 }

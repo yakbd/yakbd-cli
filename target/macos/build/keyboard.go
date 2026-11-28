@@ -132,7 +132,7 @@ func (b *builder) keyboard() *keylayout.Keyboard {
 				case "emitSpacing":
 					setOutput(&w, d.spacing)
 				case "emitNothing":
-					w.Next = "none"
+					setOutput(&w, "")
 				default:
 					setOutput(&w, d.spacing+spE)
 				}
@@ -158,7 +158,7 @@ func (b *builder) keyboard() *keylayout.Keyboard {
 				case "emitSpacing":
 					setOutput(&w, d.spacing)
 				case "emitNothing":
-					w.Next = "none"
+					setOutput(&w, "")
 				default:
 					continue
 				}
@@ -182,8 +182,8 @@ func (b *builder) keyboard() *keylayout.Keyboard {
 		e := b.lost("macos.deadKeyNoMatchExpanded", "/deadKeys", "noMatch and dead keys pressed while another is pending are compiled as explicit <when> elements")
 		e.Detail = map[string]any{"deadKeys": dedupe(expanded)}
 	}
-	// maxout
-	// maxout: what one key press can emit, a terminator and then a key's own output (rule maxout)
+	// maxout: the longest single output, a terminator or a key or <when> output (rule maxout); macOS applies
+	// maxout to each output of a key press separately (targets/macos.md §5)
 	longest := func(m *int, s *string) {
 		if s != nil {
 			if n := len(utf16.Encode([]rune(*s))); n > *m {
@@ -205,7 +205,7 @@ func (b *builder) keyboard() *keylayout.Keyboard {
 	for _, w := range k.Terminators {
 		longest(&termMost, w.Output)
 	}
-	most := max(1, keyMost+termMost)
+	most := max(1, keyMost, termMost)
 	if b.file.MaxOut != nil {
 		if *b.file.MaxOut < most {
 			b.lost("macos.outputBeyondMaxout", tp+"maxout", "an output has %d UTF-16 units, more than maxout %d", most, *b.file.MaxOut)
@@ -219,11 +219,9 @@ func (b *builder) keyboard() *keylayout.Keyboard {
 	return k
 }
 
+// setOutput gives w the output s; an empty s is written as output="", not as next="none" alone, with which
+// macOS did not list the layout at all (targets/macos.md §4).
 func setOutput(w *keylayout.When, s string) {
-	if s == "" {
-		w.Next = "none"
-		return
-	}
 	w.Output = &s
 }
 

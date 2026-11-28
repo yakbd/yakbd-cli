@@ -1,0 +1,9 @@
+# name<TAB>strokes<TAB>expected (README.md). One of twin-next-none, twin-empty-output and twin-next-sink, three small
+# layouts that differ only in one <when> (dead key ring on Minus 27, key x 7): here <when state="ring" next="none"/>. A layout the system does not
+# list fails at "visible". Expected: ring then x types nothing, then e types e.
+plain-a	0	a
+plain-m	46	ʘ
+shift-a	0+shift	A
+ring-a	27 0	å
+ring-s	27 1 14	se
+ring-x-nothing	27 7 14	e

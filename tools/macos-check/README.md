@@ -103,10 +103,19 @@ follows it), its own `inputSourceId` and a keyboard id of its own (pinned, or th
   right-hand key selects the left-hand map (`A`, `å`), so `expect.tsv` holds that. `translate:` lines of right-hand
   strokes are `INFO` only (which bits `UCKeyTranslate` wants for them is this checker's guess).
 - `gen-pending` (generated, with `extra.tsv`): a key with no output while a dead key is pending, a dead key with
-  `noMatch` `emitNothing` (`next="none"` without output), and a terminator plus a two-character output in one press
-  under the default `maxout` (§8 items 1, 2, 7); the `extra.tsv` line of `gen-demo` does that press too.
-- `gen-maxout` (generated, with `extra.tsv`): the same press with `maxout` pinned to 2, one less than it needs (the
-  build's `macos.outputBeyondMaxout` made a warning), to see what macOS does with such a file (§8 item 7).
+  `noMatch` `emitNothing` (written as `<when state="macron" output=""/>`), and a terminator plus a two-character output
+  in one press under the default `maxout` (§8 items 1, 2, 7); the `extra.tsv` line of `gen-demo` does that press too.
+  Built with `next="none"` (no output) instead, the layout was not listed at all (runs 46117765009, 46119172899).
+- `gen-spacing` (generated, with `extra.tsv`): `gen-pending` with `noMatch` `emitSpacing`: the same build path (every
+  text an action, control characters in `<when>` outputs) without an empty output, to tell that path apart from the
+  empty output.
+- `twin-next-none`, `twin-empty-output`, `twin-next-sink` (hand-written from one yakbd build): three small layouts that
+  differ only in one `<when>` of a dead key on a printable key: `next="none"` alone, `output=""`, and `next` to a state
+  with no `<when>` and no terminator. Which of them the system lists says which form of "nothing" macOS accepts.
+- `gen-maxout` (generated, with `extra.tsv`): the same press with `maxout` pinned to 2, the longest single output and
+  one less than terminator and output together (§8 item 7), and a key code without a key pressed while the dead key is
+  pending (§8 item 1, in a layout that is listed). It also shows that key codes without a key do not stop a layout
+  from loading.
 - `gen-lproj-hyphen`, `gen-lproj-utf8` (generated, with `name.txt`): the localised name only in a hyphenated
   `en-US.lproj`, and one with letters outside ASCII in the UTF-8 `InfoPlist.strings` the build writes (§8 item 4).
 - `gen-klc` (generated): the repository's `testdata/klc/msklc-style.klc` converted by `yakbd convert` (rows MSKLC adds,

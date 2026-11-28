@@ -1,0 +1,3 @@
+# Hand-written line (README.md, extra.tsv): macron has noMatch emitSpacing: x (7) gets <when state="macron" output="¯"/>
+# (the spacing, x not typed), then e; a terminator would give ¯xe.
+spacing-x	27 7 14	¯e

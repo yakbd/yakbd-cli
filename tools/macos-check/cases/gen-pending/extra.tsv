@@ -1,7 +1,7 @@
 # Hand-written lines (README.md, extra.tsv) for targets/macos.md §8 of the kbl spec; each outcome types differently.
 # (1) KeyQ (12) has no output: the model leaves the acute pending (é); a terminator would give ´e, a cancel e.
 pending-no-output	24 12 14	é
-# (2) macron has noMatch emitNothing: x (7) gets <when state="macron" next="none"/>: nothing, then e; else xe or ¯xe.
-nothing-next-none	27 7 14	e
-# (7) terminator ´ and ng in one press, 3 UTF-16 units under the default maxout (3).
+# (2) macron has noMatch emitNothing: x (7) gets <when state="macron" output=""/>: nothing, then e; else xe or ¯xe.
+nothing-empty-output	27 7 14	e
+# (7) terminator ´ and ng in one press, 3 UTF-16 units; maxout is 2 (the longest single output).
 terminator-multi	24 45	´ng
