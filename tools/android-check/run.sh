@@ -103,30 +103,44 @@ restart_field() { # after the layout tool or a system restart: the app process i
 
 hex2dec() { printf '%d' "$1"; }
 
-# Root route: write a user selection into input-manager-state.xml while the system is stopped.
+# Root route: write a choice into input-manager-state.xml while the system is stopped. The entry is a copy of
+# the one the api route stored for its keyboard (case fields from_device, from_pid, from_layout), with that
+# keyboard's ids and layout replaced; without such an entry it is built from the key format of
+# KeyboardLayoutManager (Android 15 and later).
 root_select() { # name vid pid layoutdesc
   local name=$1 vid pid layout=$4 handle abx=0 f=/data/system/input-manager-state.xml
+  local fpid fdesc ndesc
   vid=$(hex2dec "$2"); pid=$(hex2dec "$3")
   [ -s "$OUT/layouts.txt" ] || layout_tool dump > "$OUT/layouts.txt"
   if [ "$(sh_ "head -c 3 $f")" = ABX ]; then abx=1; sh_ "abx2xml $f $D/ims.xml" >> "$LOG"; else sh_ "cp $f $D/ims.xml" >> "$LOG"; fi
   adb pull "$D/ims.xml" "$OUT/ims-before.xml" > /dev/null 2>&1 || echo '<?xml version="1.0" encoding="utf-8" standalone="yes" ?><input-manager-state></input-manager-state>' > "$OUT/ims-before.xml"
-  # The keyboard subtype part of the key: from an entry the api route wrote, else from the layout tool.
-  handle=$(grep -o "subtypeHandle:[^\"]*" "$OUT/ims-before.xml" | head -n 1 | cut -d: -f2-)
-  [ -n "$handle" ] || handle=$(grep "^subtype-handle " "$OUT/layouts.txt" | head -n 1 | cut -d" " -f2)
-  [ -n "$handle" ] || { echo "no keyboard subtype handle"; return 1; }
-  local dev="<input-device descriptor=\"vendor:$vid,product:$pid\""
-  local keyed="<keyed-keyboard-layout key=\"layoutDescriptor:vendor:$vid,product:$pid,userId:0,subtypeHandle:$handle\" layout=\"$layout\" />"
-  local entry="$dev>$keyed</input-device>"
-  if grep -qF "$dev />" "$OUT/ims-before.xml"; then
-    sed "s#$dev />#$entry#" "$OUT/ims-before.xml" > "$OUT/ims-after.xml"
-  elif grep -qF "$dev>" "$OUT/ims-before.xml"; then
-    sed "s#$dev>#$dev>$keyed#" "$OUT/ims-before.xml" > "$OUT/ims-after.xml"
-  elif grep -q '</input-devices>' "$OUT/ims-before.xml"; then
-    sed "s#</input-devices>#$entry</input-devices>#" "$OUT/ims-before.xml" > "$OUT/ims-after.xml"
-  elif grep -q '<input-devices */>' "$OUT/ims-before.xml"; then
-    sed "s#<input-devices */>#<input-devices>$entry</input-devices>#" "$OUT/ims-before.xml" > "$OUT/ims-after.xml"
+  fdesc=$(cat "$OUT"/cases/*.tool.txt 2>/dev/null | grep -m1 "^device $from_device " | sed 's/.*descriptor=//')
+  ndesc=$(layout_tool dump "$name" | grep -m1 "^device $name " | sed 's/.*descriptor=//')
+  [ -n "$from_pid" ] && fpid=$(hex2dec "$from_pid")
+  if [ -n "$from_pid" ] && grep -qF "<input-device descriptor=\"vendor:$vid,product:$fpid\">" "$OUT/ims-before.xml"; then
+    awk -v src="<input-device descriptor=\"vendor:$vid,product:$fpid\"" -v dst="<input-device descriptor=\"vendor:$vid,product:$pid\"" \
+        -v fdesc="$fdesc" -v ndesc="$ndesc" -v fl="$from_layout" -v nl="$layout" -v fk="vendor:$vid,product:$fpid" -v nk="vendor:$vid,product:$pid" '
+      function sub_all(s, a, b,   out, i) { out = ""; while ((i = index(s, a)) > 0) { out = out substr(s, 1, i - 1) b; s = substr(s, i + length(a)) } return out s }
+      FNR == NR { if (index($0, src) && !copying) { copying = 1 } if (copying) { blk = blk $0 "\n"; if (index($0, "</input-device>") || index($0, src "/>") || index($0, src " />")) copying = 0 } next }
+      index($0, dst) { skip = 1 }
+      skip { if (index($0, "</input-device>") || index($0, "/>") && index($0, dst)) { skip = 0 } next }
+      index($0, "</input-devices>") { b = sub_all(blk, fk, nk); b = sub_all(b, fl, nl); if (fdesc != "" && ndesc != "") b = sub_all(b, fdesc, ndesc); printf "%s", b }
+      { print }' "$OUT/ims-before.xml" "$OUT/ims-before.xml" > "$OUT/ims-after.xml"
   else
-    sed "s#</input-manager-state>#<input-devices>$entry</input-devices></input-manager-state>#" "$OUT/ims-before.xml" > "$OUT/ims-after.xml"
+    handle=$(grep -o "subtypeHandle:[^\"]*" "$OUT/ims-before.xml" | head -n 1 | cut -d: -f2-)
+    [ -n "$handle" ] || handle=$(grep "^subtype-handle " "$OUT/layouts.txt" | head -n 1 | cut -d" " -f2)
+    [ -n "$handle" ] || { echo "no keyboard subtype handle"; return 1; }
+    local dev="<input-device descriptor=\"vendor:$vid,product:$pid\""
+    local keyed="<keyed-keyboard-layout key=\"layoutDescriptor:vendor:$vid,product:$pid,userId:0,subtypeHandle:$handle\" layout=\"$layout\" />"
+    if grep -qF "$dev />" "$OUT/ims-before.xml"; then
+      sed "s#$dev />#$dev>$keyed</input-device>#" "$OUT/ims-before.xml" > "$OUT/ims-after.xml"
+    elif grep -qF "$dev>" "$OUT/ims-before.xml"; then
+      sed "s#$dev>#$dev>$keyed#" "$OUT/ims-before.xml" > "$OUT/ims-after.xml"
+    elif grep -q '</input-devices>' "$OUT/ims-before.xml"; then
+      sed "s#</input-devices>#$dev>$keyed</input-device></input-devices>#" "$OUT/ims-before.xml" > "$OUT/ims-after.xml"
+    else
+      sed "s#</input-manager-state>#<input-devices>$dev>$keyed</input-device></input-devices></input-manager-state>#" "$OUT/ims-before.xml" > "$OUT/ims-after.xml"
+    fi
   fi
   adb push "$OUT/ims-after.xml" "$D/ims-after.xml" > /dev/null
   sh_ stop >> "$LOG"
@@ -178,7 +192,7 @@ sel="${ANDROID_CHECK_CASES:-}"
 for cf in "$HERE"/cases/*.case; do
   name=$(basename "$cf" .case)
   if [ -n "$sel" ] && [[ " $sel " != *" $name "* ]]; then continue; fi
-  kind="" apk="" package="" nocode="" install="" missing="" device="" vid="" pid="" select="" layout="" keys="" taps="" expect="" expect_ime="" got="" ik=""
+  kind="" apk="" package="" nocode="" install="" from_device="" from_pid="" from_layout="" missing="" device="" vid="" pid="" select="" layout="" keys="" taps="" expect="" expect_ime="" got="" ik=""
   while IFS='=' read -r k v; do
     case $k in ''|'#'*) continue ;; esac
     printf -v "$k" '%s' "$v"

@@ -119,6 +119,20 @@ class LayoutTool : Instrumentation() {
                 } else {
                     line("no setKeyboardLayoutForInputDevice with 5 parameters")
                 }
+                // Android 14 (API 34) still applies the layout chosen through the older per-keyboard methods.
+                if (android.os.Build.VERSION.SDK_INT <= 34) {
+                    for (old in listOf("addKeyboardLayoutForInputDevice", "setCurrentKeyboardLayoutForInputDevice")) {
+                        val m = method(im, old, 2)
+                        try {
+                            if (m == null) line("no $old") else {
+                                m.invoke(im, id, layout)
+                                line("called-old $old(identifier, $layout)")
+                            }
+                        } catch (t: Throwable) {
+                            line("$old failed ${describe(t)}")
+                        }
+                    }
+                }
                 Thread.sleep(1500)
             }
             val get = method(im, "getKeyboardLayoutForInputDevice", 4)
