@@ -408,3 +408,36 @@ rejects an unsigned layout bundle while the system still lists, compiles and sel
   `.keylayout`, so the CLDR osx data is not a corpus for this reader.
 - The kbl specification's `targets/macos.md`, `coverage/macos.md` and `targets/macos-default-keycode.tsv` (branch
   `spec-0.2`, this project's own repository) for every build and import rule.
+
+## Linux / XKB
+
+### The Linux layout check (2026-11-28)
+
+`tools/xkb-check/` (test layouts, Compose files, case table, the C helpers, `inside.sh`, `run.sh`, Dockerfiles) is
+our own text and code. The two test layouts and the Compose files were written for this check; no layout was
+copied, and no protocol file is committed (KWin's is generated from the distribution's copy when the image is
+built). Public sources read 2026-11-28, facts only, no code or prose taken:
+- libxkbcommon (https://github.com/xkbcommon/libxkbcommon, MIT): `NEWS.md` (UTF-8 strings as keysyms from 1.9,
+  the text format V2 from 1.11, the extension directories from 1.13, the ß to ẞ upper-case mapping),
+  `doc/custom-configuration.md` (the user path `$XDG_CONFIG_HOME/xkb`, a user `rules/evdev.xml` for the settings
+  apps, "does not work in X11 sessions"), `doc/compatibility.md` (several keysyms per level: parsing only in X11),
+  `doc/keymap-text-format-v1-v2.md` (the four-level key types and their Lock handling), `src/compose/paths.c` (the
+  Compose file order `$XCOMPOSEFILE`, `$XDG_CONFIG_HOME/XCompose`, `~/.XCompose`), and the public API in
+  `xkbcommon.h` / `xkbcommon-compose.h` as installed by the distributions.
+- mutter (https://gitlab.gnome.org/GNOME/mutter, GPL-2.0-or-later): `data/dbus-interfaces/org.gnome.Mutter.RemoteDesktop.xml`,
+  for the method names and signatures `CreateSession`, `Start`, `Stop`, `NotifyKeyboardKeycode`, and
+  `src/compositor/plugins/default.c` (bare mutter reads its keymap from `org.freedesktop.locale1` `X11Layout`,
+  `X11Model`, `X11Variant`, `X11Options` on the system bus).
+- weston (https://gitlab.freedesktop.org/wayland/weston, MIT): `libweston/backend-x11/x11.c` (the nested X11
+  backend compiles its keymap from the X root property `_XKB_RULES_NAMES` and takes the modifier state from the X
+  server).
+- wlroots (https://gitlab.freedesktop.org/wlroots/wlroots, MIT): `backend/x11/input_device.c` (the nested X11
+  backend passes key codes and takes the modifier state from the X server's events).
+- KWin (https://invent.kde.org/plasma/kwin, GPL-2.0-or-later): `src/wayland_server.cpp` (fake input is restricted
+  only for sandboxed clients) and `src/backends/fakeinput/fakeinputbackend.cpp` (`authenticate` always succeeds;
+  `keyboard_key` feeds a fake keyboard device). plasma-wayland-protocols
+  (https://invent.kde.org/libraries/plasma-wayland-protocols, LGPL-2.1-or-later): `src/protocols/fake-input.xml`
+  (request names and versions; `keyboard_key` since version 4).
+- xkeyboard-config's `types/caps` and `types/extra` as installed in the images (the `FOUR_LEVEL_SEMIALPHABETIC`
+  type keeps Lock on level 3).
+- Runtime messages of the programs themselves (KWin: the nested X11 backend needs DRI3 1.2; xkbcomp's warnings).

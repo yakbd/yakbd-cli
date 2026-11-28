@@ -1,0 +1,4 @@
+# The Compose file a build installs as ~/.XCompose (MIT-0).
+include "%L"
+<dead_acute> <x> : "ẋ"
+<dead_acute> <z> : "1"

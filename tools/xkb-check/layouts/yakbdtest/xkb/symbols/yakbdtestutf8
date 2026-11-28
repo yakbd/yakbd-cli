@@ -1,0 +1,21 @@
+// The same test layout written with UTF-8 strings (libxkbcommon 1.9 and later).
+// MIT-0.
+
+default partial alphanumeric_keys
+xkb_symbols "basic" {
+    include "us(basic)"
+    name[Group1] = "YAKBD test (UTF-8)";
+
+    key <AC01> { type[Group1] = "FOUR_LEVEL_ALPHABETIC",
+                 [ "æ", "Æ", "ø", "Ø" ] };
+    key <AC02> { type[Group1] = "FOUR_LEVEL_SEMIALPHABETIC",
+                 [ "ð", "Ð", "þ", "Þ" ] };
+    key <AE01> { type[Group1] = "FOUR_LEVEL",
+                 [ "§", "°", "¹", "¡" ] };
+    key <AC03> { type[Group1] = "FOUR_LEVEL",
+                 [ "œ", "Œ", "ß", "ẞ" ] };
+    key <AC11> { [ dead_acute, dead_diaeresis ] };
+    key <AE12> { [ "ng", "+" ] };
+
+    include "level3(ralt_switch)"
+};

@@ -16,6 +16,8 @@ executes; nothing here runs on Windows.
 
 `tools/macos-check` is not Go: a Swift checker and a shell driver for GitHub's Mac runners (workflow `macos-layout-check.yml`, contract `tools/macos-check/README.md`); a case may be a `layout.kbl.json` that the driver builds with yakbd (`compile -target macos -emit-expectations`).
 
+`tools/xkb-check` is not Go either: C helpers built inside Docker images and a shell driver, `tools/xkb-check/run.sh OUTDIR`, that types test layouts through X11, sway, weston, KWin and mutter in rootless Docker (contract `tools/xkb-check/README.md`). Run it once per relevant change, not in loops.
+
 `tools/buildstub` and `tools/toolsetup` belong to `installer/AGENTS.md`; `tools/release` (every release asset, reproducible) to `docs/release.md`; `tools/genucd` to
 `internal/unicode/norm/AGENTS.md`.
 

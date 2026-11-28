@@ -1,0 +1,30 @@
+// Hand-written test layout for tools/xkb-check (MIT-0).
+// Keysym names only, so libxkbcommon before 1.9 and xkbcomp can read it.
+// Base: US QWERTY; level 3 on Right Alt.
+
+default partial alphanumeric_keys
+xkb_symbols "basic" {
+    include "us(basic)"
+    name[Group1] = "YAKBD test";
+
+    // Caps Lock acts on levels 1-2 and 3-4.
+    key <AC01> { type[Group1] = "FOUR_LEVEL_ALPHABETIC",
+                 [ ae, AE, oslash, Oslash ] };
+    // Caps Lock selects level 2 from level 1; with level 3 it keeps (preserves) Lock,
+    // so libxkbcommon still capitalises the level-3 letter (measured: Caps+AltGr gives THORN).
+    key <AC02> { type[Group1] = "FOUR_LEVEL_SEMIALPHABETIC",
+                 [ eth, ETH, thorn, THORN ] };
+    // Caps Lock selects no level.
+    key <AE01> { type[Group1] = "FOUR_LEVEL",
+                 [ section, degree, onesuperior, exclamdown ] };
+    // FOUR_LEVEL does not use Caps Lock, so Lock is never consumed: does Caps still
+    // capitalise the letter?
+    key <AC03> { type[Group1] = "FOUR_LEVEL",
+                 [ oe, OE, ssharp, U1E9E ] };
+    // Dead key; its table is the Compose file.
+    key <AC11> { [ dead_acute, dead_diaeresis ] };
+    // Two characters from one key press (level 1).
+    key <AE12> { [ { n, g }, plus ] };
+
+    include "level3(ralt_switch)"
+};

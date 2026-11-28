@@ -1,0 +1,4 @@
+# Probe file for ~/.config/gtk-4.0/Compose: same sequence, another answer.
+include "%L"
+<dead_acute> <x> : "ẋ"
+<dead_acute> <z> : "3"

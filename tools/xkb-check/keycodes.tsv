@@ -1,0 +1,14 @@
+# XKB key name, XKB keycode (evdev code + 8) for every key a case may press.
+AE01	10
+AE12	21
+AD03	26
+AC01	38
+AC02	39
+AC11	48
+AB01	52
+AB02	53
+LFSH	50
+RALT	108
+CAPS	66
+RTRN	36
+AC03	40

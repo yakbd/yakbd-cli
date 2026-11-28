@@ -1,0 +1,28 @@
+# case	layout	compose	keys	expected
+# layout: an XKB layout name (installed under ~/.config/xkb, or a system one).
+# compose: "build" installs compose/XCompose as ~/.XCompose; "probe" installs all three
+#   compose/ files, each answering <dead_acute> <z> differently (1 = ~/.XCompose,
+#   2 = ~/.config/XCompose, 3 = ~/.config/gtk-4.0/Compose).
+# keys: <NAME> taps a key, +<NAME> holds it down, -<NAME> lets it go (names: keycodes.tsv).
+# expected: the text the case types.
+l1	yakbdtest	build	<AC01>	æ
+l2	yakbdtest	build	+<LFSH> <AC01> -<LFSH>	Æ
+l3	yakbdtest	build	+<RALT> <AC01> -<RALT>	ø
+l4	yakbdtest	build	+<LFSH> +<RALT> <AC01> -<RALT> -<LFSH>	Ø
+caps-alpha-l1	yakbdtest	build	<CAPS> <AC01> <CAPS>	Æ
+caps-alpha-l3	yakbdtest	build	<CAPS> +<RALT> <AC01> -<RALT> <CAPS>	Ø
+caps-semi-l1	yakbdtest	build	<CAPS> <AC02> <CAPS>	Ð
+caps-semi-l3	yakbdtest	build	<CAPS> +<RALT> <AC02> -<RALT> <CAPS>	Þ
+caps-none	yakbdtest	build	<CAPS> <AE01> <CAPS>	§
+caps-four-l1	yakbdtest	build	<CAPS> <AC03> <CAPS>	Œ
+caps-four-l3	yakbdtest	build	<CAPS> +<RALT> <AC03> -<RALT> <CAPS>	ẞ
+dead-system	yakbdtest	build	<AC11> <AD03>	é
+dead-own	yakbdtest	build	<AC11> <AB02>	ẋ
+dead-xcompose	yakbdtest	build	<AC11> <AB01>	1
+multi	yakbdtest	build	<AE12>	ng
+probe-file	yakbdtest	probe	<AC11> <AB01>	2
+utf8-l1	yakbdtestutf8	build	<AC01>	æ
+utf8-l4	yakbdtestutf8	build	+<LFSH> +<RALT> <AC01> -<RALT> -<LFSH>	Ø
+utf8-caps-semi-l3	yakbdtestutf8	build	<CAPS> +<RALT> <AC02> -<RALT> <CAPS>	Þ
+utf8-multi	yakbdtestutf8	build	<AE12>	ng
+control-us	us	build	<AC01> <AE12>	a=
