@@ -99,12 +99,14 @@ follows it), its own `inputSourceId` and a keyboard id of its own (pinned, or th
 
 - `sides` (hand-written from a yakbd build): key maps chosen by the left-hand words `shift` and `option` and the
   right-hand words `rightShift` and `rightOption`, which differ only in key code 0 (`A` or `Ʀ`, `å` or `ɒ`): does
-  macOS hand a layout the right-hand state (kbl spec `targets/macos.md` §8 item 3)? `translate:` lines show what the
-  layout data does with the right-hand bits, `type-cgevent:` lines what the system delivers.
+  macOS hand a layout the right-hand state (kbl spec `targets/macos.md` §8 item 3)? Measured (run 46117765009): no, the
+  right-hand key selects the left-hand map (`A`, `å`), so `expect.tsv` holds that. `translate:` lines of right-hand
+  strokes are `INFO` only (which bits `UCKeyTranslate` wants for them is this checker's guess).
 - `gen-pending` (generated, with `extra.tsv`): a key with no output while a dead key is pending, a dead key with
   `noMatch` `emitNothing` (`next="none"` without output), and a terminator plus a two-character output in one press
-  with `maxout` pinned to 2 (the build's `macos.outputBeyondMaxout` made a warning) (§8 items 1, 2, 7). The
-  `extra.tsv` line of `gen-demo` does the same press under the default `maxout`.
+  under the default `maxout` (§8 items 1, 2, 7); the `extra.tsv` line of `gen-demo` does that press too.
+- `gen-maxout` (generated, with `extra.tsv`): the same press with `maxout` pinned to 2, one less than it needs (the
+  build's `macos.outputBeyondMaxout` made a warning), to see what macOS does with such a file (§8 item 7).
 - `gen-lproj-hyphen`, `gen-lproj-utf8` (generated, with `name.txt`): the localised name only in a hyphenated
   `en-US.lproj`, and one with letters outside ASCII in the UTF-8 `InfoPlist.strings` the build writes (§8 item 4).
 - `gen-klc` (generated): the repository's `testdata/klc/msklc-style.klc` converted by `yakbd convert` (rows MSKLC adds,
@@ -117,7 +119,8 @@ Not measurable here: adding a layout by hand in System Settings (§8 item 5) and
 
 ## Locally
 
-On a Mac, `tools/macos-check/run.sh OUT` does the same as the workflow. It installs into your own
+On a Mac, `tools/macos-check/run.sh OUT` does the same as the workflow. `MACOS_CHECK_CASES="a b"` (the workflow's
+input `cases`) runs only those cases, for a re-run of a few. It installs into your own
 `~/Library/Keyboard Layouts`, adds each test layout to your enabled input sources and selects it, so remove them and switch back afterwards.
 
 ## Runs

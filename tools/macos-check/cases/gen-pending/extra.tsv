@@ -3,6 +3,5 @@
 pending-no-output	24 12 14	é
 # (2) macron has noMatch emitNothing: x (7) gets <when state="macron" next="none"/>: nothing, then e; else xe or ¯xe.
 nothing-next-none	27 7 14	e
-# (7) maxout is pinned to 2: terminator ´ and ng in one press are 3 units (´ng); cut to 2 would give ´n.
-maxout-terminator-multi	24 45	´ng
-maxout-terminator-one	24 7	´x
+# (7) terminator ´ and ng in one press, 3 UTF-16 units under the default maxout (3).
+terminator-multi	24 45	´ng

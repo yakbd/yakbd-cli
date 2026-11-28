@@ -1,9 +1,9 @@
 # name<TAB>strokes<TAB>expected (README.md). targets/macos.md §8 item 3 of the kbl spec: does macOS hand a layout the
-# right-hand state? rshift / roption hold Right Shift / Right Option. Ʀ / ɒ: the right-hand key maps were used;
-# A / å: the right key counts as the left one; a: neither matched.
+# right-hand state? rshift / roption hold Right Shift / Right Option. The layout has key maps for the right-hand words
+# rightShift / rightOption (Ʀ / ɒ on key code 0); measured: the right-hand key selects the left-hand map (A / å).
 plain-a	0	a
 shift-a	0+shift	A
-rshift-a	0+rshift	Ʀ
+rshift-a	0+rshift	A
 option-a	0+option	å
-roption-a	0+roption	ɒ
+roption-a	0+roption	å
 rshift-s	1+rshift	S

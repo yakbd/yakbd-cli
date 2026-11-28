@@ -50,6 +50,8 @@ pass control -control - 5
 yakbd=
 for c in "$here"/cases/*/; do
 	name=$(basename "$c")
+	# MACOS_CHECK_CASES: only these cases (names separated by spaces), for a re-run of a few
+	if [ -n "${MACOS_CHECK_CASES:-}" ] && ! printf ' %s ' "$MACOS_CHECK_CASES" | grep -q " $name "; then continue; fi
 	if [ -f "$c/layout.kbl.json" ] && ! ls -d "$c"*.bundle >/dev/null 2>&1; then
 		if [ -z "$yakbd" ]; then
 			yakbd=$out/yakbd

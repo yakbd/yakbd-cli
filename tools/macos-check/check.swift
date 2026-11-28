@@ -345,6 +345,11 @@ if control {
     if let data = uchr {
         for c in cases {
             let (got, err, dead) = translate(data, c.strokes)
+            if c.strokes.contains(where: { $0.rshift || $0.roption }) {
+                // Which bits UCKeyTranslate wants for a right-hand key is not documented: shown, not checked.
+                emit("INFO", "translate:\(c.name)", "status \(err), got \(show(got)) (right-hand bits are this checker's guess)")
+                continue
+            }
             if err != noErr {
                 emit("FAIL", "translate:\(c.name)", "UCKeyTranslate = \(err)")
             } else if got == c.want {

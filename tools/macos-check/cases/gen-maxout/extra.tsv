@@ -1,0 +1,5 @@
+# Hand-written lines (README.md, extra.tsv), targets/macos.md §8 item 7 of the kbl spec: terminator ´ and ng in one
+# press are 3 UTF-16 units, maxout is 2: ´ng = maxout not applied to both together, ´n or ´ = cut. A layout the
+# system does not list at all fails at "visible".
+maxout-terminator-multi	24 45	´ng
+maxout-terminator-one	24 7	´x

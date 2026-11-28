@@ -3,7 +3,7 @@
   "metadata": {
     "id": "en-t-k0-yakbdpending",
     "name": "YAKBDGenPending",
-    "description": "A test layout for tools/macos-check (MIT-0, written for this repository): a key with no output pressed while a dead key is pending (KeyQ is a position without a binding), a dead key with noMatch emitNothing, and a dead key followed by a two-character output with maxout pinned to 2 (the build reports macos.outputBeyondMaxout, made a warning here, so macOS shows what it does with it)."
+    "description": "A test layout for tools/macos-check (MIT-0, written for this repository): a key with no output pressed while a dead key is pending (KeyQ is a position without a binding), a dead key with noMatch emitNothing, and a dead key followed by a two-character output under the default maxout."
   },
   "positions": {
     "KeyQ": {},
@@ -155,13 +155,7 @@
       "layoutName": "YAKBDGenPending",
       "bundleName": "YAKBDGenPending",
       "bundleId": "org.yakbd.keyboardlayout.check.genpending",
-      "inputSourceId": "org.yakbd.keyboardlayout.check.genpending.yakbdgenpending",
-      "maxout": 2,
-      "onLoss": {
-        "kinds": {
-          "macos.outputBeyondMaxout": "warning"
-        }
-      }
+      "inputSourceId": "org.yakbd.keyboardlayout.check.genpending.yakbdgenpending"
     }
   }
 }
