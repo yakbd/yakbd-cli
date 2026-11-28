@@ -3,6 +3,7 @@ package build
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/yakbd/yakbd-cli/format/kbljson"
@@ -76,5 +77,28 @@ func TestPin(t *testing.T) {
 		if string(js3) != string(js) {
 			t.Errorf("%s: second pin changes the file", filepath.Base(f))
 		}
+	}
+}
+
+// TestBuildKeepsInput: a build never changes the layout it builds (pin writes the layout, expectations read it).
+func TestBuildKeepsInput(t *testing.T) {
+	src := `{"kbl": "0.2", "metadata": {"id": "en", "name": "N"}, "positions": {"KeyA": {}, "KeyE": {}},
+	 "hardware": {"layers": [{"modifiers": [[]], "bindings": {"KeyA": {"deadKey": "acute"}, "KeyE": "e"}}]},
+	 "deadKeys": {"acute": {"spacing": "´", "entries": [{"base": "e", "result": "é"}, {"base": {"utf16": ["0061"]}, "result": "á"}]}}}`
+	l, r := kbljson.Read([]byte(src), "t.kbl.json")
+	if r.HasErrors() {
+		t.Fatal(r.Summary())
+	}
+	before, _ := kbljson.Write(l)
+	res, br := Build(l, Options{})
+	if res == nil {
+		t.Fatal(br.Summary())
+	}
+	after, _ := kbljson.Write(l)
+	if string(before) != string(after) {
+		t.Errorf("the build changed its input:\n%s\n---\n%s", before, after)
+	}
+	if !strings.Contains(string(keylayout.Write(res.Keyboard)), `output="é"`) {
+		t.Errorf("the result is not NFC")
 	}
 }

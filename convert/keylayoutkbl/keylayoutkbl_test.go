@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 	"testing"
@@ -111,13 +112,26 @@ func TestCorpus(t *testing.T) {
 				t.Fatalf("build: %s", br.Summary())
 			}
 			k2, _ := keylayout.Read(out, "built")
+			// One key press types the same everywhere; a dead key followed by a key may differ only where the import
+			// reported a dead-key shape the model cannot say (coverage/macos.md §4).
 			diffs := typeDiffs(k, k2)
 			w := warnings(ir)
-			if len(diffs) > 0 {
-				if len(w) == 0 {
-					t.Errorf("%d typing differences without a reported loss, first: %s", len(diffs), strings.Join(diffs[:min(5, len(diffs))], "; "))
+			var single, pairs []string
+			for _, d := range diffs {
+				if strings.HasPrefix(d, "[") {
+					pairs = append(pairs, d)
 				} else {
-					t.Logf("%d typing differences, losses %v; first: %s", len(diffs), w, strings.Join(diffs[:min(3, len(diffs))], "; "))
+					single = append(single, d)
+				}
+			}
+			if len(single) > 0 {
+				t.Errorf("%d single key presses type differently, first: %s", len(single), strings.Join(single[:min(5, len(single))], "; "))
+			}
+			if len(pairs) > 0 {
+				if !slices.Contains(w, "macos.stateNotExpressible") {
+					t.Errorf("%d dead-key sequences type differently without macos.stateNotExpressible, first: %s", len(pairs), strings.Join(pairs[:min(5, len(pairs))], "; "))
+				} else {
+					t.Logf("%d dead-key sequences differ (macos.stateNotExpressible); first: %s", len(pairs), strings.Join(pairs[:min(3, len(pairs))], "; "))
 				}
 			}
 			// second round: built file -> kbl -> built file is stable

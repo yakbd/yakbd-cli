@@ -15,7 +15,7 @@ import (
 var table string
 
 // SpecCommit is the kbl-spec commit (branch spec-0.2) the embedded table was copied from.
-const SpecCommit = "079a3da5fbeb09ac0e7ba33af9756d412dfe64ee"
+const SpecCommit = "36f5685b23197a9e39943bf2c7c1a80cacbd8cc7"
 
 // Row is one row of the table.
 type Row struct {

@@ -36,6 +36,13 @@ func strokeState(s model.State) (bool, bool, bool) { return s.Shift, s.AltL, s.C
 // empty ones. At most max lines (0: all), dead-key lines first.
 func Expectations(l *model.Layout, res *build.Result, max int) []Expectation {
 	norm := l.Normalizes()
+	baseText := func(v model.Value) string { // as the build compares it
+		o := model.Output{Units: v.UTF16(), Exact: v.Kind == model.ValueUnits}
+		if norm && !o.Exact {
+			o = o.NFC()
+		}
+		return string(utf16.Decode(o.Units))
+	}
 	text := func(o model.Output) (string, bool) {
 		if o.DeadKey != "" || len(o.Units) == 0 {
 			return "", false
@@ -111,7 +118,7 @@ func Expectations(l *model.Layout, res *build.Result, max int) []Expectation {
 				}
 				bk = k
 			default:
-				k, ok := typer[string(utf16.Decode(e.Base.UTF16()))]
+				k, ok := typer[baseText(e.Base)]
 				if !ok {
 					continue
 				}
@@ -125,7 +132,7 @@ func Expectations(l *model.Layout, res *build.Result, max int) []Expectation {
 						if fe.Base.Kind == model.ValueDeadKey {
 							continue
 						}
-						if k3, ok := typer[string(utf16.Decode(fe.Base.UTF16()))]; ok {
+						if k3, ok := typer[baseText(fe.Base)]; ok {
 							deadLines = append(deadLines, Expectation{Name: "chain-" + id + "-" + e.Result.DeadKey + "-" + name(k3.pos, k3.st),
 								Strokes: seq(bk, k3), Want: TypeModel(l, []key2{{first.pos, first.st}, {bk.pos, bk.st}, {k3.pos, k3.st}})})
 						}
@@ -174,10 +181,18 @@ type key2 struct {
 }
 
 // TypeModel types positions in states with the dead-key machine of SPEC §14.2 and returns the text emitted
-// (markers dropped, NFC per settings.normalization, a dead key still pending at the end emits nothing).
+// (markers dropped, each emitted text NFC per settings.normalization, a dead key still pending at the end emits
+// nothing).
 func TypeModel(l *model.Layout, strokes []key2) string {
 	var out []uint16
 	pending := ""
+	// emit normalises each emitted text on its own, as the build normalises each output (CodeUnits stay exact)
+	emit := func(u []uint16, exact bool) {
+		if l.Normalizes() && !exact {
+			u = model.Output{Units: u}.NFC().Units
+		}
+		out = append(out, u...)
+	}
 	spacing := func(id string) []uint16 {
 		if dk := l.DeadKeys[id]; dk != nil {
 			return dk.Spacing.UTF16()
@@ -193,7 +208,7 @@ func TypeModel(l *model.Layout, strokes []key2) string {
 			if o.DeadKey != "" {
 				pending = o.DeadKey
 			} else {
-				out = append(out, o.Units...)
+				emit(o.Units, o.Exact)
 			}
 			continue
 		}
@@ -211,7 +226,7 @@ func TypeModel(l *model.Layout, strokes []key2) string {
 			if entry.Result.Kind == model.ValueDeadKey {
 				pending = entry.Result.DeadKey
 			} else {
-				out = append(out, entry.Result.UTF16()...)
+				emit(entry.Result.UTF16(), entry.Result.Kind == model.ValueUnits)
 				pending = ""
 			}
 			continue
@@ -222,21 +237,17 @@ func TypeModel(l *model.Layout, strokes []key2) string {
 		}
 		switch dk.NoMatch {
 		case "emitText":
-			out = append(out, t...)
+			emit(t, false)
 		case "emitSpacing":
-			out = append(out, spacing(pending)...)
+			emit(spacing(pending), false)
 		case "emitNothing":
 		default:
-			out = append(out, spacing(pending)...)
-			out = append(out, t...)
+			emit(spacing(pending), false)
+			emit(t, false)
 		}
 		pending = ""
 	}
-	o := model.Output{Units: out}
-	if l.Normalizes() {
-		o = o.NFC()
-	}
-	return string(utf16.Decode(o.Units))
+	return string(utf16.Decode(out))
 }
 
 func hasControl(s string) bool {

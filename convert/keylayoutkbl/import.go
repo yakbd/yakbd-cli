@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
+	"strings"
 
 	"github.com/yakbd/yakbd-cli/format/keylayout"
 	"github.com/yakbd/yakbd-cli/loss"
@@ -84,7 +85,7 @@ func macState(s int) keylayout.State {
 var stateNameRE = regexp.MustCompile(`^[A-Za-z0-9._:-]{1,64}$`)
 
 // FromKeylayout converts a keyboard read by keylayout.Read into a layout (coverage/macos.md §2 to §6). id is the
-// layout's metadata.id; empty gives und-x-<slug of the name>.
+// layout's metadata.id; empty gives und-x-<slug of the name, each part at most 8 characters>.
 func FromKeylayout(k *keylayout.Keyboard, name, id string) (*model.Layout, *loss.Report) {
 	im := &importer{k: k, name: name, r: &loss.Report{}, tables: map[int]table{}, keys: map[int]map[int]keylayout.Key{},
 		shapes: map[string][]string{}, ranges: map[int]bool{}, ids: deadIDs(k)}
@@ -203,7 +204,13 @@ func FromKeylayout(k *keylayout.Keyboard, name, id string) (*model.Layout, *loss
 	l := &model.Layout{Kbl: model.FormatVersion, Positions: map[string]*model.Position{}}
 	l.Metadata.Name = k.Name
 	if id == "" {
-		id = "und-x-" + build.Slug(k.Name)
+		parts := strings.Split(build.Slug(k.Name), "-")
+		for i, p := range parts {
+			if len(p) > 8 {
+				parts[i] = p[:8] // a private-use subtag has at most 8 characters (BCP 47)
+			}
+		}
+		id = "und-x-" + strings.Join(parts, "-")
 	}
 	l.Metadata.ID = id
 	l.Metadata.Provenance = &model.Provenance{Source: name, Format: "keylayout"}

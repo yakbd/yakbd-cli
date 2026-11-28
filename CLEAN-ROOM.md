@@ -398,3 +398,13 @@ rejects an unsigned layout bundle while the system still lists, compiles and sel
 - The fixtures of `testdata/third_party/keylayout/` (NOTICE section 6, all MIT), read as data to test
   the reader: their XML shapes (XML 1.0 and 1.1, `DOCTYPE ... PUBLIC ""`, comments, attribute orders, key codes
   above 127).
+- Read as reader test data only, not committed: every `.keylayout` file of https://github.com/ysoftwareab/xkb-for-macos
+  (Unlicense, generated from xkeyboard-config data; parsed by the reader and written again to check stability,
+  then left out of the fixtures because of the notices of the data it was generated from), and
+  `tests/us_test.keylayout` of https://github.com/adobe-type-tools/keyboard-layouts (its header says it is a
+  `kluchrtoxml` dump of an installed layout, so it was parsed in that run and its header read, then excluded).
+- CLDR `keyboards/osx/da-t-k0-osx.xml` at release 43 (https://github.com/unicode-org/cldr, Unicode licence): only its
+  first lines, to see the format. It is LDML keyboard XML (`ldmlKeyboard.dtd`, `keyMap`/`map iso=`), not a
+  `.keylayout`, so the CLDR osx data is not a corpus for this reader.
+- The kbl specification's `targets/macos.md`, `coverage/macos.md` and `targets/macos-default-keycode.tsv` (branch
+  `spec-0.2`, this project's own repository) for every build and import rule.

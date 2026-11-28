@@ -241,7 +241,7 @@ func (b *builder) deadInfos() []*deadInfo {
 	for _, id := range sortedKeys(b.l.DeadKeys) {
 		dk := b.l.DeadKeys[id]
 		path := "/deadKeys/" + model.Escape(id)
-		d := &deadInfo{id: id, state: b.states[id], noMatch: dk.NoMatch, entries: dk.Entries}
+		d := &deadInfo{id: id, state: b.states[id], noMatch: dk.NoMatch, entries: append([]model.DeadKeyEntry(nil), dk.Entries...)} // a copy: the build never changes its input
 		if d.noMatch == "" {
 			d.noMatch = "emitBoth"
 		}
