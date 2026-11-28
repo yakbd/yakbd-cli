@@ -4,7 +4,7 @@ Checks keyboard-layout bundles on a real Mac, GitHub's Mac runners, without anyo
 `.github/workflows/macos-layout-check.yml` (manual only) runs `run.sh` on `macos-15` and `macos-26`, once with
 the bundles in `~/Library/Keyboard Layouts` and once in `/Library/Keyboard Layouts` (`MACOS_CHECK_PLACE=system`,
 with sudo). Each job writes one `summary.txt`, uploaded as the artifact `macos-check-<runner>-<user|system>`
-together with `hitoolbox.txt` (the `com.apple.HIToolbox` preferences before and after each pass) and shown on the
+together with `hitoolbox.txt` (the `com.apple.HIToolbox` preferences before and after each checker run) and shown on the
 run's summary page.
 
 First comes a control pass (`control`): one of Apple's own layouts that is installed but not enabled goes through the
@@ -24,15 +24,14 @@ with the preinstalled `swiftc`, then:
    (`type-sysevents:<name>`). It then reads the text back. System Events has no caps-lock modifier, so caps cases are
    `SKIP` there.
 
-Until the layout is the current input source, `run.sh` repeats the checker in further passes, tagged in the
-case name: `<case>/again` (a fresh process), `<case>/prefs` (after adding the layout to `AppleEnabledInputSources`
-in the HIToolbox preferences) and `<case>/restart` (after restarting `cfprefsd` and the text-input agents). A
-pass that a later pass repeats keeps its failures as `RETRY`. `MACOS_CHECK_WAIT` sets how long the checker
-waits for a registered layout to be listed (60 s on the first pass).
+Before the checker runs, `run.sh` adds the layout to `AppleEnabledInputSources` in the `com.apple.HIToolbox`
+preferences (its keyboard `id` and `name` from the `.keylayout`), as the Text Input settings do. Without that entry,
+`TISEnableInputSource` returned 0 but did not enable a bundle in `~/Library/Keyboard Layouts` (see Runs).
+`MACOS_CHECK_WAIT` sets how long the checker waits for a registered layout to be listed (60 s).
 
 ## summary.txt
 
-There is one line per check: `PASS|FAIL|SKIP|RETRY|INFO <case> <check> [: detail]`. Typing is `SKIP` while
+There is one line per check: `PASS|FAIL|SKIP|INFO <case> <check> [: detail]`. Typing is `SKIP` while
 the layout is not the current input source. A failure gives what came out and
 what was expected, with code points. The checker never stops at the first failure. A 300-second deadline ends a
 hung case with `FAIL <case> deadline`. When any line is `FAIL`, the artifact also holds `log.txt`, a filtered
@@ -65,4 +64,20 @@ No other change is needed. The cases run in name order.
 ## Locally
 
 On a Mac, `tools/macos-check/run.sh OUT` does the same as the workflow. It installs into your own
-`~/Library/Keyboard Layouts` and selects each test layout, so switch back afterwards.
+`~/Library/Keyboard Layouts` adds each test layout to your enabled input sources and selects it, so remove them and switch back afterwards.
+
+## Runs
+
+All on GitHub's arm64 images, `macos-15` (15.8.2) and `macos-26` (26.7.2), 2026-11-28.
+
+| run | commit | result |
+|---|---|---|
+| 46102612485 | cff8cb5 | UCKeyTranslate: every case passes on both images. Key codes typed into the text view arrive by both methods (AXIsProcessTrusted and CGPreflightPostEventAccess true), but come out as US, because the layout was not selected: registered (0), enable 0 but still disabled, select -50 |
+| 46102900903 | aeee2c4 | the same; an enabled-sources entry written by the checker itself, mid-run, did not help |
+| 46103925085 | 39c126d | control (Apple's German) enables, selects and types at once; our layouts: `TISEnableInputSource` alone enabled one in `/Library` but none in `~/Library`; after the enabled-sources entry, a new checker process found every layout enabled, selected it, and every typing case passed, quarantined copy included, in both folders on both images; no restart of the text-input agents or sign-out needed |
+
+What this settles: an unsigned, hand-copied layout bundle (and one carrying `com.apple.quarantine`,
+set by `xattr` here, not by a real download) is listed, compiled and usable at once in the same session;
+`spctl` rejects it ("no usable signature"), but nothing enforces that for a layout. Selection by a script
+needs the enabled-sources preference entry, then `TISRegisterInputSource` and `TISSelectInputSource`
+from a process started after the entry was written.
