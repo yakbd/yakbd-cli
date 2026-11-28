@@ -85,10 +85,11 @@ All on GitHub's arm64 images, `macos-15` (15.8.2) and `macos-26` (26.7.2), 2026-
 | 46103925085 | 39c126d | control (Apple's German) enables, selects and types at once; our layouts: `TISEnableInputSource` alone enabled one in `/Library` but none in `~/Library`; after the enabled-sources entry, a new checker process found every layout enabled, selected it, and every typing case passed, quarantined copy included, in both folders on both images; no restart of the text-input agents needed |
 | 46104372309 | 0a17aee | entry written right after the copy, then one checker run: `check` passed everywhere, `quarantined` was selected only on macos-15 in `/Library` (enable stayed false elsewhere, with the entry present), so the entry's timing matters, not the quarantine |
 | 46104797718 | 5c091fb | register, entry, checker: all four jobs (both images, `~/Library` and `/Library`) 102 PASS, 0 FAIL, 4 SKIP (caps cases through System Events): control, every UCKeyTranslate case, every typing case by `CGEvent` and by System Events, the quarantined copy included |
+| 46105185134 | 38e2165 | the same with layouts that type differently (`þ` against `` ` ``) and selection checked before and after typing: all four jobs 114 PASS, 0 FAIL, 4 SKIP |
 
 What this settles: an unsigned, hand-copied layout bundle (and one carrying `com.apple.quarantine`,
 set by `xattr` here, not by a real download) is listed, compiled and usable at once in the same session;
 `spctl` rejects it ("no usable signature"), but nothing enforces that for a layout. Selection by a script
 needs `TISRegisterInputSource`, then the enabled-sources preference entry, then `TISSelectInputSource` from a
-process started after the entry was written. That order has passed in one run of four jobs. No sign-out is
+process started after the entry was written. That order has passed in two runs of four jobs each. No sign-out is
 needed for a scripted install; the path through System Settings was not exercised.

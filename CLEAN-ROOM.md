@@ -376,7 +376,7 @@ sources read 2026-11-28, facts only:
   file or page was read for them, and the runner's compiler checks every call.
 
 Measured on GitHub's `macos-15` (15.8.2) and `macos-26` (26.7.2) arm64 runners, workflow runs 46102612485,
-46102900903, 46103925085, 46104372309 and 46104797718 (2026-11-28; results in `tools/macos-check/README.md`): that
+46102900903, 46103925085, 46104372309, 46104797718 and 46105185134 (2026-11-28; results in `tools/macos-check/README.md`): that
 `TISEnableInputSource` alone did not enable a bundle in `~/Library/Keyboard Layouts`; the shape of an
 `AppleEnabledInputSources` entry, from the runners' own entry for U.S. in a `defaults read com.apple.HIToolbox`
 dump; that the entry, written after registration, makes a new process find the layout enabled; and that `spctl`
