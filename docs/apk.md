@@ -29,6 +29,10 @@ fingerprint for developer verification. So the same key must always come with th
 - without `-key`, `GenerateSigner` makes an RSA 2048 test key kept nowhere: the APK installs, but no later build can
   update it (warning `apk.testKey`).
 
+A builder who keeps an RSA key without its certificate depends on this tool writing the derived certificate byte for
+byte the same in every later version. Safer: keep the certificate in the key file once (`Signer.PEM()` writes key
+and certificate together; a keystore export works too), so the identity no longer depends on the tool.
+
 A private key is never committed, not even a test key: the tests and the CI control generate theirs per run.
 
 ## 3. Limits
@@ -60,4 +64,6 @@ the runner (the SDK is used there only, never by the tool):
 Locally the same checks ran with Debian's `apksigner` 0.9, `aapt2` and `zipalign` in a container (2026-11-28; no
 `android.jar` there, so part 2 ran only in CI), and the rewrite on two IME APKs from F-Droid (not in the
 repository): the manifests differed only in the package, label, the `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` and
-the `androidx-startup` authority. Installing in the emulator is the `android` target's check.
+the `androidx-startup` authority. Every binary XML file of those two APKs (1,390: the manifests in UTF-16, the
+`res/` files in UTF-8 pools, 121 roots with several namespaces) read, wrote and read again to the same bytes.
+The CI job first ran green on build-tools 37.0.0 (run 46134943831). Installing in the emulator is the `android` target's check.

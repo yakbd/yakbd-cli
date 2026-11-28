@@ -33,9 +33,9 @@ verified() { # apk: apksigner must report v1, v2 and v3
   "$TOOLS/apksigner" verify --verbose --min-sdk-version 21 "$1" | tee /dev/stderr |
     grep -c -E '^Verified using v(1|2|3) scheme .*: true$' | grep -qx 3
 }
-has() { # pattern, command...: the command's output contains the pattern
-  local p=$1; shift
-  "$@" | tee /dev/stderr | grep -q -- "$p"
+has() { # pattern, command...: the command's output contains the pattern (read whole: no early exit, no SIGPIPE)
+  local p=$1 o; shift
+  o=$("$@") && printf '%s\n' "$o" >&2 && grep -q -- "$p" <<<"$o"
 }
 
 (cd "$ROOT" && go run ./tools/apkcheck -o "$OUT")
