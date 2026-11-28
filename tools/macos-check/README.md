@@ -116,8 +116,9 @@ follows it), its own `inputSourceId` and a keyboard id of its own (pinned, or th
 - `twin-pending-next` (hand-written from `twin-empty-output`): the form a build could write for a key with no output while
   a dead key is pending, `<when state="ring" next="ring"/>`, on a key that types `x` and on key code 16 that types
   nothing (`<when state="none" output=""/>`): does it keep the dead key pending (kbl spec `targets/macos.md` §8 item
-  8)? `expect.tsv` holds the model's result (`å` after ring, the key, `a`); the build does not write this form yet
-  and reports `macos.deadKeyEndedByEmptyKey` instead.
+  8)? Measured in run 46129926577: yes, for this dead key without a terminator the next key gets the
+  dead key's result (`å` after ring, the key, `a`, the model's result in `expect.tsv`), on both keys. A dead key with
+  a terminator is not measured yet; the build does not write this form and reports `macos.deadKeyEndedByEmptyKey`.
 - `gen-maxout` (generated, with `extra.tsv`): the same press with `maxout` pinned to 2, the longest single output and
   one less than terminator and output together (§8 item 7), and a key code without a key pressed while the dead key is
   pending (§8 item 1: measured, macOS types the terminator and drops the dead key). It also shows that key codes
@@ -154,6 +155,7 @@ All on GitHub's arm64 images, `macos-15` (15.8.2) and `macos-26` (26.7.2), 2026-
 | 46117765009 | 649858d | the round's verification run, 12 cases: every job 1476 PASS, 7 FAIL, 276 SKIP. Right Shift and Right Option type with the left-hand key map (`sides`); localised names from `en-US.lproj` and from a UTF-8 `InfoPlist.strings` shown (`AppleLanguages` `en-US`); `gen-klc`, `gen-cldr`, `gen-specg` and `gen-demo`'s terminator plus `ng` pass; `gen-pending` not listed at all |
 | 46119172899 | 042a5f5 | re-run of `sides`, `gen-pending`, `gen-maxout` (`cases` input): `sides` passes; with `maxout` 2 the system still types terminator and `ng` in one press (3 units); `gen-pending` (now without the `maxout` pin) is still not listed: the system rejects the layout with `noMatch` `emitNothing` (`next="none"`) or the key code without a key |
 | 46126097229 | c9d54b4 | 14 cases: every job 2061 PASS, 10 FAIL, 156 SKIP (all four identical). `gen-pending` with `output=""` is listed and types (`emitNothing`: nothing, then `e`); `gen-spacing` (same path, no empty output) passes; of the twins only `output=""` is listed, `next="none"` alone and `next` to a state with no `<when>` are not; a key code without a key while a dead key is pending types the terminator and drops the dead key (`´e`, not the model's `é`; expectations changed to that); `maxout` 2 types terminator and `ng` in one press. The rejected twins were removed afterwards |
+| 46129926577 | a70f0a1 | 16 cases and the control: every job 2107 PASS, 0 FAIL, 120 SKIP (all four identical). `gen-pending` and `gen-maxout` pass with the measured `´e`; `twin-pending-next` passes: `<when state="ring" next="ring"/>` keeps the dead key pending on a key that types `x` and on one that types nothing |
 
 What this settles: an unsigned, hand-copied layout bundle (and one carrying `com.apple.quarantine`,
 set by `xattr` here, not by a real download) is listed, compiled and usable at once in the same session;

@@ -21,11 +21,11 @@ import (
 )
 
 // Version of the tool: the numbers (what DLL and installer version resources carry, which hold four numbers) and the
-// pre-release suffix of a semantic version; VersionString joins them ("0.1.0-preview.3").
-var Version = [4]uint16{0, 1, 0, 0}
+// pre-release suffix of a semantic version; VersionString joins them ("0.2.0-preview.1").
+var Version = [4]uint16{0, 2, 0, 0}
 
 // PreRelease is the semantic-version pre-release suffix after "-", or empty for a final release.
-const PreRelease = "preview.3"
+const PreRelease = "preview.1"
 
 // VersionString is the tool's semantic version, major.minor.patch[-pre-release].
 func VersionString() string {

@@ -10,8 +10,7 @@ import (
 
 // TestSchemaMatchesSpec fails when an embedded schema or the copied examples differ from the specification's, and
 // checks the specification's schema test cases (testdata/schema/<version>/valid, invalid) with this reader.
-// It runs when the spec repository is checked out next to this one (or YAKBD_SPEC_DIR names it); while 0.2 is a
-// draft, that checkout must be on the branch spec-0.2 for the 0.2 schema to be there.
+// It runs when the spec repository is checked out next to this one (or YAKBD_SPEC_DIR names it).
 func TestSchemaMatchesSpec(t *testing.T) {
 	dir := specDir()
 	if _, err := os.Stat(filepath.Join(dir, "schema", "0.1", "kbl.schema.json")); err != nil {

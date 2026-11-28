@@ -36,8 +36,7 @@ with `--repo <named repo>`.
   `installer/stub-386.exe` and `.version` with the change; otherwise `TestEmbeddedStubIsFresh` fails in CI. Locally
   that test skips unless your Go version equals the recorded one.
 - Spec copies must equal the spec repository: `format/kbljson/schema/<version>/kbl.schema.json`, one per format version
-  the reader implements (0.1, 0.2; `Versions` with each `SchemaCommit` in `format/kbljson/kbljson.go`; 0.2 is a
-  draft on the spec branch `spec-0.2`, so its drift test needs that branch checked out), `testdata/kbl-spec/examples/`, `target/macos/keycode/macos-default-keycode.tsv` and `target/xkb/keyname/xkb-default-keyname.tsv` (each `SpecCommit`, a commit of `spec-0.2`), `target/windows/vk/windows-default-vk.tsv`
+  the reader implements (0.1, 0.2; `Versions` with each `SchemaCommit` in `format/kbljson/kbljson.go`), `testdata/kbl-spec/examples/`, `target/macos/keycode/macos-default-keycode.tsv` and `target/xkb/keyname/xkb-default-keyname.tsv` (each `SpecCommit`, a commit of `spec-0.2`), `target/windows/vk/windows-default-vk.tsv`
   (`TableASpecTag` in `target/windows/vk/scancodes.go`: a spec release tag, read at the tag when the checkout has it). Their drift tests skip silently, in CI too, unless the spec
   repo is checked out next to this one as `../kbl-spec` (or under its former name `../kbl-spec-prototype`) or `YAKBD_SPEC_DIR` names it. When you copy new
   versions, copy the files unchanged, move the commit constant, and run

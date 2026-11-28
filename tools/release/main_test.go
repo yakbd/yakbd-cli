@@ -15,8 +15,8 @@ import (
 
 func TestCheckVersion(t *testing.T) {
 	for v, ok := range map[string]bool{
-		"0.1.0-preview.3": true, "0.1.0": false, "0.1.0-preview.2": false, "0.0.0-rehearsal.1": true, "9.9.9-rehearsal.2": true,
-		"0.3.0": false, "v0.1.0-preview.3": false, "0.2": false, "0.1.0+build": false, "0.1.0-": false, "01.2.0": false,
+		"0.2.0-preview.1": true, "0.2.0": false, "0.1.0-preview.3": false, "0.0.0-rehearsal.1": true, "9.9.9-rehearsal.2": true,
+		"0.3.0": false, "v0.2.0-preview.1": false, "0.2": false, "0.1.0+build": false, "0.1.0-": false, "01.2.0": false,
 	} {
 		if err := checkVersion(v); (err == nil) != ok {
 			t.Errorf("%s: %v", v, err)

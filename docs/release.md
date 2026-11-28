@@ -44,9 +44,9 @@ arm64 build of `yakbd.exe` has so far been tested on Windows on ARM in emulation
    or empty) to the release's version, commit and push to `main`, and wait for CI to pass.
 2. Start the workflow: in the repository, Actions > release > Run workflow, or
 
-       gh workflow run release.yml -R yakbd/yakbd-cli -f version=0.1.0-preview.3
+       gh workflow run release.yml -R yakbd/yakbd-cli -f version=0.2.0-preview.1
 
-   Inputs: `version` (required; it must equal the tool's own version, `0.1.0-preview.3` today, which `go run ./tools/release -version V
+   Inputs: `version` (required; it must equal the tool's own version, `0.2.0-preview.1` today, which `go run ./tools/release -version V
    -check` checks; a version containing `-rehearsal.` is exempt, for trying the workflow out).
 3. The workflow, in three jobs:
    - **build**: checks that the tag does not exist yet; `gofmt`, `go vet`, `go test`; checks that the committed
