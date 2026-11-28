@@ -341,7 +341,8 @@ extra_checks() {
     elif [ "$a" = "$b" ]; then
       echo "$STACK xkbcli gen-chars keysyms-vs-utf32 PASS"
     else
-      echo "$STACK xkbcli gen-chars keysyms-vs-utf32 FAIL $(diff <(printf '%s\n' "$a") <(printf '%s\n' "$b") | grep -E '^[<>]' | head -4 | tr '\n' ' ' | cut -c1-400)"
+      # the first statements that differ (no diff(1) in every image)
+      echo "$STACK xkbcli gen-chars keysyms-vs-utf32 FAIL $(paste -d '|' <(printf '%s\n' "$a") <(printf '%s\n' "$b") | awk -F'|' '$1 != $2 { print "keysyms: " $1 " utf8: " $2; if (++n == 2) exit }' | tr -s ' \t' ' ' | cut -c1-400)"
     fi
   fi
   if [ -f "$G/gen-demo/install.sh" ]; then

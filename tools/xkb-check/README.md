@@ -80,7 +80,7 @@ holds every row of the kbl spec's position table.
 | case | what it checks |
 |---|---|
 | `gen-demo` | the spec example `xkb-caps-deadkeys`: levels 1 to 4, Caps Lock per key type (`FOUR_LEVEL_SEMIALPHABETIC`, `FOUR_LEVEL_ALPHABETIC`, and the yakbd type `YAKBD_12213434` that leaves Caps Lock out of AltGr: þ, not Þ), a dead key through the generated Compose file |
-| `gen-multi` | several characters on one level (`ng`, `x` + U+0301): expected to type in libxkbcommon and Qt and to fail in GTK 4; the build adds the section `basic-x11` with those levels empty, which the x11 stack loads, so there only those levels are expected to fail (not yet run: `baseline.txt` holds the run before the X11 section, in which X11 refused the whole keymap); `FOUR_LEVEL_PLUS_LOCK` for keys that Caps Lock leaves alone |
+| `gen-multi` | several characters on one level (`ng`, `x` + U+0301): expected to type in libxkbcommon and Qt and to fail in GTK 4; the build adds the section `basic-x11` with those levels empty, which the x11 stack loads; measured (run of the verification below): Xvfb still refuses that section, because a key whose levels are all `NoSymbol` keeps its five-level type; `FOUR_LEVEL_PLUS_LOCK` for keys that Caps Lock leaves alone |
 | `gen-probe` | written for this check, with hand-written lines in `extra.tsv` (kbl spec `targets/xkb.md` §8): a key without a sequence and Backspace after a dead key (item 3), an entry whose result is `""` (item 8), a `numLock` position (type `KEYPAD`) with and without Num Lock and Shift (item 10), and the Compose scenarios `pre-both` and `pre-config` (item 7): `~/.config/XCompose` (and, for `pre-both`, `~/.config/gtk-4.0/Compose`) exist with a sequence of their own before `install.sh` appends its block; each outcome types something different, so a FAIL's `got` is the measurement |
 | `gen-chars`, `gen-chars-utf8` | the same 202 characters over every row of rule `characters`, written as keysym names and as UTF-8 strings; `extra_checks` compares the two compiled keymaps key by key, so the names yakbd writes are checked against `xkb_utf32_to_keysym` (item 9) |
 | `gen-var-a`, `gen-var-b`, `gen-var-sys` | variants `va` and `vb` of one layout installed side by side, then `va` removed (item 12), and a variant `yakbdv` of the system layout `fo` from the user path (item 5): `xkbcli list` and `compile-keymap` in `extra_checks`; `gen-demo` as the second of two layouts (`us,yakbd-fo-xkbdemo`) keeps its yakbd key type (item 4) |
@@ -89,6 +89,32 @@ holds every row of the kbl spec's position table.
 | `gen-corpus` | xkeyboard-config's `fo(basic)` converted to `.kbl.json` with `testdata/xkb/test.XCompose` (MIT/X11 notices: `COPYING` beside it), renamed `yakbd-gen-fo`: a real layout with its includes inlined and its dead keys |
 
 ## Results
+
+Verification run of 2026-11-28 (all stacks, the cases of the kbl spec's `targets/xkb.md` §8 added): 5432 result lines, 4973
+PASS, 459 FAIL, no line of the earlier `baseline.txt` changed; `baseline.txt` now holds this run. What the new cases
+measured:
+
+- noMatch (`gen-probe nomatch-key`, dead acute then x): libxkbcommon drops both (`aa`); Qt types the key (`axa`); GTK 4 on
+  X11 and weston adds the combining accent (`ax́a`); GTK 4 on sway, KWin and mutter loses the dead key (`axa`).
+  Backspace after a dead key cancels it and also deletes a character in Qt everywhere and in GTK 4 on sway, KWin
+  and mutter (`ax`); GTK 4 on X11 and weston and libxkbcommon only cancel (`aax`).
+- An entry with the result `""`: libxkbcommon and Qt type nothing (`aa`); GTK 4 on X11 and weston falls back to the
+  system's sequence (`aéa`); GTK 4 on the other Wayland stacks types the base (`aea`).
+- Compose blocks appended to existing files: libxkbcommon and Qt read the block and the user's own line in
+  `~/.config/XCompose`; GTK 4 reads `~/.config/gtk-4.0/Compose` when it exists, and with only `~/.config/XCompose`
+  present it does **not** read that file (`pre-config-own` gives `x́`, the dead-key entries come from the system table).
+- `KEYPAD` (`numLock` position): Num Lock gives the binding everywhere; Shift with Num Lock gives the binding with
+  xkeyboard-config 2.48 and 2.49 and the navigation keysym (no text) with 2.42 (Debian 13) and 2.46 (Ubuntu 26.04).
+  Qt on mutter starts with Num Lock reversed (`keypad-plain` types `¹`).
+- Rule `characters` against `xkb_utf32_to_keysym` (`gen-chars`): equal on libxkbcommon 1.13.2; on 1.13.1 (Ubuntu,
+  Fedora) the name `leftsingleanglequotemark` (U+2039) is unknown and compiles to `NoSymbol` (1.7.0 too).
+- Variants: two variants of one layout side by side, one removed: both listed, the other still compiles, everywhere;
+  the layout then has no description (`(null)`). A variant of the system layout `fo` in the user path is listed and
+  compiles everywhere, but on libxkbcommon 1.7.0 and 1.13.1 the user file replaces the system `fo`: `fo` alone then
+  gives the variant (1.13.2: the system `fo`).
+- A yakbd key type as the second of two layouts (`us,yakbd-fo-xkbdemo`): kept on 1.13; 1.7 gives a default type.
+- X11 refuses the whole keymap of `gen-klc` (number-pad operator keys written with a four-level type merge with the
+  five levels of the `pc` keys) and of `gen-multi`'s X11 section (see above).
 
 Run of 2026-11-28 with the generated cases (`XKB_CHECK_NO_BUILD=1`, about 9 minutes): 1930 result lines, 1732 PASS, 198
 FAIL, no line of the hand-written layouts changed; the 1564 lines of `gen-demo`, `gen-multi` and `gen-corpus` were added
