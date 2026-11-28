@@ -74,6 +74,10 @@ For Linux (Wayland and X11), build it with `-target xkb`:
 Unpack it and run `<name>/install.sh` as yourself (no root), then pick the layout in your desktop's keyboard
 settings ([`docs/linux.md`](docs/linux.md)).
 
+A file converted from a `.klc` file keeps the Control+Break key of MSKLC layouts, which the macOS and XKB position
+tables have no code for, so those builds stop with an error at `/positions/Break` for now. Add
+`-accept macos.keyCodeMissing` (macOS) or `-accept xkb.keyNameMissing` (Linux) to build without that key.
+
 ## Commands
 
     yakbd convert in.klc out.kbl.json        # any of .kbl.json, .klc, CLDR .xml, .keylayout, in both directions
