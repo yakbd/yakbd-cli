@@ -82,7 +82,7 @@ holds every row of the kbl spec's position table.
 | case | what it checks |
 |---|---|
 | `gen-demo` | the spec example `xkb-caps-deadkeys`: levels 1 to 4, Caps Lock per key type (`FOUR_LEVEL_SEMIALPHABETIC`, `FOUR_LEVEL_ALPHABETIC`, and the yakbd type `YAKBD_12213434` that leaves Caps Lock out of AltGr: þ, not Þ), a dead key through the generated Compose file |
-| `gen-multi` | several characters on one level (`ng`, `x` + U+0301): expected to type in libxkbcommon and Qt and to fail in GTK 4; the build adds the section `basic-x11` with those levels empty, which the x11 stack loads; measured (run of the verification below): Xvfb still refuses that section, because a key whose levels are all `NoSymbol` keeps its five-level type; `FOUR_LEVEL_PLUS_LOCK` for keys that Caps Lock leaves alone |
+| `gen-multi` | several characters on one level (`ng`, `x` + U+0301): expected to type in libxkbcommon and Qt and to fail in GTK 4; the build adds the section `basic-x11` with those levels empty, which the x11 stack loads; measured: Xvfb refused that section while a key whose levels were all `NoSymbol` kept its five-level type, and loads it since those levels are `VoidSymbol` (fixes run below); `FOUR_LEVEL_PLUS_LOCK` for keys that Caps Lock leaves alone |
 | `gen-probe` | written for this check, with hand-written lines in `extra.tsv` (kbl spec `targets/xkb.md` §8): a key without a sequence and Backspace after a dead key (item 3), an entry whose result is `""` (item 8), a `numLock` position (type `KEYPAD`) with and without Num Lock and Shift (item 10), and the Compose scenarios `pre-both` and `pre-config` (item 7): `~/.config/XCompose` (and, for `pre-both`, `~/.config/gtk-4.0/Compose`) exist with a sequence of their own before `install.sh` appends its block; each outcome types something different, so a FAIL's `got` is the measurement |
 | `gen-chars`, `gen-chars-utf8` | the same 202 characters over every row of rule `characters`, written as keysym names and as UTF-8 strings; `extra_checks` compares the two compiled keymaps key by key, so the names yakbd writes are checked against `xkb_utf32_to_keysym` (item 9) |
 | `gen-var-a`, `gen-var-b`, `gen-var-sys` | variants `va` and `vb` of one layout installed side by side, then `va` removed (item 12), and a variant `yakbdv` of the system layout `fo` from the user path (item 5): `xkbcli list` and `compile-keymap` in `extra_checks`; `gen-demo` as the second of two layouts (`us,yakbd-fo-xkbdemo`) keeps its yakbd key type (item 4) |
@@ -91,6 +91,19 @@ holds every row of the kbl spec's position table.
 | `gen-corpus` | xkeyboard-config's `fo(basic)` converted to `.kbl.json` with `testdata/xkb/test.XCompose` (MIT/X11 notices: `COPYING` beside it), renamed `yakbd-gen-fo`: a real layout with its includes inlined and its dead keys |
 
 ## Results
+
+Fixes run of 2026-11-28 (`XKB_CHECK_CASES` = every generated case, all stacks; the hand-written layouts did not
+run): 5094 result lines, 4788 PASS, 306 FAIL, 254 lines changed against the verification run, all expected. Levels
+that type nothing are now `VoidSymbol` and the number-pad operators `CTRL+ALT`: X11 loads `gen-klc` (80 FAIL to PASS)
+and the X11 section of `gen-multi` (31 FAIL to PASS; its multi-character levels type nothing there, as built). Unicode
+keysyms written `U` + hex: `gen-chars keysyms-vs-utf32` passes on Ubuntu and Fedora. New lines: `gen-klc
+kp1-shift-nothing` (Shift+Numpad1 types nothing; before, libxkbcommon took `KP_1` from `symbols/pc`) passes
+everywhere; `gen-probe pre-config-layout` (the layout's own sequence with only `~/.config/XCompose` present) passes
+everywhere except GTK 4 on sway, KWin and mutter (dead keys lost there, `xkb.deadKeyStacks`). Unchanged and now
+reported by the build: `gen-var-sys system-basic-still-compiles` (`xkb.systemLayoutShadowed`), `x11 gtk gen-probe
+Key*-s2` (`xkb.capsLockStacks`), `keypad-numlock-shift` on Debian and Ubuntu (`xkb.numLockKeyReduced` names the
+releases). `pre-*-own-*` stay FAIL in GTK: GTK 4 never reads `~/.config/XCompose`, so the user's own line there is
+not the layout's loss. `baseline.txt` holds these lines plus the unchanged ones of the hand-written layouts.
 
 Verification run of 2026-11-28 (all stacks, the cases of the kbl spec's `targets/xkb.md` §8 added): 5432 result lines, 4973
 PASS, 459 FAIL, no line of the earlier `baseline.txt` changed; `baseline.txt` now holds this run. What the new cases
