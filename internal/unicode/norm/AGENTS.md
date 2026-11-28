@@ -11,4 +11,4 @@ NFD and NFC (UAX #15) with the standard library only. `tables.go` is generated; 
   unchanged.
 - Moving to another Unicode version: regenerate with `-version`, replace
   `testdata/third_party/unicode-<version>/NormalizationTest.txt` and its `LICENSE`, and update the version and date
-  in `NOTICE` §5 and in the root README's NFC line.
+  in `NOTICE` §5 and the version in `ARCHITECTURE.md` (package table, `internal/unicode/norm` row).

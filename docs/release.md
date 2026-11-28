@@ -59,7 +59,10 @@ arm64 build of `yakbd.exe` has so far been tested on Windows on ARM in emulation
      pre-release (maintainer decision: a GitHub pre-release is not shown as the release on the repository page, and
      the previews are what people should download); it is made the latest release when it is published (step 4). A
      rehearsal (`-rehearsal.N`) and any other suffix are marked as a pre-release.
-4. Check the draft (files, notes), then publish it, as the latest release for a preview or final version:
+4. Check the draft's files. Its notes are a few lines from the workflow (the site's What's new page, the downloads, how to
+   check them): add one or two lines on what is new at the top, and the release's entry on
+   https://yakbd.github.io/releases (repository `yakbd/yakbd.github.io`). Then publish it, as the latest release for a
+   preview or final version:
 
        gh release edit vV -R yakbd/yakbd-cli --draft=false --latest
 

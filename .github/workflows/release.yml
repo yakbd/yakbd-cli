@@ -166,13 +166,17 @@ jobs:
           # pre-release as its release. A rehearsal and any other suffix stay pre-releases. The latest mark is
           # given when the draft is published (gh release edit --draft=false --latest, docs/release.md §2).
           mark=""
-          SIGNED="yakbd-cli-setup.exe is unsigned in this release"
-          if [ "${{ inputs.sign }}" = "true" ]; then SIGNED="yakbd-cli-setup.exe is signed through SignPath Foundation"; fi
+          SIGNED="unsigned"
+          if [ "${{ inputs.sign }}" = "true" ]; then SIGNED="signed through SignPath Foundation"; fi
           case "$VERSION" in *-rehearsal.*) mark="--prerelease" ;; *-preview.*) ;; *-*) mark="--prerelease" ;; esac
-          notes="yakbd $VERSION, built from $GITHUB_SHA by $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID.
-          Check a download with SHA256SUMS and gh attestation verify FILE -R $GITHUB_REPOSITORY: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/main/docs/release.md
-          Code signing ($SIGNED): $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/main/docs/code-signing-policy.md
-          The arm64 build of yakbd.exe is tested in emulation only."
+          # Short notes (docs/release.md §2): what's new lives on the site; the maintainer adds one or two lines
+          # above "Downloads" before publishing.
+          dl="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/latest/download"
+          notes="What's new: https://yakbd.github.io/releases
+
+          Downloads: [yakbd-cli-setup.exe]($dl/yakbd-cli-setup.exe) (Windows), \`yakbd-$VERSION-linux-amd64.tar.gz\`, \`yakbd-$VERSION-linux-arm64.tar.gz\`, \`yakbd-$VERSION-macos.tar.gz\` (below). Install: https://yakbd.github.io/guide/
+
+          Check a download with \`SHA256SUMS\` and its build attestation (https://yakbd.github.io/cli/release); the Windows installer is $SIGNED."
           gh release create "v$VERSION" dist/* --repo "$GITHUB_REPOSITORY" --draft $mark --verify-tag \
             --title "yakbd $VERSION" \
             --notes "$notes"

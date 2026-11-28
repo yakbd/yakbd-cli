@@ -1,10 +1,9 @@
 # yakbd tool repository: agent rules
 
-`yakbd` (Go) converts keyboard layouts between `.kbl.json`, `.klc`, CLDR Keyboard 3.0 XML, macOS `.keylayout` and Linux XKB symbols files (`convert -from xkb`), validates them, and
-compiles them into Windows layout DLLs and installers, macOS layout bundles and Linux XKB layouts with an install script. Windows, macOS and Linux XKB are the first targets: the official
-formats of other operating systems come next, then third-party formats such as Keyman. The `.kbl.json` format lives
-in the sibling repository `yakbd/kbl-spec` (organisation https://github.com/yakbd). Design and package map:
-`ARCHITECTURE.md`; how a platform plugs in (`-target`, package `target`): `docs/targets.md`.
+`yakbd` (Go) converts keyboard layouts between `.kbl.json`, `.klc`, CLDR Keyboard 3.0 XML, macOS `.keylayout` and
+Linux XKB symbols, validates them, and builds them for a target: Windows (DLLs, installer), macOS (layout bundle),
+XKB (files plus `install.sh`). Android, iOS, ChromeOS and Keyman are planned. The format lives in the sibling repo
+`yakbd/kbl-spec`. Design and package map: `ARCHITECTURE.md`; how a target plugs in: `docs/targets.md`.
 
 ## Commands
 
@@ -91,7 +90,22 @@ your own words and link to it; do not copy its prose.
 - No Windows host or VM is reachable from here. Windows checks are bundles a separate runner executes
   (`tools/AGENTS.md`); record their results in `docs/*.md`.
 
+## Documentation and releases
+
+- People read the documentation on the Pages site https://yakbd.github.io/ (repo `yakbd/yakbd.github.io`). It
+  fetches files of this repo at a pinned commit (`sources.json` there): `docs/commands.md` (`/cli/`), the guides in
+  `docs/` and the reference contracts. Which file is which page: `docs/AGENTS.md`.
+- `README.md` stays a short front door: one sentence, the platform table, downloads, links to site pages. New
+  content goes into a `docs/` file or a site page, never into the README.
+- **Every release that adds, removes or changes functionality updates the docs as part of the release:** the
+  `docs/` files here (`docs/commands.md` for any command or flag, the platform guides, the README's platform table),
+  and in `yakbd/yakbd.github.io` re-pin `yakbd-cli` in `sources.json` to the released commit, update or add the guide
+  pages, the landing page's platform states and the entry on `/releases`. Release steps: `docs/release.md` §2.
+- Release notes stay a few lines (template in `.github/workflows/release.yml`); details go to the site.
+- Links to releases are `releases/latest` (downloads `releases/latest/download/<name>`), files `blob/main`:
+  `tools/release/links_test.go` fails on tag links in any `.md`.
+
 ## More instructions
 
-Folder rules load when you work there: `installer/AGENTS.md`, `pe/AGENTS.md`, `tools/AGENTS.md`,
+Folder rules load when you work there: `docs/AGENTS.md`, `installer/AGENTS.md`, `pe/AGENTS.md`, `tools/AGENTS.md`,
 `internal/unicode/norm/AGENTS.md`. Change this file in the same commit as any command, path or rule it names.
