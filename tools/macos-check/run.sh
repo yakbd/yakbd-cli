@@ -26,14 +26,17 @@ if [ "${MACOS_CHECK_PLACE:-user}" = system ]; then
 	as=sudo
 fi
 echo "INFO host install-folder : $dest" >>"$sum"
+# The session's languages pick the <tag>.lproj folder a localised layout name comes from (cases with name.txt).
+echo "INFO host languages : $(defaults read -g AppleLanguages 2>&1 | tr -d ' \n')" >>"$sum"
 $as mkdir -p "$dest"
 hitoolbox() {
 	{ echo "== $1"; defaults read com.apple.HIToolbox 2>&1; } >>"$out/hitoolbox.txt"
 }
 
-# One checker pass: pass TAG BUNDLE EXPECT WAIT; its lines go to the summary.
+# One checker pass: pass TAG BUNDLE EXPECT WAIT [NAME]; its lines go to the summary. NAME: the localised name the
+# system should show for the layout (a case's name.txt).
 pass() {
-	MACOS_CHECK_WAIT=$4 "$out/macos-check" "$1" "$2" "$3" "$methods" >>"$sum" 2>>"$out/stderr.txt"
+	MACOS_CHECK_NAME=${5:-} MACOS_CHECK_WAIT=$4 "$out/macos-check" "$1" "$2" "$3" "$methods" >>"$sum" 2>>"$out/stderr.txt"
 	echo "INFO $1 exit : $?" >>"$sum"
 	hitoolbox "after $1"
 }
@@ -58,11 +61,14 @@ for c in "$here"/cases/*/; do
 		gen=$out/cases/$name
 		mkdir -p "$gen"
 		[ -f "$c/quarantine" ] && cp "$c/quarantine" "$gen/"
+		[ -f "$c/name.txt" ] && cp "$c/name.txt" "$gen/"
 		if [ "$yakbd" = none ] || ! "$yakbd" compile -target macos -q -emit-expectations -max-expectations 60 -o "$gen" "$c/layout.kbl.json" >"$gen/compile.txt" 2>&1; then
 			echo "FAIL $name generate : yakbd compile -target macos failed: $(tr '\n' ' ' <"$gen/compile.txt" | cut -c1-300)" >>"$sum"
 			continue
 		fi
 		echo "INFO $name generate : $(grep -c . "$gen/expect.tsv") expectation lines from layout.kbl.json" >>"$sum"
+		# extra.tsv: hand-written lines for what the generated ones do not cover (unmeasured rules, README.md).
+		[ -f "$c/extra.tsv" ] && cat "$c/extra.tsv" >>"$gen/expect.tsv"
 		c=$gen/
 	fi
 	bundle=$(ls -d "$c"*.bundle 2>/dev/null | head -1)
@@ -93,7 +99,9 @@ for c in "$here"/cases/*/; do
 	defaults write com.apple.HIToolbox AppleEnabledInputSources -array-add \
 		"<dict><key>InputSourceKind</key><string>Keyboard Layout</string><key>KeyboardLayout ID</key><integer>$kid</integer><key>KeyboardLayout Name</key><string>$kname</string></dict>"
 	echo "INFO $name preferences : enabled-sources entry KeyboardLayout ID $kid, Name $kname (exit $?)" >>"$sum"
-	pass "$name" "$inst" "$c/expect.tsv" 60
+	want=
+	[ -f "$c/name.txt" ] && want=$(cat "$c/name.txt")
+	pass "$name" "$inst" "$c/expect.tsv" 60 "$want"
 	echo "INFO $name gatekeeper : $(spctl --assess --type open --context context:primary-signature -v "$inst" 2>&1 | tr '\n' ' ')" >>"$sum"
 done
 

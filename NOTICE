@@ -89,6 +89,8 @@ format/cldr/import/: the CLDR import files keys-Zyyy-punctuation.xml, keys-Zyyy-
 and scanCodes-implied.xml of the same release, embedded because the CLDR reader inlines them. Both are under the
 Unicode License v3, Copyright © 1991-2026 Unicode, Inc.; the licence text is in
 testdata/third_party/cldr-release-49/LICENSE and format/cldr/import/LICENSE.
+tools/macos-check/cases/gen-cldr/layout.kbl.json and tools/xkb-check/gen/gen-cldr/layout.kbl.json are keyboards/3.0/mt.xml
+of that release converted to .kbl.json by yakbd, with names of their own; the licence text is beside each (LICENSE).
 
 5. Unicode Character Database
 -----------------------------

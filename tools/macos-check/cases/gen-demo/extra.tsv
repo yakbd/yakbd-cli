@@ -1,0 +1,3 @@
+# Hand-written line (README.md, extra.tsv), targets/macos.md §8 item 7 of the kbl spec: the acute (Option+E) pending,
+# then KeyQ (ng): terminator and output in one press, 3 UTF-16 units under the default maxout.
+maxout-acute-then-ng	14+option 12	´ng

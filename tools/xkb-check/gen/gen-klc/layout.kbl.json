@@ -1,0 +1,1006 @@
+{
+  "kbl": "0.2",
+  "metadata": {
+    "id": "en-US",
+    "name": "YAKBD MSKLC-style test",
+    "version": "1.0",
+    "copyright": "(c) 2026 YAKBD contributors, MIT-0",
+    "organization": "YAKBD",
+    "provenance": {
+      "source": "msklc-style.klc",
+      "format": "klc"
+    },
+    "description": "testdata/klc/msklc-style.klc of this repository (MIT-0), converted by yakbd convert, with names of its own for the macOS and Linux checks: an MSKLC-style .klc with the rows MSKLC adds (Break among them, a position macOS and XKB have no key for)."
+  },
+  "positions": {
+    "AltLeft": {
+      "scanCode": "38",
+      "name": "Alt"
+    },
+    "AltRight": {
+      "scanCode": "E038",
+      "name": "Right Alt"
+    },
+    "ArrowDown": {
+      "scanCode": "E050",
+      "name": "Down"
+    },
+    "ArrowLeft": {
+      "scanCode": "E04B",
+      "name": "Left"
+    },
+    "ArrowRight": {
+      "scanCode": "E04D",
+      "name": "Right"
+    },
+    "ArrowUp": {
+      "scanCode": "E048",
+      "name": "Up"
+    },
+    "Backquote": {
+      "scanCode": "29"
+    },
+    "Backslash": {
+      "scanCode": "2B"
+    },
+    "Backspace": {
+      "scanCode": "0E",
+      "name": "Backspace"
+    },
+    "BracketLeft": {
+      "scanCode": "1A"
+    },
+    "BracketRight": {
+      "scanCode": "1B"
+    },
+    "Break": {
+      "scanCode": "E046",
+      "name": "Break"
+    },
+    "CapsLock": {
+      "scanCode": "3A",
+      "name": "Caps Lock"
+    },
+    "Comma": {
+      "scanCode": "33"
+    },
+    "ContextMenu": {
+      "scanCode": "E05D",
+      "name": "Application"
+    },
+    "ControlLeft": {
+      "scanCode": "1D",
+      "name": "Ctrl"
+    },
+    "ControlRight": {
+      "scanCode": "E01D",
+      "name": "Right Ctrl"
+    },
+    "Delete": {
+      "scanCode": "E053",
+      "name": "Delete"
+    },
+    "Digit0": {
+      "scanCode": "0B"
+    },
+    "Digit1": {
+      "scanCode": "02"
+    },
+    "Digit2": {
+      "scanCode": "03"
+    },
+    "Digit3": {
+      "scanCode": "04"
+    },
+    "Digit4": {
+      "scanCode": "05"
+    },
+    "Digit5": {
+      "scanCode": "06"
+    },
+    "Digit6": {
+      "scanCode": "07"
+    },
+    "Digit7": {
+      "scanCode": "08"
+    },
+    "Digit8": {
+      "scanCode": "09"
+    },
+    "Digit9": {
+      "scanCode": "0A"
+    },
+    "End": {
+      "scanCode": "E04F",
+      "name": "End"
+    },
+    "Enter": {
+      "scanCode": "1C",
+      "name": "Enter"
+    },
+    "Equal": {
+      "scanCode": "0D"
+    },
+    "Escape": {
+      "scanCode": "01",
+      "name": "Esc"
+    },
+    "F1": {
+      "scanCode": "3B",
+      "name": "F1"
+    },
+    "F11": {
+      "scanCode": "57",
+      "name": "F11"
+    },
+    "F12": {
+      "scanCode": "58",
+      "name": "F12"
+    },
+    "F2": {
+      "scanCode": "3C",
+      "name": "F2"
+    },
+    "Home": {
+      "scanCode": "E047",
+      "name": "Home"
+    },
+    "Insert": {
+      "scanCode": "E052",
+      "name": "Insert"
+    },
+    "IntlBackslash": {
+      "scanCode": "56"
+    },
+    "KeyA": {
+      "scanCode": "1E"
+    },
+    "KeyB": {
+      "scanCode": "30"
+    },
+    "KeyC": {
+      "scanCode": "2E"
+    },
+    "KeyD": {
+      "scanCode": "20"
+    },
+    "KeyE": {
+      "scanCode": "12"
+    },
+    "KeyF": {
+      "scanCode": "21"
+    },
+    "KeyG": {
+      "scanCode": "22"
+    },
+    "KeyH": {
+      "scanCode": "23"
+    },
+    "KeyI": {
+      "scanCode": "17"
+    },
+    "KeyJ": {
+      "scanCode": "24"
+    },
+    "KeyK": {
+      "scanCode": "25"
+    },
+    "KeyL": {
+      "scanCode": "26"
+    },
+    "KeyM": {
+      "scanCode": "32"
+    },
+    "KeyN": {
+      "scanCode": "31"
+    },
+    "KeyO": {
+      "scanCode": "18"
+    },
+    "KeyP": {
+      "scanCode": "19"
+    },
+    "KeyQ": {
+      "scanCode": "10"
+    },
+    "KeyR": {
+      "scanCode": "13"
+    },
+    "KeyS": {
+      "scanCode": "1F"
+    },
+    "KeyT": {
+      "scanCode": "14"
+    },
+    "KeyU": {
+      "scanCode": "16"
+    },
+    "KeyV": {
+      "scanCode": "2F"
+    },
+    "KeyW": {
+      "scanCode": "11"
+    },
+    "KeyX": {
+      "scanCode": "2D"
+    },
+    "KeyY": {
+      "scanCode": "15"
+    },
+    "KeyZ": {
+      "scanCode": "2C"
+    },
+    "MetaLeft": {
+      "scanCode": "E05B",
+      "name": "Left Windows"
+    },
+    "MetaRight": {
+      "scanCode": "E05C",
+      "name": "Right Windows"
+    },
+    "Minus": {
+      "scanCode": "0C"
+    },
+    "NumLock": {
+      "scanCode": "45",
+      "name": "Pause"
+    },
+    "Numpad0": {
+      "scanCode": "52",
+      "name": "Num 0"
+    },
+    "Numpad1": {
+      "scanCode": "4F"
+    },
+    "Numpad2": {
+      "scanCode": "50"
+    },
+    "Numpad3": {
+      "scanCode": "51"
+    },
+    "Numpad4": {
+      "scanCode": "4B"
+    },
+    "Numpad5": {
+      "scanCode": "4C"
+    },
+    "Numpad6": {
+      "scanCode": "4D"
+    },
+    "Numpad7": {
+      "scanCode": "47",
+      "name": "Num 7"
+    },
+    "Numpad8": {
+      "scanCode": "48"
+    },
+    "Numpad9": {
+      "scanCode": "49"
+    },
+    "NumpadAdd": {
+      "scanCode": "4E"
+    },
+    "NumpadDecimal": {
+      "scanCode": "53",
+      "name": "Num Del",
+      "numLock": true
+    },
+    "NumpadDivide": {
+      "scanCode": "E035",
+      "name": "Num /"
+    },
+    "NumpadEnter": {
+      "scanCode": "E01C",
+      "name": "Num Enter"
+    },
+    "NumpadMultiply": {
+      "scanCode": "37",
+      "name": "Num *"
+    },
+    "NumpadSubtract": {
+      "scanCode": "4A"
+    },
+    "PageDown": {
+      "scanCode": "E051",
+      "name": "Page Down"
+    },
+    "PageUp": {
+      "scanCode": "E049",
+      "name": "Page Up"
+    },
+    "Period": {
+      "scanCode": "34"
+    },
+    "PrintScreen": {
+      "scanCode": "E037",
+      "name": "Prnt Scrn"
+    },
+    "Quote": {
+      "scanCode": "28"
+    },
+    "ScrollLock": {
+      "scanCode": "46",
+      "name": "Scroll Lock"
+    },
+    "Semicolon": {
+      "scanCode": "27"
+    },
+    "ShiftLeft": {
+      "scanCode": "2A",
+      "name": "Shift"
+    },
+    "ShiftRight": {
+      "scanCode": "36",
+      "name": "Right Shift"
+    },
+    "Slash": {
+      "scanCode": "35"
+    },
+    "Space": {
+      "scanCode": "39",
+      "name": "Space"
+    },
+    "SysRq": {
+      "scanCode": "54",
+      "name": "Sys Req"
+    },
+    "Tab": {
+      "scanCode": "0F",
+      "name": "Tab"
+    },
+    "scE045": {
+      "scanCode": "E045",
+      "name": "Num Lock"
+    }
+  },
+  "hardware": {
+    "layers": [
+      {
+        "id": "s0",
+        "modifiers": [
+          []
+        ],
+        "bindings": {
+          "Backquote": "`",
+          "Backslash": "\\",
+          "Backspace": "\b",
+          "BracketLeft": "[",
+          "BracketRight": "]",
+          "Break": "\u0003",
+          "Comma": ",",
+          "Digit0": "0",
+          "Digit1": "1",
+          "Digit2": "2",
+          "Digit3": "3",
+          "Digit4": "4",
+          "Digit5": "5",
+          "Digit6": "6",
+          "Digit7": "7",
+          "Digit8": "8",
+          "Digit9": "9",
+          "Enter": "\r",
+          "Equal": "=",
+          "Escape": "\u001b",
+          "IntlBackslash": "\\",
+          "KeyA": "a",
+          "KeyB": "b",
+          "KeyC": "c",
+          "KeyD": "d",
+          "KeyE": "e",
+          "KeyF": "f",
+          "KeyG": "g",
+          "KeyH": "h",
+          "KeyI": "i",
+          "KeyJ": "j",
+          "KeyK": "k",
+          "KeyL": "l",
+          "KeyM": "m",
+          "KeyN": "n",
+          "KeyO": "o",
+          "KeyP": "p",
+          "KeyQ": "q",
+          "KeyR": "r",
+          "KeyS": "s",
+          "KeyT": "t",
+          "KeyU": "u",
+          "KeyV": "v",
+          "KeyW": "w",
+          "KeyX": "x",
+          "KeyY": "y",
+          "KeyZ": "z",
+          "Minus": "-",
+          "Numpad0": "0",
+          "Numpad1": "1",
+          "Numpad2": "2",
+          "Numpad3": "3",
+          "Numpad4": "4",
+          "Numpad5": "5",
+          "Numpad6": "6",
+          "Numpad7": "7",
+          "Numpad8": "8",
+          "Numpad9": "9",
+          "NumpadAdd": "+",
+          "NumpadDecimal": ".",
+          "NumpadDivide": "/",
+          "NumpadMultiply": "*",
+          "NumpadSubtract": "-",
+          "Period": ".",
+          "Quote": "'",
+          "Semicolon": ";",
+          "Slash": "/",
+          "Space": " ",
+          "Tab": "\t"
+        }
+      },
+      {
+        "id": "s1",
+        "modifiers": [
+          [
+            "shift"
+          ]
+        ],
+        "bindings": {
+          "Backquote": "~",
+          "Backslash": "|",
+          "Backspace": "\b",
+          "BracketLeft": "{",
+          "BracketRight": "}",
+          "Break": "\u0003",
+          "Comma": "<",
+          "Digit0": ")",
+          "Digit1": "!",
+          "Digit2": "@",
+          "Digit3": "#",
+          "Digit4": "$",
+          "Digit5": "%",
+          "Digit6": "^",
+          "Digit7": "&",
+          "Digit8": "*",
+          "Digit9": "(",
+          "Enter": "\r",
+          "Equal": "+",
+          "Escape": "\u001b",
+          "IntlBackslash": "|",
+          "KeyA": "A",
+          "KeyB": "B",
+          "KeyC": "C",
+          "KeyD": "D",
+          "KeyE": "E",
+          "KeyF": "F",
+          "KeyG": "G",
+          "KeyH": "H",
+          "KeyI": "I",
+          "KeyJ": "J",
+          "KeyK": "K",
+          "KeyL": "L",
+          "KeyM": "M",
+          "KeyN": "N",
+          "KeyO": "O",
+          "KeyP": "P",
+          "KeyQ": "Q",
+          "KeyR": "R",
+          "KeyS": "S",
+          "KeyT": "T",
+          "KeyU": "U",
+          "KeyV": "V",
+          "KeyW": "W",
+          "KeyX": "X",
+          "KeyY": "Y",
+          "KeyZ": "Z",
+          "Minus": "_",
+          "NumpadAdd": "+",
+          "NumpadDecimal": ".",
+          "NumpadDivide": "/",
+          "NumpadMultiply": "*",
+          "NumpadSubtract": "-",
+          "Period": ">",
+          "Quote": "\"",
+          "Semicolon": ":",
+          "Slash": "?",
+          "Space": " ",
+          "Tab": "\t"
+        }
+      },
+      {
+        "id": "s2",
+        "modifiers": [
+          [
+            "ctrl"
+          ]
+        ],
+        "bindings": {
+          "Backslash": "\u001c",
+          "Backspace": "",
+          "BracketLeft": "\u001b",
+          "BracketRight": "\u001d",
+          "Break": "\u0003",
+          "Enter": "\n",
+          "Escape": "\u001b",
+          "IntlBackslash": "\u001c",
+          "Space": " "
+        }
+      },
+      {
+        "id": "s6",
+        "modifiers": [
+          [
+            "altR"
+          ],
+          [
+            "ctrl",
+            "alt"
+          ]
+        ],
+        "bindings": {
+          "Digit1": "¡",
+          "Digit2": "²",
+          "Digit3": "³",
+          "Digit4": "¤",
+          "Digit5": "€",
+          "KeyA": "á",
+          "KeyE": "é",
+          "Quote": {
+            "deadKey": "u00b4"
+          }
+        }
+      },
+      {
+        "id": "s7",
+        "modifiers": [
+          [
+            "shift",
+            "altR"
+          ],
+          [
+            "shift",
+            "ctrl",
+            "alt"
+          ]
+        ],
+        "bindings": {
+          "KeyA": "Á",
+          "KeyE": "É",
+          "Quote": {
+            "deadKey": "u00a8"
+          }
+        }
+      },
+      {
+        "id": "capsS0",
+        "modifiers": [
+          [
+            "caps"
+          ]
+        ],
+        "bindings": {
+          "KeyA": "A",
+          "KeyB": "B",
+          "KeyC": "C",
+          "KeyD": "D",
+          "KeyE": "E",
+          "KeyF": "F",
+          "KeyG": "G",
+          "KeyH": "H",
+          "KeyI": "I",
+          "KeyJ": "J",
+          "KeyK": "K",
+          "KeyL": "L",
+          "KeyM": "M",
+          "KeyN": "N",
+          "KeyO": "O",
+          "KeyP": "P",
+          "KeyQ": "Q",
+          "KeyR": "R",
+          "KeyS": "S",
+          "KeyT": "T",
+          "KeyU": "U",
+          "KeyV": "V",
+          "KeyW": "W",
+          "KeyX": "X",
+          "KeyY": "Y",
+          "KeyZ": "Z"
+        }
+      },
+      {
+        "id": "capsS1",
+        "modifiers": [
+          [
+            "caps",
+            "shift"
+          ]
+        ],
+        "bindings": {
+          "KeyA": "a",
+          "KeyB": "b",
+          "KeyC": "c",
+          "KeyD": "d",
+          "KeyE": "e",
+          "KeyF": "f",
+          "KeyG": "g",
+          "KeyH": "h",
+          "KeyI": "i",
+          "KeyJ": "j",
+          "KeyK": "k",
+          "KeyL": "l",
+          "KeyM": "m",
+          "KeyN": "n",
+          "KeyO": "o",
+          "KeyP": "p",
+          "KeyQ": "q",
+          "KeyR": "r",
+          "KeyS": "s",
+          "KeyT": "t",
+          "KeyU": "u",
+          "KeyV": "v",
+          "KeyW": "w",
+          "KeyX": "x",
+          "KeyY": "y",
+          "KeyZ": "z"
+        }
+      }
+    ]
+  },
+  "deadKeys": {
+    "u00a8": {
+      "spacing": "¨",
+      "name": "DIAERESIS",
+      "entries": [
+        {
+          "base": "a",
+          "result": "ä"
+        },
+        {
+          "base": "e",
+          "result": "ë"
+        },
+        {
+          "base": " ",
+          "result": "¨"
+        }
+      ]
+    },
+    "u00b4": {
+      "spacing": "´",
+      "name": "ACUTE ACCENT",
+      "entries": [
+        {
+          "base": "a",
+          "result": "á"
+        },
+        {
+          "base": "e",
+          "result": "é"
+        },
+        {
+          "base": "A",
+          "result": "Á"
+        },
+        {
+          "base": "E",
+          "result": "É"
+        },
+        {
+          "base": " ",
+          "result": "´"
+        }
+      ]
+    }
+  },
+  "targets": {
+    "windows": {
+      "dllName": "ykmsklc",
+      "localeFlags": {
+        "altGr": true,
+        "shiftLock": false,
+        "lrmRlm": false
+      },
+      "modifiers": {
+        "bits": [
+          {
+            "vk": "SHIFT",
+            "bit": 1,
+            "component": "shift"
+          },
+          {
+            "vk": "CONTROL",
+            "bit": 2,
+            "component": "ctrl"
+          },
+          {
+            "vk": "MENU",
+            "bit": 4,
+            "component": "alt"
+          }
+        ],
+        "modNumber": [
+          0,
+          1,
+          2,
+          null,
+          null,
+          null,
+          3,
+          4
+        ]
+      },
+      "keys": {
+        "Backquote": {
+          "vk": "OEM_3",
+          "attributes": []
+        },
+        "Backslash": {
+          "vk": "OEM_5",
+          "attributes": []
+        },
+        "BracketLeft": {
+          "vk": "OEM_4",
+          "attributes": []
+        },
+        "BracketRight": {
+          "vk": "OEM_6",
+          "attributes": []
+        },
+        "Comma": {
+          "vk": "OEM_COMMA",
+          "attributes": []
+        },
+        "Digit0": {
+          "vk": "0",
+          "attributes": []
+        },
+        "Digit1": {
+          "vk": "1",
+          "attributes": []
+        },
+        "Digit2": {
+          "vk": "2",
+          "attributes": []
+        },
+        "Digit3": {
+          "vk": "3",
+          "attributes": []
+        },
+        "Digit4": {
+          "vk": "4",
+          "attributes": []
+        },
+        "Digit5": {
+          "vk": "5",
+          "attributes": []
+        },
+        "Digit6": {
+          "vk": "6",
+          "attributes": []
+        },
+        "Digit7": {
+          "vk": "7",
+          "attributes": []
+        },
+        "Digit8": {
+          "vk": "8",
+          "attributes": []
+        },
+        "Digit9": {
+          "vk": "9",
+          "attributes": []
+        },
+        "Equal": {
+          "vk": "OEM_PLUS",
+          "attributes": []
+        },
+        "IntlBackslash": {
+          "vk": "OEM_102",
+          "attributes": []
+        },
+        "KeyA": {
+          "vk": "A",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "KeyB": {
+          "vk": "B",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "KeyC": {
+          "vk": "C",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "KeyD": {
+          "vk": "D",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "KeyE": {
+          "vk": "E",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "KeyF": {
+          "vk": "F",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "KeyG": {
+          "vk": "G",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "KeyH": {
+          "vk": "H",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "KeyI": {
+          "vk": "I",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "KeyJ": {
+          "vk": "J",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "KeyK": {
+          "vk": "K",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "KeyL": {
+          "vk": "L",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "KeyM": {
+          "vk": "M",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "KeyN": {
+          "vk": "N",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "KeyO": {
+          "vk": "O",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "KeyP": {
+          "vk": "P",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "KeyQ": {
+          "vk": "Q",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "KeyR": {
+          "vk": "R",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "KeyS": {
+          "vk": "S",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "KeyT": {
+          "vk": "T",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "KeyU": {
+          "vk": "U",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "KeyV": {
+          "vk": "V",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "KeyW": {
+          "vk": "W",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "KeyX": {
+          "vk": "X",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "KeyY": {
+          "vk": "Y",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "KeyZ": {
+          "vk": "Z",
+          "attributes": [
+            "CAPLOK"
+          ]
+        },
+        "Minus": {
+          "vk": "OEM_MINUS",
+          "attributes": []
+        },
+        "NumpadDecimal": {
+          "vk": "DELETE",
+          "attributes": []
+        },
+        "Period": {
+          "vk": "OEM_PERIOD",
+          "attributes": []
+        },
+        "Quote": {
+          "vk": "OEM_7",
+          "attributes": []
+        },
+        "Semicolon": {
+          "vk": "OEM_1",
+          "attributes": []
+        },
+        "Slash": {
+          "vk": "OEM_2",
+          "attributes": []
+        },
+        "Space": {
+          "vk": "SPACE",
+          "attributes": []
+        }
+      },
+      "strings": {
+        "layoutName": {
+          "0409": "YAKBD MSKLC-style test"
+        },
+        "languageName": {
+          "0409": "English (United States)"
+        },
+        "localeName": "en-US"
+      },
+      "registration": {
+        "langId": "0409"
+      }
+    },
+    "klc": {
+      "versionLine": "1.0"
+    },
+    "macos": {
+      "layoutName": "YAKBDGenKlc",
+      "bundleName": "YAKBDGenKlc",
+      "bundleId": "org.yakbd.keyboardlayout.check.genklc",
+      "inputSourceId": "org.yakbd.keyboardlayout.check.genklc.yakbdgenklc"
+    },
+    "xkb": {
+      "symbolsName": "yakbd-gen-klc"
+    }
+  }
+}

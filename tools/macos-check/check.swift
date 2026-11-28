@@ -65,7 +65,12 @@ func show(_ s: String) -> String {
 
 // ---- the expectation file ----
 
-struct Stroke { let code: UInt16; let shift: Bool; let option: Bool; let caps: Bool }
+// rshift and roption hold the right-hand key (and set shift or option too): whether macOS hands a layout the
+// right-hand state at all is what the case "sides" measures (targets/macos.md §8 of the kbl spec).
+struct Stroke {
+    let code: UInt16; let shift: Bool; let option: Bool; let caps: Bool
+    var rshift = false; var roption = false
+}
 struct Case { let name: String; let strokes: [Stroke]; let want: String }
 
 func unescape(_ s: String) -> String {
@@ -107,8 +112,10 @@ func loadCases() -> [Case] {
             let parts = tok.split(separator: "+").map(String.init)
             guard let code = UInt16(parts[0]), code < 128 else { ok = false; break }
             let mods = Set(parts.dropFirst())
-            if !mods.isSubset(of: ["shift", "option", "caps"]) { ok = false; break }
-            strokes.append(Stroke(code: code, shift: mods.contains("shift"), option: mods.contains("option"), caps: mods.contains("caps")))
+            if !mods.isSubset(of: ["shift", "option", "caps", "rshift", "roption"]) { ok = false; break }
+            strokes.append(Stroke(code: code, shift: mods.contains("shift") || mods.contains("rshift"),
+                                  option: mods.contains("option") || mods.contains("roption"), caps: mods.contains("caps"),
+                                  rshift: mods.contains("rshift"), roption: mods.contains("roption")))
         }
         if !ok || strokes.isEmpty { emit("FAIL", "expect-file", "line \(i + 1): bad strokes \"\(f[1])\""); continue }
         cases.append(Case(name: f[0], strokes: strokes, want: unescape(f[2])))
@@ -236,7 +243,15 @@ if control {
         emit("FAIL", "visible", "not listed \(Int(waitSeconds)) s after registration; first seen: \(seenText())")
     }
 }
-if let s = source { emit("INFO", "properties", describe(s)) }
+if let s = source {
+    emit("INFO", "properties", describe(s))
+    // MACOS_CHECK_NAME (the case's name.txt): the name the system shows for the layout, from the bundle's
+    // <tag>.lproj/InfoPlist.strings for the session's languages.
+    if let want = ProcessInfo.processInfo.environment["MACOS_CHECK_NAME"], !want.isEmpty {
+        let got = stringProp(s, kTISPropertyLocalizedName) ?? "(none)"
+        emit(got == want ? "PASS" : "FAIL", "localized-name", got == want ? got : "got \(show(got)) want \(show(want))")
+    }
+}
 if ProcessInfo.processInfo.environment["MACOS_CHECK_REGISTER_ONLY"] == "1" { exit(failed ? 1 : 0) }
 
 // Calls TISEnableInputSource every 2 s until a freshly listed object says it is enabled.
@@ -290,7 +305,11 @@ if let s0 = source {
 
 func modState(_ k: Stroke) -> UInt32 {
     // Carbon modifier bits shifted right by 8: shift 0x02, caps lock 0x04, option 0x08.
-    (k.shift ? 0x02 : 0) | (k.caps ? 0x04 : 0) | (k.option ? 0x08 : 0)
+    var m: UInt32 = (k.shift ? 0x02 : 0) | (k.caps ? 0x04 : 0) | (k.option ? 0x08 : 0)
+    // Right-hand keys add rightShiftKey / rightOptionKey (Carbon Events.h) to the either-side bit.
+    if k.rshift { m |= UInt32(rightShiftKey) >> 8 }
+    if k.roption { m |= UInt32(rightOptionKey) >> 8 }
+    return m
 }
 
 // Translates a stroke sequence, carrying the dead-key state; returns the text, the status and the state left.
@@ -388,6 +407,25 @@ if !typing.isEmpty && !selected {
         if k.option { flags.insert(.maskAlternate) }
         if k.caps { flags.insert(.maskAlphaShift) }
         let src = CGEventSource(stateID: .hidSystemState)
+        // A right-hand modifier: its device bit (IOLLEvent.h: NX_DEVICERSHIFTKEYMASK 0x04, NX_DEVICERALTKEYMASK
+        // 0x40) on the key events, and the modifier key itself (kVK_RightShift, kVK_RightOption) pressed around them.
+        var side: [UInt16] = []
+        if k.rshift { flags.insert(CGEventFlags(rawValue: 0x04)); side.append(UInt16(kVK_RightShift)) }
+        if k.roption { flags.insert(CGEventFlags(rawValue: 0x40)); side.append(UInt16(kVK_RightOption)) }
+        for m in side {
+            if let e = CGEvent(keyboardEventSource: src, virtualKey: m, keyDown: true) {
+                e.type = .flagsChanged; e.flags = flags; e.post(tap: .cghidEventTap)
+            }
+            spin(0.03)
+        }
+        defer {
+            for m in side.reversed() {
+                if let e = CGEvent(keyboardEventSource: src, virtualKey: m, keyDown: false) {
+                    e.type = .flagsChanged; e.flags = []; e.post(tap: .cghidEventTap)
+                }
+                spin(0.03)
+            }
+        }
         for down in [true, false] {
             if let e = CGEvent(keyboardEventSource: src, virtualKey: k.code, keyDown: down) {
                 e.flags = flags
@@ -422,6 +460,10 @@ if !typing.isEmpty && !selected {
             let check = "type-\(m):\(c.name)"
             if m == "sysevents" && c.strokes.contains(where: { $0.caps }) {
                 emit("SKIP", check, "System Events key code has no caps-lock modifier")
+                continue
+            }
+            if m == "sysevents" && c.strokes.contains(where: { $0.rshift || $0.roption }) {
+                emit("SKIP", check, "System Events key code has no right-hand modifiers")
                 continue
             }
             text.string = ""

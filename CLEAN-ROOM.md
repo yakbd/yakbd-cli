@@ -409,6 +409,19 @@ rejects an unsigned layout bundle while the system still lists, compiles and sel
 - The kbl specification's `targets/macos.md`, `coverage/macos.md` and `targets/macos-default-keycode.tsv` (branch
   `spec-0.2`, this project's own repository) for every build and import rule.
 
+### Cases for the unmeasured macOS rules (2026-11-28)
+
+The cases `sides`, `gen-pending`, `gen-lproj-hyphen`, `gen-lproj-utf8`, `gen-klc`, `gen-cldr`, `gen-specg` and the
+`extra.tsv` line of `gen-demo` in `tools/macos-check/cases/` and the `+rshift`/`+roption` strokes and the
+`localized-name` check of `check.swift` are our own text and code. `sides` was written from a yakbd build of a layout
+of our own and edited by hand (TN2056 for the left- and right-hand modifier words `shift`, `option`, `rightShift`,
+`rightOption`). `gen-klc` is this repository's own `testdata/klc/msklc-style.klc`, `gen-cldr` CLDR release 49
+`keyboards/3.0/mt.xml` (Unicode License v3, from `testdata/third_party/cldr-release-49/`, its `LICENSE` beside the case),
+`gen-specg` the kbl spec's example (g) (MIT-0), each converted or copied by yakbd and given names of its own. The
+right-hand modifier values come from general knowledge of the public macOS SDK as Swift imports it, no header read:
+`rightShiftKey` and `rightOptionKey` (Carbon), `kVK_RightShift` and `kVK_RightOption`, and the device bits
+`NX_DEVICERSHIFTKEYMASK` (0x04) and `NX_DEVICERALTKEYMASK` (0x40) of IOKit's event flags.
+
 ## Linux / XKB
 
 ### The Linux layout check (2026-11-28)
@@ -483,3 +496,14 @@ Our own code, written from the kbl specification (branch `spec-0.2` at 36aaa7b: 
 `targets/macos.md` §2, D143 to D145), which cites its sources; that libxkbcommon's registry merges `layout`
 elements of one name was read in libxkbcommon's `src/registry.c` (commit `15b2b4e`, MIT, facts only).
 `testdata/klc/msklc-style.klc` is our own file in the shape MSKLC saves (UTF-16, CRLF), MIT-0.
+
+### Cases for the unmeasured XKB rules (2026-11-28)
+
+The generated cases `gen-probe` (with `extra.tsv`), `gen-chars`, `gen-chars-utf8`, `gen-var-a`, `gen-var-b`,
+`gen-var-sys`, `gen-klc` and `gen-cldr` in `tools/xkb-check/gen/`, the Compose scenarios `pre-both` and `pre-config`,
+the `extra_checks` of `inside.sh` and the `NAME(VARIANT)` form of `xkbtype` are our own text and code. `gen-klc` and
+`gen-cldr` hold the same files as the macOS check (sources above; `LICENSE` beside `gen-cldr`). The character sample
+of `gen-chars` was chosen by us over the rows of rule `characters` (kbl spec `targets/xkb.md`); the comparison
+relies on libxkbcommon turning a UTF-8 string into a keysym with `xkb_utf32_to_keysym`, as the XKB sources above
+record. The output format of `xkbcli list` and `xkbcli compile-keymap` was read from the tools' own output in the
+test images.

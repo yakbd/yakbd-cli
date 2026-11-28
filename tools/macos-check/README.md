@@ -53,11 +53,15 @@ Make a folder `cases/<case>/` with:
   with `id` after another attribute (as `group="126" id="..."`); otherwise the case fails with `FAIL <case> case`.
   Give each case at least one output the other cases lack, so typing on the wrong layout cannot pass.
 - `expect.tsv`: one expectation per line, `name<TAB>strokes<TAB>expected`. Strokes are virtual key codes
-  (0 to 127) separated by spaces, each with optional `+shift`, `+option` or `+caps`. For example, `24 14` is two
-  strokes, and `0+shift+option` is one. The expected text is UTF-8; `\s` is a space, `\t` a tab, `\\` a backslash,
+  (0 to 127) separated by spaces, each with optional `+shift`, `+option` or `+caps`, or `+rshift` / `+roption`
+  for the right-hand key (typed by `CGEvent` with the key's device bit and the modifier key itself; `SKIP` through
+  System Events, which has no right-hand modifiers). For example, `24 14` is two strokes, and `0+shift+option` is one. The expected text is UTF-8; `\s` is a space, `\t` a tab, `\\` a backslash,
   `\u{HEX}` any code point. Lines starting with `#` are comments.
 - optionally a file `quarantine`: `run.sh` then marks the installed copy with `com.apple.quarantine`, as a
   browser does for a downloaded file.
+- optionally a file `name.txt`: the localised name the system should show for the layout
+  (`kTISPropertyLocalizedName`, check `localized-name`); the summary's `INFO host languages` line says which
+  languages the session prefers.
 
 No other change is needed. The cases run in name order.
 
@@ -73,7 +77,8 @@ followed by every base an entry names (chained dead keys one step further), by S
 control characters and empty outputs are left out; dead-key lines first, then the rest spread evenly. So a pass
 means macOS types what the format says the file means. The file must pin a plain `layoutName` (the bundle name
 follows it), its own `inputSourceId` and a keyboard id of its own (pinned, or the hash of the input-source id).
-`target/macos` tests check every such case in `go test`.
+`target/macos` tests check every such case in `go test`. A generated case may add an `extra.tsv` (same format as
+`expect.tsv`), appended to the generated lines: hand-written expectations for what the generated ones do not cover.
 
 ## The cases here
 
@@ -91,6 +96,24 @@ follows it), its own `inputSourceId` and a keyboard id of its own (pinned, or th
 - `gen-corpus` (generated): `us_ee.keylayout` of the corpus (`testdata/third_party/keylayout/us-ee-keylayout-osx`,
   MIT, its LICENSE beside it) converted to `.kbl.json` by `yakbd convert`, with the names, group 126 and id -14844
   set for this check: U.S. with Estonian letters and four Option dead keys.
+
+- `sides` (hand-written from a yakbd build): key maps chosen by the left-hand words `shift` and `option` and the
+  right-hand words `rightShift` and `rightOption`, which differ only in key code 0 (`A` or `Ʀ`, `å` or `ɒ`): does
+  macOS hand a layout the right-hand state (kbl spec `targets/macos.md` §8 item 3)? `translate:` lines show what the
+  layout data does with the right-hand bits, `type-cgevent:` lines what the system delivers.
+- `gen-pending` (generated, with `extra.tsv`): a key with no output while a dead key is pending, a dead key with
+  `noMatch` `emitNothing` (`next="none"` without output), and a terminator plus a two-character output in one press
+  with `maxout` pinned to 2 (the build's `macos.outputBeyondMaxout` made a warning) (§8 items 1, 2, 7). The
+  `extra.tsv` line of `gen-demo` does the same press under the default `maxout`.
+- `gen-lproj-hyphen`, `gen-lproj-utf8` (generated, with `name.txt`): the localised name only in a hyphenated
+  `en-US.lproj`, and one with letters outside ASCII in the UTF-8 `InfoPlist.strings` the build writes (§8 item 4).
+- `gen-klc` (generated): the repository's `testdata/klc/msklc-style.klc` converted by `yakbd convert` (rows MSKLC adds,
+  `Break` among them, which has no macOS key: `macos.positionWithoutKey`); `gen-cldr`: CLDR release 49
+  `keyboards/3.0/mt.xml` converted (Unicode License v3, `LICENSE` beside it); `gen-specg`: the kbl spec's example (g)
+  (`xkb-caps-deadkeys`), which `tools/xkb-check` builds too, with a LANGID so the same file also builds for Windows.
+
+Not measurable here: adding a layout by hand in System Settings (§8 item 5) and the ISO swap of codes 10 and 50 (item
+6), which needs a real ISO keyboard (a runner types by key code).
 
 ## Locally
 

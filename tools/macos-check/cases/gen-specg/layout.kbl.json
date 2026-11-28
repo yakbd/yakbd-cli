@@ -1,0 +1,187 @@
+{
+  "$schema": "https://yakbd.github.io/kbl-spec/schema/0.2/kbl.schema.json",
+  "kbl": "0.2",
+  "metadata": {
+    "id": "fo-t-k0-xkbdemo",
+    "name": "XKB demo (example)",
+    "version": "0.2.0",
+    "license": "MIT-0",
+    "description": "The kbl spec's example (g) xkb-caps-deadkeys (MIT-0) with names of its own for the macOS check and a LANGID for a Windows build, so one 0.2 example is built for all three targets (tools/xkb-check builds the same example as gen-demo).",
+    "authors": [
+      {
+        "name": "The YAKBD contributors"
+      }
+    ]
+  },
+  "positions": {
+    "KeyA": {
+      "scanCode": "1E"
+    },
+    "KeyE": {
+      "scanCode": "12"
+    },
+    "KeyT": {
+      "scanCode": "14"
+    },
+    "KeyD": {
+      "scanCode": "20"
+    },
+    "Quote": {
+      "scanCode": "28"
+    },
+    "Space": {
+      "scanCode": "39"
+    },
+    "AltRight": {
+      "scanCode": "E038"
+    }
+  },
+  "hardware": {
+    "layers": [
+      {
+        "id": "base",
+        "modifiers": [
+          []
+        ],
+        "bindings": {
+          "KeyA": "a",
+          "KeyE": "e",
+          "KeyT": "t",
+          "KeyD": "ð",
+          "Quote": {
+            "deadKey": "acute"
+          },
+          "Space": " "
+        }
+      },
+      {
+        "id": "shift",
+        "modifiers": [
+          [
+            "shift"
+          ]
+        ],
+        "bindings": {
+          "KeyA": "A",
+          "KeyE": "E",
+          "KeyT": "T",
+          "KeyD": "Ð",
+          "Quote": "\"",
+          "Space": " "
+        }
+      },
+      {
+        "id": "caps",
+        "modifiers": [
+          [
+            "caps"
+          ]
+        ],
+        "bindings": {
+          "KeyA": "A",
+          "KeyE": "E",
+          "KeyT": "T",
+          "KeyD": "Ð"
+        }
+      },
+      {
+        "id": "capsShift",
+        "modifiers": [
+          [
+            "caps",
+            "shift"
+          ]
+        ],
+        "bindings": {
+          "KeyA": "a",
+          "KeyE": "e",
+          "KeyT": "t",
+          "KeyD": "ð"
+        }
+      },
+      {
+        "id": "altgr",
+        "modifiers": [
+          [
+            "altR"
+          ]
+        ],
+        "bindings": {
+          "KeyT": "þ",
+          "KeyE": "€"
+        }
+      },
+      {
+        "id": "altgrShift",
+        "modifiers": [
+          [
+            "shift",
+            "altR"
+          ]
+        ],
+        "bindings": {
+          "KeyT": "Þ"
+        }
+      }
+    ]
+  },
+  "deadKeys": {
+    "acute": {
+      "spacing": "´",
+      "entries": [
+        {
+          "base": "a",
+          "result": "á"
+        },
+        {
+          "base": "e",
+          "result": "é"
+        },
+        {
+          "base": "A",
+          "result": "Á"
+        },
+        {
+          "base": "E",
+          "result": "É"
+        },
+        {
+          "base": " ",
+          "result": "´"
+        },
+        {
+          "base": {
+            "deadKey": "acute"
+          },
+          "result": "´"
+        }
+      ]
+    }
+  },
+  "targets": {
+    "xkb": {
+      "symbolsName": "yakbd-fo-xkbdemo",
+      "description": "Faroese XKB demo (example)",
+      "languages": [
+        "fao"
+      ],
+      "customTypes": true,
+      "onLoss": {
+        "kinds": {
+          "xkb.customKeyType": "accept"
+        }
+      }
+    },
+    "macos": {
+      "layoutName": "YAKBDGenSpecG",
+      "bundleName": "YAKBDGenSpecG",
+      "bundleId": "org.yakbd.keyboardlayout.check.genspecg",
+      "inputSourceId": "org.yakbd.keyboardlayout.check.genspecg.yakbdgenspecg"
+    },
+    "windows": {
+      "registration": {
+        "langId": "0438"
+      }
+    }
+  }
+}

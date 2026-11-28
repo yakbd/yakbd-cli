@@ -38,6 +38,10 @@ if ls "$here"/gen/*/layout.kbl.json >/dev/null 2>&1; then
          "$out/yakbd" compile -target xkb -q -emit-expectations -max-expectations 40 -o "$tmp" "$c/layout.kbl.json" >>"$out/logs/gen-$name.log" 2>&1 &&
          tar -xzf "$tmp/layout.tar.gz" -C "$gen/$name" --strip-components=1; then
         cp "$tmp/expect.tsv" "$gen/$name/cases.tsv"
+        # extra.tsv: hand-written cases for what the generated ones do not cover (README.md); distro-only: the
+        # layout is typed in the distro stack only (inside.sh)
+        [ -f "$c/extra.tsv" ] && cat "$c/extra.tsv" >> "$gen/$name/cases.tsv"
+        [ -f "$c/distro-only" ] && cp "$c/distro-only" "$gen/$name/"
         echo "generate - $name - INFO $(grep -vc "^#" "$gen/$name/cases.tsv") cases from layout.kbl.json" >> "$summary"
       else
         rm -rf "$gen/$name"

@@ -1,0 +1,167 @@
+{
+  "kbl": "0.2",
+  "metadata": {
+    "id": "en-t-k0-yakbdpending",
+    "name": "YAKBDGenPending",
+    "description": "A test layout for tools/macos-check (MIT-0, written for this repository): a key with no output pressed while a dead key is pending (KeyQ is a position without a binding), a dead key with noMatch emitNothing, and a dead key followed by a two-character output with maxout pinned to 2 (the build reports macos.outputBeyondMaxout, made a warning here, so macOS shows what it does with it)."
+  },
+  "positions": {
+    "KeyQ": {},
+    "KeyW": {},
+    "KeyE": {},
+    "KeyR": {},
+    "KeyT": {},
+    "KeyY": {},
+    "KeyU": {},
+    "KeyI": {},
+    "KeyO": {},
+    "KeyP": {},
+    "KeyA": {},
+    "KeyS": {},
+    "KeyD": {},
+    "KeyF": {},
+    "KeyG": {},
+    "KeyH": {},
+    "KeyJ": {},
+    "KeyK": {},
+    "KeyL": {},
+    "KeyZ": {},
+    "KeyX": {},
+    "KeyC": {},
+    "KeyV": {},
+    "KeyB": {},
+    "KeyN": {},
+    "KeyM": {},
+    "Space": {},
+    "Equal": {},
+    "Minus": {}
+  },
+  "hardware": {
+    "layers": [
+      {
+        "id": "base",
+        "modifiers": [
+          []
+        ],
+        "bindings": {
+          "KeyW": "w",
+          "KeyE": "e",
+          "KeyR": "r",
+          "KeyT": "t",
+          "KeyY": "y",
+          "KeyU": "u",
+          "KeyI": "i",
+          "KeyO": "o",
+          "KeyP": "p",
+          "KeyA": "a",
+          "KeyS": "s",
+          "KeyD": "d",
+          "KeyF": "f",
+          "KeyG": "g",
+          "KeyH": "h",
+          "KeyJ": "j",
+          "KeyK": "k",
+          "KeyL": "l",
+          "KeyZ": "z",
+          "KeyX": "x",
+          "KeyC": "c",
+          "KeyV": "v",
+          "KeyB": "b",
+          "KeyN": "ng",
+          "KeyM": "ŧ",
+          "Space": " ",
+          "Equal": {
+            "deadKey": "acute"
+          },
+          "Minus": {
+            "deadKey": "macron"
+          }
+        }
+      },
+      {
+        "id": "shift",
+        "modifiers": [
+          [
+            "shift"
+          ]
+        ],
+        "bindings": {
+          "KeyW": "W",
+          "KeyE": "E",
+          "KeyR": "R",
+          "KeyT": "T",
+          "KeyY": "Y",
+          "KeyU": "U",
+          "KeyI": "I",
+          "KeyO": "O",
+          "KeyP": "P",
+          "KeyA": "A",
+          "KeyS": "S",
+          "KeyD": "D",
+          "KeyF": "F",
+          "KeyG": "G",
+          "KeyH": "H",
+          "KeyJ": "J",
+          "KeyK": "K",
+          "KeyL": "L",
+          "KeyZ": "Z",
+          "KeyX": "X",
+          "KeyC": "C",
+          "KeyV": "V",
+          "KeyB": "B",
+          "KeyN": "NG",
+          "KeyM": "Ŧ",
+          "Space": " "
+        }
+      }
+    ]
+  },
+  "deadKeys": {
+    "acute": {
+      "spacing": "´",
+      "noMatch": "emitBoth",
+      "entries": [
+        {
+          "base": "e",
+          "result": "é"
+        },
+        {
+          "base": "a",
+          "result": "á"
+        },
+        {
+          "base": " ",
+          "result": "´"
+        }
+      ]
+    },
+    "macron": {
+      "spacing": "¯",
+      "noMatch": "emitNothing",
+      "entries": [
+        {
+          "base": "a",
+          "result": "ā"
+        },
+        {
+          "base": "e",
+          "result": "ē"
+        }
+      ]
+    }
+  },
+  "targets": {
+    "macos": {
+      "layoutName": "YAKBDGenPending",
+      "bundleName": "YAKBDGenPending",
+      "bundleId": "org.yakbd.keyboardlayout.check.genpending",
+      "inputSourceId": "org.yakbd.keyboardlayout.check.genpending.yakbdgenpending",
+      "maxout": 2,
+      "onLoss": {
+        "kinds": {
+          "macos.outputBeyondMaxout": "warning"
+        }
+      }
+    }
+  }
+}

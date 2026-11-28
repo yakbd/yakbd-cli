@@ -1,0 +1,18 @@
+# Hand-written lines (README.md, extra.tsv) for targets/xkb.md §8 of the kbl spec; each outcome types differently.
+# (3) x has no sequence after the acute: a´xa = the model (emitBoth), axa = cancelled and typed, aa = swallowed.
+nomatch-key	yakbd-gen-probe	build	<AC01> <AE12> <AB02> <AC01>	a´xa
+# (3) Backspace after the acute: aax = the dead key cancelled and nothing deleted, ax = a character deleted too.
+backspace-after-dead	yakbd-gen-probe	build	<AC01> <AC01> <AE12> <BKSP> <AB02>	aax
+# (8) the entry e has the result "": nothing between the two a.
+empty-result	yakbd-gen-probe	build	<AC01> <AE12> <AD03> <AC01>	aa
+# (10) Numpad1 is type KEYPAD [KP_End, onesuperior]: Num Lock on gives ¹, also with Shift; off gives no text.
+keypad-numlock	yakbd-gen-probe	build	<AC01> <NMLK> <KP1> <NMLK> <AC01>	a¹a
+keypad-numlock-shift	yakbd-gen-probe	build	<AC01> <NMLK> +<LFSH> <KP1> -<LFSH> <NMLK> <AC01>	a¹a
+keypad-plain	yakbd-gen-probe	build	<AC01> <KP1> <AC01>	aa
+# (7) pre-both: ~/.config/XCompose (<dead_acute> <x> : "2") and ~/.config/gtk-4.0/Compose (<dead_acute> <v> : "3")
+# exist before install.sh, which appends its block to both; pre-config: only ~/.config/XCompose exists.
+pre-both-entry	yakbd-gen-probe	pre-both	<AE12> <AC01>	á
+pre-both-own-config	yakbd-gen-probe	pre-both	<AE12> <AB02>	2
+pre-both-own-gtk	yakbd-gen-probe	pre-both	<AE12> <AB04>	3
+pre-config-entry	yakbd-gen-probe	pre-config	<AE12> <AC01>	á
+pre-config-own	yakbd-gen-probe	pre-config	<AE12> <AB02>	2

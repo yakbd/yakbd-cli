@@ -68,7 +68,10 @@ key presses went through the stack's own keymap.
 A folder `gen/<case>/` with a `layout.kbl.json` is built by the tool itself: `run.sh` builds yakbd (`go build`;
 Go 1.26.8 on the host), runs `yakbd installer -target xkb` (the release archive) and `yakbd compile -target xkb
 -emit-expectations -max-expectations 40`, and writes the unpacked archive with the generated `cases.tsv` to
-`OUTDIR/gen/<case>/`, which the containers see as `/xkb-gen/`. `inside.sh` installs such a layout with the archive's
+`OUTDIR/gen/<case>/`, which the containers see as `/xkb-gen/`. A case may add `extra.tsv` (lines in the format of
+`cases.tsv`, appended to the generated ones, also with other Compose scenarios) and a file `distro-only` (typed in the
+`distro` stack only, for variants and keymap comparisons). Cases of a variant name their layout `NAME(VARIANT)`, which
+`xkbtype` splits. The `distro` stack also runs `extra_checks` (lines `distro(<image>) xkbcli <case> <check>`). `inside.sh` installs such a layout with the archive's
 own `install.sh` (so the install script is checked too), and the X11 stack adds its yakbd key types with `-types`.
 The expectations come from the `.kbl.json` (the model: `resolve()` and the dead keys' entries), not from the built
 files; `TestCheckCases` (`target/xkb`) checks that every case builds and presses only keys of `keycodes.tsv`, which
@@ -78,6 +81,11 @@ holds every row of the kbl spec's position table.
 |---|---|
 | `gen-demo` | the spec example `xkb-caps-deadkeys`: levels 1 to 4, Caps Lock per key type (`FOUR_LEVEL_SEMIALPHABETIC`, `FOUR_LEVEL_ALPHABETIC`, and the yakbd type `YAKBD_12213434` that leaves Caps Lock out of AltGr: þ, not Þ), a dead key through the generated Compose file |
 | `gen-multi` | several characters on one level (`ng`, `x` + U+0301): expected to type in libxkbcommon and Qt and to fail in GTK 4; the build adds the section `basic-x11` with those levels empty, which the x11 stack loads, so there only those levels are expected to fail (not yet run: `baseline.txt` holds the run before the X11 section, in which X11 refused the whole keymap); `FOUR_LEVEL_PLUS_LOCK` for keys that Caps Lock leaves alone |
+| `gen-probe` | written for this check, with hand-written lines in `extra.tsv` (kbl spec `targets/xkb.md` §8): a key without a sequence and Backspace after a dead key (item 3), an entry whose result is `""` (item 8), a `numLock` position (type `KEYPAD`) with and without Num Lock and Shift (item 10), and the Compose scenarios `pre-both` and `pre-config` (item 7): `~/.config/XCompose` (and, for `pre-both`, `~/.config/gtk-4.0/Compose`) exist with a sequence of their own before `install.sh` appends its block; each outcome types something different, so a FAIL's `got` is the measurement |
+| `gen-chars`, `gen-chars-utf8` | the same 202 characters over every row of rule `characters`, written as keysym names and as UTF-8 strings; `extra_checks` compares the two compiled keymaps key by key, so the names yakbd writes are checked against `xkb_utf32_to_keysym` (item 9) |
+| `gen-var-a`, `gen-var-b`, `gen-var-sys` | variants `va` and `vb` of one layout installed side by side, then `va` removed (item 12), and a variant `yakbdv` of the system layout `fo` from the user path (item 5): `xkbcli list` and `compile-keymap` in `extra_checks`; `gen-demo` as the second of two layouts (`us,yakbd-fo-xkbdemo`) keeps its yakbd key type (item 4) |
+| `gen-klc` | the repository's `testdata/klc/msklc-style.klc` converted by `yakbd convert` (rows MSKLC adds; `Break` has no XKB key: `xkb.positionWithoutKey`); the macOS check builds the same file |
+| `gen-cldr` | CLDR release 49 `keyboards/3.0/mt.xml` converted (Unicode License v3, `LICENSE` beside it); the macOS check builds the same file |
 | `gen-corpus` | xkeyboard-config's `fo(basic)` converted to `.kbl.json` with `testdata/xkb/test.XCompose` (MIT/X11 notices: `COPYING` beside it), renamed `yakbd-gen-fo`: a real layout with its includes inlined and its dead keys |
 
 ## Results

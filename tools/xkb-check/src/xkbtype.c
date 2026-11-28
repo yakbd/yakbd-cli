@@ -1,6 +1,6 @@
 /* xkbtype: type key events through libxkbcommon's state and Compose API, with no display.
  *
- * usage: xkbtype LAYOUT < events
+ * usage: xkbtype LAYOUT < events      (LAYOUT may be NAME(VARIANT))
  *
  * The keymap is compiled from the layout name alone (rules evdev, model pc105), so the
  * layout is found the way a compositor finds it: through libxkbcommon's default include
@@ -39,7 +39,16 @@ int main(int argc, char **argv)
     setlocale(LC_ALL, "");
     struct xkb_context *ctx = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
     if (!ctx) { fprintf(stderr, "xkbtype: no context\n"); return 1; }
-    struct xkb_rule_names names = { "evdev", "pc105", argv[1], "", "" };
+    /* "NAME(VARIANT)", as the generated cases of a variant name it: the variant goes in its own field. */
+    char layout[256], variant[256] = "";
+    snprintf(layout, sizeof layout, "%s", argv[1]);
+    char *paren = strchr(layout, '(');
+    if (paren && layout[strlen(layout) - 1] == ')') {
+        layout[strlen(layout) - 1] = 0;
+        snprintf(variant, sizeof variant, "%s", paren + 1);
+        *paren = 0;
+    }
+    struct xkb_rule_names names = { "evdev", "pc105", layout, variant, "" };
     struct xkb_keymap *km = xkb_keymap_new_from_names(ctx, &names, XKB_KEYMAP_COMPILE_NO_FLAGS);
     if (!km) { fprintf(stderr, "xkbtype: keymap for layout %s did not compile\n", argv[1]); return 1; }
     struct xkb_state *st = xkb_state_new(km);
