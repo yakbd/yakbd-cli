@@ -1,0 +1,7 @@
+# Question 1: the APK with android:hasCode="false" and no classes.dex installs, has no HAS_CODE flag, and its
+# layout is listed.
+kind=listed
+apk=kcm-nocode
+package=org.yakbd.androidcheck.kcm
+nocode=yes
+expect=org.yakbd.androidcheck.kcm/org.yakbd.androidcheck.kcm.Layouts/check_nocode

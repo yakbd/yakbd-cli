@@ -35,7 +35,8 @@ jobs:
         with:
           name: android-check-apks
           path: |
-            ${{ runner.temp }}/apks/kcm.apk
+            ${{ runner.temp }}/apks/kcm-nocode.apk
+            ${{ runner.temp }}/apks/kcm-nodex.apk
             ${{ runner.temp }}/apks/app.apk
             ${{ runner.temp }}/apks/build.txt
           if-no-files-found: ignore

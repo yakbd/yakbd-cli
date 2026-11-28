@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Android check driver (README.md). Runs every case of cases/ against the one running emulator (adb) and
 # writes OUTDIR/summary.txt: one line per case, "PASS name" or "FAIL name: reason", then timing lines.
-#   run.sh OUTDIR APKDIR        APKDIR holds kcm.apk and app.apk from build.sh
+#   run.sh OUTDIR APKDIR        APKDIR holds the APKs from build.sh
 # Environment: ANDROID_CHECK_CASES (names separated by spaces; empty: all), ANDROID_CHECK_T0 (epoch seconds
 # when the job started, for the timing line).
 set -uo pipefail
@@ -17,9 +17,7 @@ LOG="$OUT/log.txt"
 T1=$(date +%s)
 
 PKG=org.yakbd.androidcheck
-KPKG=org.yakbd.androidcheck.kcm
 IME="$PKG/.CheckIme"
-DESC_PREFIX="$KPKG/$KPKG.Layouts"
 D=/data/local/tmp/yakbd
 
 log() { echo "$(date +%T) $*" >> "$LOG"; }
@@ -96,6 +94,7 @@ layout_tool() { # action [devices [layout]]
 }
 
 restart_field() { # after the layout tool or a system restart: the app process is new
+  sh_ ime enable "$IME" >> "$LOG"
   sh_ ime set "$IME" >> "$LOG"
   sh_ am start -W -n "$PKG/.MainActivity" >> "$LOG"
   sleep 3
@@ -109,10 +108,12 @@ root_select() { # name vid pid layoutdesc
   local name=$1 vid pid layout=$4 handle abx=0 f=/data/system/input-manager-state.xml
   vid=$(hex2dec "$2"); pid=$(hex2dec "$3")
   [ -s "$OUT/layouts.txt" ] || layout_tool dump > "$OUT/layouts.txt"
-  handle=$(grep '^subtype-handle ' "$OUT/layouts.txt" | head -n 1 | cut -d' ' -f2)
-  [ -n "$handle" ] && [ "$handle" != "?" ] || { echo "no subtype handle from the layout tool"; return 1; }
   if [ "$(sh_ "head -c 3 $f")" = ABX ]; then abx=1; sh_ "abx2xml $f $D/ims.xml" >> "$LOG"; else sh_ "cp $f $D/ims.xml" >> "$LOG"; fi
   adb pull "$D/ims.xml" "$OUT/ims-before.xml" > /dev/null 2>&1 || echo '<?xml version="1.0" encoding="utf-8" standalone="yes" ?><input-manager-state></input-manager-state>' > "$OUT/ims-before.xml"
+  # The keyboard subtype part of the key: from an entry the api route wrote, else from the layout tool.
+  handle=$(grep -o "subtypeHandle:[^\"]*" "$OUT/ims-before.xml" | head -n 1 | cut -d: -f2-)
+  [ -n "$handle" ] || handle=$(grep "^subtype-handle " "$OUT/layouts.txt" | head -n 1 | cut -d" " -f2)
+  [ -n "$handle" ] || { echo "no keyboard subtype handle"; return 1; }
   local entry="<input-device descriptor=\"vendor:$vid,product:$pid\"><keyed-keyboard-layout key=\"layoutDescriptor:vendor:$vid,product:$pid,userId:0,subtypeHandle:$handle\" layout=\"$layout\" /></input-device>"
   if grep -q '</input-devices>' "$OUT/ims-before.xml"; then
     sed "s#</input-devices>#$entry</input-devices>#" "$OUT/ims-before.xml" > "$OUT/ims-after.xml"
@@ -151,11 +152,14 @@ SDK=$(adb shell getprop ro.build.version.sdk | tr -d '\r')
 log "sdk $SDK, $(adb shell getprop ro.build.fingerprint | tr -d '\r')"
 sh_ settings put global hidden_api_policy 1 >> "$LOG"
 sh_ settings put secure show_ime_with_hard_keyboard 1 >> "$LOG"
-KCM_INSTALL=$(adb install -r "$APKS/kcm.apk" 2>&1 | tr '\n' ' ')
-log "install kcm.apk: $KCM_INSTALL"
-APP_INSTALL=$(adb install -r -t "$APKS/app.apk" 2>&1 | tr '\n' ' ')
-log "install app.apk: $APP_INSTALL"
-sh_ dumpsys package "$KPKG" > "$OUT/kcm-package.txt"
+for apk in kcm-nocode kcm-nodex app; do
+  adb install -r -t "$APKS/$apk.apk" > "$OUT/install-$apk.txt" 2>&1
+  log "install $apk.apk: $(tr '\n' ' ' < "$OUT/install-$apk.txt")"
+done
+for i in $(seq 1 30); do
+  adb shell ime list -a -s 2>/dev/null | grep -qxF "$IME" && break
+  sleep 2
+done
 sh_ ime enable "$IME" >> "$LOG"
 sh_ ime set "$IME" >> "$LOG"
 sh_ am start -W -n "$PKG/.MainActivity" >> "$LOG"
@@ -167,7 +171,7 @@ sel="${ANDROID_CHECK_CASES:-}"
 for cf in "$HERE"/cases/*.case; do
   name=$(basename "$cf" .case)
   if [ -n "$sel" ] && [[ " $sel " != *" $name "* ]]; then continue; fi
-  kind="" device="" vid="" pid="" select="" layout="" keys="" taps="" expect="" expect_ime="" got="" ik=""
+  kind="" apk="" package="" nocode="" missing="" device="" vid="" pid="" select="" layout="" keys="" taps="" expect="" expect_ime="" got="" ik=""
   while IFS='=' read -r k v; do
     case $k in ''|'#'*) continue ;; esac
     printf -v "$k" '%s' "$v"
@@ -176,13 +180,22 @@ for cf in "$HERE"/cases/*.case; do
   reason=""
   case $kind in
     listed)
-      [[ $KCM_INSTALL == *Success* ]] || reason="kcm.apk did not install: $KCM_INSTALL"
-      if [ -z "$reason" ] && grep -q 'HAS_CODE' "$OUT/kcm-package.txt"; then reason="package has HAS_CODE"; fi
-      layout_tool dump "" > "$OUT/layouts.txt"
-      for l in $expect; do
-        [ -n "$reason" ] && break
-        grep -qF "layout $DESC_PREFIX/$l" "$OUT/layouts.txt" || reason="layout $l not listed"
-      done
+      grep -q Success "$OUT/install-$apk.txt" || reason="$apk.apk did not install: $(tr '\n' ' ' < "$OUT/install-$apk.txt")"
+      sh_ dumpsys package "$package" > "$OUT/cases/$name.package.txt"
+      if [ -z "$reason" ] && [ "$nocode" = yes ] && grep -q 'pkgFlags=.*HAS_CODE' "$OUT/cases/$name.package.txt"; then reason="package has HAS_CODE"; fi
+      layout_tool dump > "$OUT/cases/$name.tool.txt"
+      [ -s "$OUT/layouts.txt" ] || cp "$OUT/cases/$name.tool.txt" "$OUT/layouts.txt"
+      missing=""
+      for l in $expect; do grep -qxF "layout $l" "$OUT/cases/$name.tool.txt" || missing+=" $l"; done
+      if [ -z "$reason" ] && [ -n "$missing" ]; then
+        # Probe: a broadcast to the receiver takes the package out of the stopped state; listed then?
+        sh_ am broadcast -a android.hardware.input.action.QUERY_KEYBOARD_LAYOUTS --include-stopped-packages -p "$package" >> "$LOG"
+        sleep 2
+        layout_tool dump > "$OUT/cases/$name.tool2.txt"
+        after="not listed"
+        for l in $missing; do grep -qxF "layout $l" "$OUT/cases/$name.tool2.txt" && after="listed"; done
+        reason="not listed:$missing (receiver: $(grep -m1 "^receiver $package/" "$OUT/cases/$name.tool.txt" || echo none); after a broadcast: $after)"
+      fi
       restart_field
       ;;
     tap)
@@ -210,12 +223,12 @@ for cf in "$HERE"/cases/*.case; do
     uinput|imehw)
       uin_register "$device" "$vid" "$pid" || reason="uinput keyboard $device did not appear"
       if [ -z "$reason" ] && [ "$select" = api ]; then
-        layout_tool set "$device" "$DESC_PREFIX/$layout" > "$OUT/cases/$name.tool.txt"
+        layout_tool set "$device" "$layout" > "$OUT/cases/$name.tool.txt"
         grep -q '^called setKeyboardLayoutForInputDevice' "$OUT/cases/$name.tool.txt" || reason="layout tool: $(grep -m1 -E 'failed|no set|error' "$OUT/cases/$name.tool.txt")"
         restart_field
       fi
       if [ -z "$reason" ] && [ "$select" = root ]; then
-        rr=$(root_select "$device" "$vid" "$pid" "$DESC_PREFIX/$layout") || reason="root route: $rr"
+        rr=$(root_select "$device" "$vid" "$pid" "$layout") || reason="root route: $rr"
         restart_field
       fi
       if [ -z "$reason" ]; then

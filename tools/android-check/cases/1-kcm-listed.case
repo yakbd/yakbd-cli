@@ -1,3 +1,0 @@
-# Question 1: the code-free APK installs and the system lists its three layouts.
-kind=listed
-expect=check_auto check_api check_root

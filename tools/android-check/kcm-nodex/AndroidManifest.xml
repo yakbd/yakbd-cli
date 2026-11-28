@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Code-free keyboard-layout APK: no classes.dex. The receiver class does not exist; the system only
-     reads the receiver's meta-data (README.md, question 1). -->
+<!-- Keyboard-layout APK without classes.dex that does not say android:hasCode="false" (README.md,
+     question 1). The receiver class does not exist. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.yakbd.androidcheck.kcm"
+    package="org.yakbd.androidcheck.kcm2"
     android:versionCode="1"
     android:versionName="1">
-    <application android:label="yakbd check layouts" android:hasCode="false">
+    <application android:label="yakbd check layouts 2">
         <receiver android:name=".Layouts" android:label="yakbd check" android:exported="true">
             <intent-filter>
                 <action android:name="android.hardware.input.action.QUERY_KEYBOARD_LAYOUTS" />

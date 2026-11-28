@@ -4,6 +4,6 @@ device=yakbd-check-api
 vid=0x1209
 pid=0xa002
 select=api
-layout=check_api
+layout=org.yakbd.androidcheck/org.yakbd.androidcheck.CodeLayouts/check_api
 keys=Q RALT+W E A
 expect=þøá

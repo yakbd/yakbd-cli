@@ -1,0 +1,5 @@
+# Question 1: an APK without classes.dex that does not say android:hasCode="false": does it install and list?
+kind=listed
+apk=kcm-nodex
+package=org.yakbd.androidcheck.kcm2
+expect=org.yakbd.androidcheck.kcm2/org.yakbd.androidcheck.kcm2.Layouts/check_nodex

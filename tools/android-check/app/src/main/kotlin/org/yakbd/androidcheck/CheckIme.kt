@@ -9,6 +9,7 @@ import android.inputmethodservice.InputMethodService
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
+import android.view.WindowInsets
 import java.io.File
 
 // A minimal on-screen keyboard: two rows of keys that commit fixed text. After every layout it writes each
@@ -35,14 +36,26 @@ class CheckIme : InputMethodService() {
         private val fill = Paint().apply { color = Color.LTGRAY }
         private val text = Paint().apply { color = Color.BLACK; textSize = 48f; textAlign = Paint.Align.CENTER }
 
+        // Keys stay above the navigation bar, which may lie over the bottom of the keyboard window.
+        private var navBottom = 0
+
+        override fun onApplyWindowInsets(insets: WindowInsets): WindowInsets {
+            val b = insets.getInsets(WindowInsets.Type.navigationBars()).bottom
+            if (b != navBottom) {
+                navBottom = b
+                requestLayout()
+            }
+            return insets
+        }
+
         override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
             val w = MeasureSpec.getSize(widthMeasureSpec)
-            setMeasuredDimension(w, (resources.displayMetrics.density * 2 * 56).toInt())
+            setMeasuredDimension(w, (resources.displayMetrics.density * 2 * 56).toInt() + navBottom)
         }
 
         override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
             rects.clear()
-            val rh = height / rows.size
+            val rh = (height - navBottom) / rows.size
             for ((r, row) in rows.withIndex()) {
                 val kw = width / row.size
                 for ((k, out) in row.withIndex()) {

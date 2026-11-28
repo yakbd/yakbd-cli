@@ -1,0 +1,9 @@
+# Questions 1 and 3: the layout of the hasCode="false" APK, selected like 06, types.
+kind=uinput
+device=yakbd-check-nocode
+vid=0x1209
+pid=0xa005
+select=api
+layout=org.yakbd.androidcheck.kcm/org.yakbd.androidcheck.kcm.Layouts/check_nocode
+keys=Q RALT+W E A
+expect=ßøá

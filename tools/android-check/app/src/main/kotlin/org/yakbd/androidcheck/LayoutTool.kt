@@ -2,6 +2,9 @@ package org.yakbd.androidcheck
 
 import android.app.Activity
 import android.app.Instrumentation
+import android.content.Intent
+import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
 import android.hardware.input.InputManager
 import android.os.Bundle
 import android.view.InputDevice
@@ -66,13 +69,25 @@ class LayoutTool : Instrumentation() {
         line("sdk ${android.os.Build.VERSION.SDK_INT}")
         line("ime ${imi?.id} subtype ${subtype?.languageTag} hash ${subtype?.hashCode()}")
         line("current-subtype ${imm.currentInputMethodSubtype?.languageTag}")
-        try {
-            val h = Class.forName("android.view.inputmethod.InputMethodSubtypeHandle")
-                .getMethod("of", InputMethodInfo::class.java, InputMethodSubtype::class.java)
-                .invoke(null, imi, subtype)
-            line("subtype-handle ${h.javaClass.getMethod("toStringHandle").invoke(h)}")
-        } catch (t: Throwable) {
-            line("subtype-handle ? ${describe(t)}")
+        for (cls in listOf("com.android.internal.inputmethod.InputMethodSubtypeHandle",
+                "android.view.inputmethod.InputMethodSubtypeHandle")) {
+            try {
+                val h = Class.forName(cls)
+                    .getMethod("of", InputMethodInfo::class.java, InputMethodSubtype::class.java)
+                    .invoke(null, imi, subtype)
+                line("subtype-handle ${h.javaClass.getMethod("toStringHandle").invoke(h)}")
+                break
+            } catch (t: Throwable) {
+                line("no-subtype-handle $cls ${describe(t)}")
+            }
+        }
+        val pm = ctx.packageManager
+        for (ri in pm.queryBroadcastReceivers(Intent("android.hardware.input.action.QUERY_KEYBOARD_LAYOUTS"),
+                PackageManager.ResolveInfoFlags.of(PackageManager.GET_META_DATA.toLong()))) {
+            val ai = ri.activityInfo
+            val stopped = (ai.applicationInfo.flags and ApplicationInfo.FLAG_STOPPED) != 0
+            val hasCode = (ai.applicationInfo.flags and ApplicationInfo.FLAG_HAS_CODE) != 0
+            line("receiver ${ai.packageName}/${ai.name} metadata=${ai.metaData?.keySet()} stopped=$stopped hasCode=$hasCode")
         }
         val all = method(im, "getKeyboardLayouts", 0)?.invoke(im) as Array<*>?
         for (kl in all ?: emptyArray<Any>()) {

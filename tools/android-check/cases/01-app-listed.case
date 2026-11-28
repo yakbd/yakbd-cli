@@ -1,0 +1,5 @@
+# Question 1, control: layouts declared by a receiver in an app with code are listed.
+kind=listed
+apk=app
+package=org.yakbd.androidcheck
+expect=org.yakbd.androidcheck/org.yakbd.androidcheck.CodeLayouts/check_auto org.yakbd.androidcheck/org.yakbd.androidcheck.CodeLayouts/check_api org.yakbd.androidcheck/org.yakbd.androidcheck.CodeLayouts/check_root

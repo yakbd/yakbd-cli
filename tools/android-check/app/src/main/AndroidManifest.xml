@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <queries>
+        <intent>
+            <action android:name="android.hardware.input.action.QUERY_KEYBOARD_LAYOUTS" />
+        </intent>
+    </queries>
     <application android:label="yakbd check">
         <activity android:name=".MainActivity" android:exported="true" android:launchMode="singleTop"
             android:windowSoftInputMode="stateAlwaysVisible">
@@ -15,6 +20,14 @@
             </intent-filter>
             <meta-data android:name="android.view.im" android:resource="@xml/method" />
         </service>
+        <!-- The control for the code-free layout APKs: the same kind of receiver in an app with code. -->
+        <receiver android:name=".CodeLayouts" android:label="yakbd check" android:exported="true">
+            <intent-filter>
+                <action android:name="android.hardware.input.action.QUERY_KEYBOARD_LAYOUTS" />
+            </intent-filter>
+            <meta-data android:name="android.hardware.input.metadata.KEYBOARD_LAYOUTS"
+                android:resource="@xml/keyboard_layouts" />
+        </receiver>
     </application>
     <instrumentation android:name=".LayoutTool" android:targetPackage="org.yakbd.androidcheck"
         android:label="yakbd check layout tool" />
