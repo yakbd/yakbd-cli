@@ -504,7 +504,7 @@ CLI + editor, the earlier layout with and without the editor × both installers 
 nothing; the wizard's boxes as they start give the command line's plan in every state; rollbacks at each step of a
 takeover; the shortcut read-back; the settings rules; the payload by `FuzzDecode`.
 
-Windows test: `go run ./tools/instbundle -guest w11suite -assets DIR -old DIR -o OUT` (the release draft's files,
+Windows test: `go run ./tools/instbundle -guest w11suite -assets DIR -old DIR [-version V] -o OUT` (the release draft's files,
 the published earlier installers): the clean-machine checks of docs/release.md §3, a silent subset of the state table
 including the takeovers, and the wizard in eight states, each read control by control and photographed. **Not yet
 run on Windows** when written (the wizard window has not been seen on a real Windows yet).

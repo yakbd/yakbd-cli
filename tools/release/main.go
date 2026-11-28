@@ -6,9 +6,9 @@
 // It writes, for version V:
 //
 //	yakbd-cli-setup.exe               the tool's installer (x86, x64 and arm64 builds of yakbd.exe; docs/installer-cli.md §12)
-//	yakbd-V-linux-amd64.tar.gz    yakbd for Linux on x86-64, LICENSE, NOTICE
-//	yakbd-V-linux-arm64.tar.gz    the same for Linux on ARM64
-//	yakbd-V-macos.tar.gz          yakbd for macOS as one universal binary (x86-64 and arm64; macho.go), LICENSE, NOTICE
+//	yakbd-linux-amd64.tar.gz      yakbd for Linux on x86-64, LICENSE, NOTICE
+//	yakbd-linux-arm64.tar.gz      the same for Linux on ARM64
+//	yakbd-macos.tar.gz            yakbd for macOS as one universal binary (x86-64 and arm64; macho.go), LICENSE, NOTICE
 //	SHA256SUMS                    one "<sha256>  <name>" line per file above, sorted by name
 //
 // Every build has fixed flags and environment (internal/relbuild) and the archives have fixed times, owners and modes, so
@@ -137,7 +137,7 @@ func Assets(root, v string) (map[string][]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		assets[fmt.Sprintf("yakbd-%s-%s.tar.gz", v, name)] = a
+		assets["yakbd-"+name+".tar.gz"] = a // version-free names: docs link releases/latest/download/<name>
 	}
 	assets["SHA256SUMS"] = sums(assets)
 	return assets, nil

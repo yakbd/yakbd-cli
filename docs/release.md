@@ -11,15 +11,18 @@ For version `V` (for example `0.1.0-preview.3`; the tag is `vV`):
 | file | what it is |
 |---|---|
 | `yakbd-cli-setup.exe` | the Windows installer of YAKBD CLI: one 32-bit program carrying `yakbd.exe` for x86, x64 and arm64; it installs the one for the PC into `Program Files\YAKBD\CLI` and, by default, adds it to the PATH ([`installer-cli.md`](installer-cli.md) §12). The editor's release has `yakbd-gui-setup.exe`, made from this release with the same tool |
-| `yakbd-V-linux-amd64.tar.gz`, `yakbd-V-linux-arm64.tar.gz` | `yakbd` for Linux on x86-64 or ARM64, `LICENSE`, `NOTICE` |
-| `yakbd-V-macos.tar.gz` | `yakbd` for macOS as one universal binary (x86-64 and arm64 slices, each the plain Go build), `LICENSE`, `NOTICE` |
+| `yakbd-linux-amd64.tar.gz`, `yakbd-linux-arm64.tar.gz` | `yakbd` for Linux on x86-64 or ARM64, `LICENSE`, `NOTICE` |
+| `yakbd-macos.tar.gz` | `yakbd` for macOS as one universal binary (x86-64 and arm64 slices, each the plain Go build), `LICENSE`, `NOTICE` |
 | `SHA256SUMS` | the SHA-256 of every other file, in the format of `sha256sum` |
 
 Every archive unpacks into the current folder (`tar -xzf FILE`) with `yakbd` executable. There is no Windows archive
 of `yakbd.exe` (maintainer decision, from 0.1.0-preview.3 on): `yakbd-cli-setup.exe` is the Windows download, and the
 `yakbd.exe` it installs is the release build. To check that the editor's `yakbd-gui-setup.exe` carries the released
 `yakbd.exe`, see [`installer-cli.md`](installer-cli.md) §12.1. Up to 0.1.0-preview.2 a release had
-zips of `yakbd.exe` and four bare Linux and macOS binaries instead of the archives.
+zips of `yakbd.exe` and four bare Linux and macOS binaries instead of the archives, and up to 0.1.0-preview.3
+the archives had the version in their names (`yakbd-V-macos.tar.gz`); from the next release on every file name is
+version-free, so `releases/latest/download/<name>` always gets the newest. `go run ./tools/instbundle -assets DIR`
+then needs `-version V`.
 
 The universal macOS binary is joined in Go (`tools/release/macho.go`: the universal-binary header Go's `debug/macho`
 reads, each slice 16 KiB-aligned and unchanged, so the arm64 slice keeps the ad-hoc code signature the Go linker

@@ -68,8 +68,15 @@ func writeClean(out, assets string) error {
 	return nil
 }
 
-// releaseVersion is the version V of a release's SHA256SUMS: the one line naming yakbd-V-macos.tar.gz.
+// assetsVersion is -version: the release's version when SHA256SUMS does not name it.
+var assetsVersion string
+
+// releaseVersion is the version V of a release: -version, else the one line of its SHA256SUMS naming
+// yakbd-V-macos.tar.gz (releases up to 0.1.0-preview.3; later archives have version-free names).
 func releaseVersion(sums string) (string, error) {
+	if assetsVersion != "" {
+		return assetsVersion, nil
+	}
 	b, err := os.ReadFile(sums)
 	if err != nil {
 		return "", err
@@ -82,7 +89,7 @@ func releaseVersion(sums string) (string, error) {
 		}
 	}
 	if len(found) != 1 {
-		return "", fmt.Errorf("%s: want one line for yakbd-V-macos.tar.gz, found %d", sums, len(found))
+		return "", fmt.Errorf("%s: want one line for yakbd-V-macos.tar.gz, found %d (version-free names: pass -version V)", sums, len(found))
 	}
 	return found[0], nil
 }

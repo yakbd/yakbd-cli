@@ -24,17 +24,20 @@ yakbd installer my-layout.kbl.json               # a Windows installer (-target 
 
 ## Documentation
 
-- [Install](https://yakbd.github.io/guide/) and [quick start](https://yakbd.github.io/guide/quick-start)
-- Guides: [Windows](https://yakbd.github.io/guide/windows), [moving from MSKLC](https://yakbd.github.io/guide/migrating-from-msklc),
-  [macOS](https://yakbd.github.io/guide/macos), [Linux](https://yakbd.github.io/guide/linux)
-- [Command reference](https://yakbd.github.io/cli/)
-- [What's new](https://yakbd.github.io/releases)
+- [Install and quick start](https://yakbd.github.io/guide/)
+- [Moving from MSKLC](https://yakbd.github.io/guide/migrating-from-msklc), [recovering a layout](https://yakbd.github.io/guide/recover-a-layout)
+- [macOS](docs/macos.md) and [Linux](docs/linux.md) (next release)
+- [Command reference](docs/commands.md)
+- [What's new](https://github.com/yakbd/yakbd-cli/releases/latest)
 
 For contributors: [`ARCHITECTURE.md`](ARCHITECTURE.md) and [`AGENTS.md`](AGENTS.md).
 
 ## Contributing and licence
 
-Bug reports and pull requests are welcome: see [contributing](https://yakbd.github.io/contributing).
+Bug reports and pull requests are welcome: see [contributing](https://github.com/yakbd/.github/blob/main/CONTRIBUTING.md).
 MIT-0 ([`LICENSE`](LICENSE)); third-party material keeps its own licence ([`NOTICE`](NOTICE)).
+
+## Code signing policy
+
 Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by
 [SignPath Foundation](https://signpath.org) ([policy](https://yakbd.github.io/guide/code-signing-policy); the installers are unsigned until signing starts).

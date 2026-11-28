@@ -107,7 +107,7 @@ jobs:
           path: dist
       - name: run the universal binary
         run: |
-          mkdir m && tar -xzf "dist/yakbd-$VERSION-macos.tar.gz" -C m
+          mkdir m && tar -xzf "dist/yakbd-macos.tar.gz" -C m
           ls -l m
           lipo -archs m/yakbd | tee archs.txt
           grep -qw x86_64 archs.txt && grep -qw arm64 archs.txt
@@ -174,7 +174,7 @@ jobs:
           dl="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/latest/download"
           notes="What's new: https://yakbd.github.io/releases
 
-          Downloads: [yakbd-cli-setup.exe]($dl/yakbd-cli-setup.exe) (Windows), \`yakbd-$VERSION-linux-amd64.tar.gz\`, \`yakbd-$VERSION-linux-arm64.tar.gz\`, \`yakbd-$VERSION-macos.tar.gz\` (below). Install: https://yakbd.github.io/guide/
+          Downloads: [yakbd-cli-setup.exe]($dl/yakbd-cli-setup.exe) (Windows), [yakbd-linux-amd64.tar.gz]($dl/yakbd-linux-amd64.tar.gz), [yakbd-linux-arm64.tar.gz]($dl/yakbd-linux-arm64.tar.gz) (Linux), [yakbd-macos.tar.gz]($dl/yakbd-macos.tar.gz) (macOS). Install: https://yakbd.github.io/guide/
 
           Check a download with \`SHA256SUMS\` and its build attestation (https://yakbd.github.io/cli/release); the Windows installer is $SIGNED."
           gh release create "v$VERSION" dist/* --repo "$GITHUB_REPOSITORY" --draft $mark --verify-tag \

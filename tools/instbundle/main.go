@@ -30,10 +30,11 @@ func main() {
 	arm := flag.Bool("arm64", false, "the ARM64 bundle (all-builds installer, cold boot between install and check)")
 	assets := flag.String("assets", "", "with -guest w11clean: the folder of files downloaded from a release draft")
 	old := flag.String("old", "", "with -guest w11suite: the folder of the published earlier installers (cli-v0.1.0-preview.1, cli-v0.1.0-preview.2, gui-v0.1.0-preview.1)")
+	flag.StringVar(&assetsVersion, "version", "", "with -assets: the release's version, needed when its archives have version-free names")
 	guest := flag.String("guest", "", "a real-user bundle for one guest: w11x64, w10x64 or w10x86; w11signin, w11signin2, w11signin3: the sign-in screen bundles; w11plant: DLL planting; w11clean -assets DIR: a release on a clean machine; w11suite -assets DIR -old DIR: the two YAKBD installers")
 	flag.Parse()
 	if *out == "" {
-		fmt.Fprintln(os.Stderr, "usage: go run ./tools/instbundle [-arm64 | -guest w11x64|w10x64|w10x86|w11signin|w11signin2|w11signin3|w11plant|w11clean -assets DIR|w11suite -assets DIR -old DIR] -o DIR")
+		fmt.Fprintln(os.Stderr, "usage: go run ./tools/instbundle [-arm64 | -guest w11x64|w10x64|w10x86|w11signin|w11signin2|w11signin3|w11plant|w11clean -assets DIR|w11suite -assets DIR -old DIR] [-version V] -o DIR")
 		os.Exit(2)
 	}
 	write := write
