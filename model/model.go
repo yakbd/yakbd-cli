@@ -1,13 +1,14 @@
 // Package model is the format-neutral in-memory layout: the hub every format reader writes into and every writer
-// and compiler reads from. Its types follow the `.kbl.json` format 0.1 (kbl-spec SPEC.md and
-// schema/0.1/kbl.schema.json) one to one, so that a `.kbl.json` file decodes into it and encodes back with the
+// and compiler reads from. Its types follow the `.kbl.json` format 0.2 (kbl-spec SPEC.md and
+// schema/0.2/kbl.schema.json, which holds 0.1) one to one, so that a `.kbl.json` file decodes into it and encodes back with the
 // same meaning. Union types of the format (Binding, MarkedText, TextOrUnits, ...) have their own JSON methods in
 // json.go. The semantic rules of the format (resolution, matching) are in resolve.go.
 package model
 
 import "encoding/json"
 
-// FormatVersion is the value of the `kbl` property this package implements.
+// FormatVersion is the lowest `kbl` value this package implements: what a converter writes into a new layout. A
+// writer raises it to the lowest version that holds the layout (MinVersion, SPEC §1.1).
 const FormatVersion = "0.1"
 
 // Layout is one `.kbl.json` file (SPEC §3).
@@ -293,6 +294,9 @@ type Targets struct {
 	Windows *WindowsTarget `json:"windows,omitempty"`
 	KLC     *KLCTarget     `json:"klc,omitempty"`
 	CLDR    *CLDRTarget    `json:"cldr,omitempty"`
+	// MacOS and XKB are new in 0.2 (SPEC §16.4, §16.5); the platform targets fill them.
+	MacOS *MacOSTarget `json:"macos,omitempty"`
+	XKB   *XKBTarget   `json:"xkb,omitempty"`
 }
 
 // KLCTarget is SPEC §16.2.
@@ -475,4 +479,14 @@ type DispatcherTable struct {
 	DLLName string `json:"dllName"`
 	Type    uint32 `json:"type"`
 	SubType uint32 `json:"subType"`
+}
+
+// MacOSTarget is SPEC §16.4 (0.2): the macOS build choices.
+type MacOSTarget struct {
+	OnLoss *OnLoss `json:"onLoss,omitempty"`
+}
+
+// XKBTarget is SPEC §16.5 (0.2): the Linux XKB build choices.
+type XKBTarget struct {
+	OnLoss *OnLoss `json:"onLoss,omitempty"`
 }

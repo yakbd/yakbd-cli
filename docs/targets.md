@@ -58,8 +58,10 @@ Rules a target keeps:
    build itself in that package or below it; the type only wires it to the command line (Windows:
    `target/windows/wintarget` over `target/windows` and `target/windows/build`).
 2. One line in `target/registry/registry.go`: `macos.Target{},` in `Targets`.
-3. The file's own choices: `targets.<name>` in `model.Targets` (`model/model.go`) as the spec's schema defines it,
-   and a `case "<name>"` in `policy.Resolve` for `targets.<name>.onLoss`. The loss kinds `<name>.*` come from the
+3. The file's own choices: `targets.<name>` in `model.Targets` (`model/model.go`) as the spec's schema defines it
+   (`MacOS` and `XKB` exist, holding `onLoss` only, as in the 0.2 draft), and a `case "<name>"` in `policy.Resolve`
+   (macos and xkb are there). A member new in a format version also goes into `model.MinVersion`, so that a writer
+   raises `kbl` only when a file needs it. The loss kinds `<name>.*` come from the
    spec's kind table (`policy/kinds.go`, tested against the schema).
 4. Tests: the target's own package tests, plus one command-line case in `internal/cli` (see `TestTargetInterface`
    for a target with one command and a flag of its own).

@@ -10,9 +10,9 @@ import (
 	"github.com/yakbd/yakbd-cli/model"
 )
 
-// TestKindsMatchSchema checks the kinds table against the enum of onLoss kinds in the embedded schema.
+// TestKindsMatchSchema checks the kinds table against the enum of onLoss kinds in the newest embedded schema (0.2 holds 0.1).
 func TestKindsMatchSchema(t *testing.T) {
-	b, err := os.ReadFile("../format/kbljson/schema/kbl.schema.json")
+	b, err := os.ReadFile("../format/kbljson/schema/0.2/kbl.schema.json")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -14,7 +14,12 @@ func Known(kind string) bool {
 	if _, ok := kindDefaults[kind]; ok {
 		return true
 	}
-	return strings.HasPrefix(kind, "windowsDefault.")
+	for _, p := range []string{"windowsDefault.", "macosDefault.", "xkbDefault."} {
+		if strings.HasPrefix(kind, p) {
+			return true
+		}
+	}
+	return false
 }
 
 // Fatal reports whether a kind is always an error.
@@ -32,7 +37,7 @@ func severity(p string) (loss.Severity, bool) {
 	return 0, false
 }
 
-// Resolve sets the severity of every Loss and Defaulted entry of r, for target ("windows", "klc", "cldr", or ""
+// Resolve sets the severity of every Loss and Defaulted entry of r, for target ("windows", "klc", "cldr", "macos", "xkb", or ""
 // for none), by the rules of SPEC §17.2: target kind, file kind, target prefix.*, file prefix.*, target
 // default, file default, the kind's default. Fatal kinds stay errors. extra, if not nil, is applied after the
 // file (the command line's -strict-defaults, for example).
@@ -53,6 +58,14 @@ func Resolve(r *loss.Report, l *model.Layout, target string, extra *model.OnLoss
 			case "cldr":
 				if t.CLDR != nil {
 					tgt = t.CLDR.OnLoss
+				}
+			case "macos":
+				if t.MacOS != nil {
+					tgt = t.MacOS.OnLoss
+				}
+			case "xkb":
+				if t.XKB != nil {
+					tgt = t.XKB.OnLoss
 				}
 			}
 		}

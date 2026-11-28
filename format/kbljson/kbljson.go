@@ -1,40 +1,78 @@
-// Package kbljson reads and writes `.kbl.json` files, the YAKBD canonical format (kbl-spec, format
-// version 0.1). Phase 2 has started with validation: Validate checks a file against the embedded schema and the
-// file rules of SPEC §1 and §2.1 that a schema cannot express. Decoding into the model package follows.
+// Package kbljson reads and writes `.kbl.json` files, the YAKBD canonical format (kbl-spec). It reads every format
+// version it implements (0.1 and 0.2, SPEC §1.1): a file is checked against the schema of the version its `kbl`
+// names, and a `kbl` it does not implement is an error (D3, D108).
 package kbljson
 
 import (
-	_ "embed"
+	"embed"
 	"fmt"
 	"strconv"
 	"unicode/utf8"
 
 	"github.com/yakbd/yakbd-cli/jsonschema"
 	"github.com/yakbd/yakbd-cli/loss"
+	"github.com/yakbd/yakbd-cli/model"
 )
 
-// SchemaID is the `$id` of the schema this package implements.
-const SchemaID = "https://yakbd.github.io/kbl-spec/schema/0.1/kbl.schema.json"
+// Version is one format version this package implements.
+type Version struct {
+	Kbl string // the `kbl` value
+	// SchemaID is the `$id` of its schema.
+	SchemaID string
+	// SchemaCommit is the kbl-spec commit the embedded schema was copied from.
+	SchemaCommit string
+	schemaJSON   []byte
+	schema       *jsonschema.Schema
+}
 
-// SchemaCommit is the kbl-spec commit the embedded schema was copied from.
-const SchemaCommit = "a264cf0adf04694f5cb175afe5d4428d1da18154"
+// Versions are the format versions this package reads, oldest first; their schemas are embedded unchanged from
+// kbl-spec `schema/<version>/kbl.schema.json`.
+var Versions = []*Version{
+	{Kbl: "0.1", SchemaID: "https://yakbd.github.io/kbl-spec/schema/0.1/kbl.schema.json",
+		SchemaCommit: "a264cf0adf04694f5cb175afe5d4428d1da18154"},
+	{Kbl: "0.2", SchemaID: "https://yakbd.github.io/kbl-spec/schema/0.2/kbl.schema.json",
+		SchemaCommit: "cf273333631fbce2a745396a1cfb71a6af594316"}, // branch spec-0.2, a draft (COMPATIBILITY.md)
+}
 
-//go:embed schema/kbl.schema.json
-var schemaJSON []byte
+// SchemaID is the `$id` of the 0.1 schema.
+var SchemaID = Versions[0].SchemaID
 
-var schema = mustCompile()
+// SchemaCommit is the kbl-spec commit the 0.1 schema was copied from.
+var SchemaCommit = Versions[0].SchemaCommit
 
-func mustCompile() *jsonschema.Schema {
-	s, err := jsonschema.Compile(schemaJSON)
-	if err != nil {
-		panic(err)
+//go:embed schema
+var schemaFiles embed.FS
+
+func init() {
+	for _, v := range Versions {
+		b, err := schemaFiles.ReadFile("schema/" + v.Kbl + "/kbl.schema.json")
+		if err != nil {
+			panic(err)
+		}
+		if v.schema, err = jsonschema.Compile(b); err != nil {
+			panic(err)
+		}
+		v.schemaJSON = b
 	}
-	return s
+	if Versions[0].Kbl != model.FormatVersion {
+		panic("kbljson: the oldest version is not model.FormatVersion")
+	}
+}
+
+// VersionOf returns the implemented version whose `kbl` value is kbl, nil for none.
+func VersionOf(kbl string) *Version {
+	for _, v := range Versions {
+		if v.Kbl == kbl {
+			return v
+		}
+	}
+	return nil
 }
 
 // Validate checks the bytes of a `.kbl.json` file: UTF-8 without a byte-order mark (§1), no lone surrogate escape
-// (§2.1), and the schema (closed objects: unknown properties are errors, §1). Entries are of kind Diagnostic with
-// codes "kbl.*"; the path is a JSON Pointer.
+// (§2.1), and the schema of the version the file names (closed objects: unknown properties are errors, §1, §1.1).
+// A file without a `kbl` string is checked with the oldest schema, which reports it. Entries are of kind
+// Diagnostic with codes "kbl.*"; the path is a JSON Pointer.
 func Validate(data []byte, name string) *loss.Report {
 	r := &loss.Report{}
 	w := func(path string) loss.Where { return loss.Where{File: name, Path: path} }
@@ -54,10 +92,30 @@ func Validate(data []byte, name string) *loss.Report {
 		r.Errorf("kbl.json", w(""), "%v", err)
 		return r
 	}
-	for _, e := range schema.Validate(doc) {
+	v := Versions[0]
+	if obj, ok := doc.(map[string]any); ok {
+		if k, ok := obj["kbl"].(string); ok {
+			if v = VersionOf(k); v == nil {
+				r.Errorf("kbl.version", w("/kbl"), "format version %q is not one this tool reads (%s); a newer yakbd may read it", k, versionList())
+				return r
+			}
+		}
+	}
+	for _, e := range v.schema.Validate(doc) {
 		r.Errorf("kbl.schema", w(e.Path), "%s", e.Message)
 	}
 	return r
+}
+
+func versionList() string {
+	s := ""
+	for i, v := range Versions {
+		if i > 0 {
+			s += ", "
+		}
+		s += v.Kbl
+	}
+	return s
 }
 
 // loneSurrogate finds a \uD800-\uDFFF escape inside a JSON string that is not part of a high-low pair.

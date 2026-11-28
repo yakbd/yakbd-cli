@@ -8,7 +8,7 @@ plain Go values, and every step returns a `*loss.Report` next to its result.
      format/klc                format/kbljson                 format/cldr
          |                     (schema + SPEC §19)        (imports inlined)
    convert/klckbl                    |                            |
-         +-------------------> model.Layout <---------------------+   the hub (SPEC 0.1)
+         +-------------------> model.Layout <---------------------+   the hub (SPEC 0.2, holds 0.1)
                                      |  resolve, check, policy (onLoss)
                                      v
                      target/windows/build: default rules of targets/windows.md,
@@ -34,8 +34,8 @@ a DLL always come from the same rules. All paths go through the model: `.klc` �
 |---|---|
 | `loss` | the report: entries with a class (diagnostic, loss, defaulted), a severity (info, accept, warning, error), a kind (`kind` in JSON: the spec's loss kinds, `windowsDefault.<rule>`, or a tool diagnostic code), a location, a message and a free-form detail; human summary and JSON |
 | `policy` | the loss kinds of SPEC §17.3 with their default policies (tested against the schema's enum) and the `onLoss` resolution of SPEC §17.2 (target kind, file kind, prefixes, defaults; fatal kinds); `-strict-defaults` is the policy `"windowsDefault.*": "error"` |
-| `model` | the layout of SPEC 0.1 as Go types (union types with their own JSON forms: Binding, MarkedText, TextOrUnits, CodeUnits `{"utf16": [...]}`, dead-key values, Windows cells); modifier matching (§7.3), resolution (§9.3), effective outputs (keys, markers, variables), and the checks of SPEC §19 |
-| `format/kbljson` | `.kbl.json` read (schema, UTF-8, no lone surrogates, closed objects, §19 checks) and write (fixed property order, validated output); `SameJSON` compares documents by meaning |
+| `model` | the layout of SPEC 0.2 (which holds 0.1) as Go types; `MinVersion`, the lowest version that holds a layout (union types with their own JSON forms: Binding, MarkedText, TextOrUnits, CodeUnits `{"utf16": [...]}`, dead-key values, Windows cells); modifier matching (§7.3), resolution (§9.3), effective outputs (keys, markers, variables), and the checks of SPEC §19 |
+| `format/kbljson` | `.kbl.json` read (format versions 0.1 and 0.2, each file against the schema of the `kbl` it names, an unknown `kbl` is `kbl.version`; schema, UTF-8, no lone surrogates, closed objects, §19 checks) and write (the lowest version that holds the layout, or the higher one the file names, SPEC §1.1; fixed property order, validated output); `SameJSON` compares documents by meaning |
 | `jsonschema` | a JSON Schema 2020-12 validator for exactly the keywords the kbl schema uses; any other assertion keyword makes `Compile` fail |
 | `format/klc` | `.klc` reader and writer per `spec/klc-format` of the reference specification, revision 10, with a canonical and an MSKLC-editor mode |
 | `convert/klckbl` | `.klc` ↔ model by `coverage/windows.md` §7 and §10 (D28, D33, D36): positions, layers `s<state>`, Caps Lock layers, dead keys `u<hex>`, MSKLC's implied rows written explicitly (`klc.impliedRows`); the export drops them again when unchanged |

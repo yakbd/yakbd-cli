@@ -31,10 +31,18 @@ func Read(data []byte, name string) (*model.Layout, *loss.Report) {
 
 // Write encodes a layout as `.kbl.json`: UTF-8, two-space indentation, object properties in a fixed order (struct
 // fields in schema order, map keys sorted), no HTML escaping, a final newline. The output is validated; a
-// layout the schema refuses gives a report with errors and no bytes.
+// layout the schema refuses gives a report with errors and no bytes. The version written is the lowest that holds
+// the layout (SPEC §1.1), or the layout's own `kbl` when that is higher (a file that names 0.2 stays 0.2); raising
+// it changes `kbl` and a `$schema` of an implemented version, nothing else.
 func Write(l *model.Layout) ([]byte, *loss.Report) {
 	if l.Kbl == "" {
 		l.Kbl = model.FormatVersion
+	}
+	if need := model.MinVersion(l); versionIndex(l.Kbl) < versionIndex(need) {
+		if old := VersionOf(l.Kbl); old != nil && l.Schema == old.SchemaID {
+			l.Schema = VersionOf(need).SchemaID
+		}
+		l.Kbl = need
 	}
 	var buf bytes.Buffer
 	e := json.NewEncoder(&buf)
@@ -51,4 +59,14 @@ func Write(l *model.Layout) ([]byte, *loss.Report) {
 		return nil, vr
 	}
 	return out, r
+}
+
+// versionIndex is the place of kbl in Versions; -1 for a version this package does not implement.
+func versionIndex(kbl string) int {
+	for i, v := range Versions {
+		if v.Kbl == kbl {
+			return i
+		}
+	}
+	return -1
 }
