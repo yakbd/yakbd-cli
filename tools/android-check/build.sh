@@ -40,5 +40,5 @@ mkdir -p "$W"
 
 (cd "$HERE/app" && gradle --no-daemon -q assembleDebug) >> "$OUT/build.txt" 2>&1
 "$TOOLS/apksigner" sign --ks "$OUT/check.jks" --ks-pass pass:checkpass --ks-key-alias check \
-  --out "$OUT/app.apk" "$HERE/app/build/outputs/apk/debug/app-debug.apk"
+  --out "$OUT/app.apk" "$(ls "$HERE"/app/build/outputs/apk/debug/*.apk | head -n 1)"
 echo "built $OUT/kcm.apk $OUT/app.apk"
