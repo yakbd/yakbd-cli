@@ -170,7 +170,7 @@ jobs:
           if [ "${{ inputs.sign }}" = "true" ]; then SIGNED="signed through SignPath Foundation"; fi
           case "$VERSION" in *-rehearsal.*) mark="--prerelease" ;; *-preview.*) ;; *-*) mark="--prerelease" ;; esac
           # Short notes (docs/release.md §2): what's new lives on the site; the maintainer adds one or two lines
-          # above "Downloads" before publishing.
+          # at the top before publishing.
           dl="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/latest/download"
           notes="What's new: https://yakbd.github.io/releases
 
