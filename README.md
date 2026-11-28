@@ -65,7 +65,8 @@ shows how to install the new build next to the old one, check it, and only then 
     yakbd pin layout.kbl.json                # write every Windows default choice into the file
     yakbd version
 
-`yakbd <command> -h` lists a command's options. Every command prints a report (errors, warnings, losses, and each
+`compile`, `installer`, `pin` and `validate -target` build for a target: `-target windows` is the default and today the
+only one (macOS and Linux are planned; [`docs/targets.md`](docs/targets.md)). `yakbd <command> -h` lists a command's options. Every command prints a report (errors, warnings, losses, and each
 choice taken from a default rule); `-report report.json` saves it as JSON, in the shape of
 [`docs/report-file.md`](docs/report-file.md) (for programs: JSON pointers into the input file, the tool version). A
 command with an error writes nothing. Flags may come before or after the file names.

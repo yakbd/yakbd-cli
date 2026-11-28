@@ -4,7 +4,7 @@
 compiles them into Windows layout DLLs and installers. Windows is the first target, not the only one: the official
 formats of other operating systems come next, then third-party formats such as Keyman. The `.kbl.json` format lives
 in the sibling repository `yakbd/kbl-spec` (organisation https://github.com/yakbd). Design and package map:
-`ARCHITECTURE.md`.
+`ARCHITECTURE.md`; how a platform plugs in (`-target`, package `target`): `docs/targets.md`.
 
 ## Commands
 

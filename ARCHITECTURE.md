@@ -42,12 +42,15 @@ a DLL always come from the same rules. All paths go through the model: `.klc` �
 | `format/cldr` | CLDR Keyboard 3.0 read and write (and keyboard test files), imports inlined from the embedded CLDR release 49 import files, implied forms translated to positions, marker dead keys, kbl-only data carried in a `<special>` element so that a round trip loses nothing |
 | `convert/cldrconf` | the CLDR conformance run (docs/cldr.md): corpus list, the conformance build (LANGID 0409, `windows.vkMissing` accepted), CLDR test checks → Windows key sequences or skip reasons; its test compares every keyboard of the release-49 corpus with `testdata/<keyboard>.txt` |
 | `target/windows/build` | model → Windows intermediate by the pins of `targets.windows` and the default rules of `targets/windows.md`; every rule use is a `windowsDefault.<rule>` entry; `Pin` writes all decided values into the file |
+| `target` | the interface between the command line and a platform (docs/targets.md): `Target` (name, defaulted-kind prefix, its commands with their own flags), `Command` (`Check`, `Run`), `Job`, `Result` |
+| `target/registry` | the known targets, one line each; `windows` is the default |
+| `target/windows/wintarget` | the Windows target behind that interface: compile (DLL set), installer, pin and validate's build check over `target/windows/build`, `target/windows` and `installer`; outside the stub's packages |
 | `target/windows` | the Windows intermediate (`Tables`, `DLL`), its writer checks, `Compile` (one architecture), `CompileAll` (a build set), `Read`, the expectations, the supplementary dead-key recipe |
 | `target/windows/vk` | virtual-key names (from the reference spec) and Table A, the default VK table (`windows-default-vk.tsv`, embedded unchanged from the kbl spec; a test fails if the two differ) |
 | `pe` | PE/COFF images: sections with symbolic fixups, exports, resources, base relocations, checksum; a reader |
 | `internal/unicode/norm` | Unicode normalisation forms NFD and NFC (UAX #15) with the standard library only; tables generated from the Unicode 18.0.0 UCD, Hangul by algorithm; tested against the full `NormalizationTest.txt` |
 | `tools/genucd` | writes `internal/unicode/norm/tables.go` from the UCD files `UnicodeData.txt` and `DerivedNormalizationProps.txt` (not in the repository; the generated file records their SHA-256) |
-| `internal/cli` | the subcommands `compile`, `convert`, `validate`, `pin`, `installer`, `version`, and the `-report` file (docs/report-file.md: tool version, JSON pointers into the input) |
+| `internal/cli` | the subcommands `compile`, `convert`, `validate`, `pin`, `installer`, `version`, and the `-report` file (docs/report-file.md: tool version, JSON pointers into the input); `-target` and the run of a target's command (`target.go`), the table of file formats every input and `convert` go through (`formats.go`) |
 | `installer` | a build set → `Package` (manifest + files; machine kinds x64 = x64 + wow64, arm64 = arm64x + wow64, x86), the product-code rule, `Container` with its one implementation `ExeContainer` (embedded stub + payload); embeds `stub-386.exe` |
 | `installer/cmdline` | the installers' msiexec-compatible command line, exit codes, UI-level, restart and log rules (docs/installer-cli.md, whose tables its tests read); pure, standard library only (compiled into the stub) |
 | `installer/exeres` | the installer program's resources (manifest `asInvoker`, an icon drawn by code, a version resource from the install data), added as a new `.rsrc` section when `yakbd installer` writes the file (docs/installer.md §3.1, §5.1); not compiled into the stub |
@@ -78,8 +81,8 @@ a DLL always come from the same rules. All paths go through the model: `.klc` �
 `windows.CompileAll` (and `yakbd compile`) builds every supported target of a layout in one call and returns a
 `BuildSet`: the files with the system directory each belongs in, the targets it cannot build yet, and one
 report. The default is `targets.windows.builds`; when the file has none, rule `builds` gives every build the tool
-can make (D39: x86, x64, wow64 and, since its writer passed the gate of kbl D44 in VM-6, D66, arm64x). `-target`
-limits the set; `-target arm64` adds a plain ARM64 file, a test control only (x64 processes cannot load it).
+can make (D39: x86, x64, wow64 and, since its writer passed the gate of kbl D44 in VM-6, D66, arm64x). `-build`
+(formerly `-target`, which still takes the list) limits the set; `-build arm64` adds a plain ARM64 file, a test control only (x64 processes cannot load it).
 
 The installer package consumes a `BuildSet` as it is; nothing in `target/windows` installs anything.
 

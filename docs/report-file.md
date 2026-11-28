@@ -11,7 +11,7 @@ corpus and the CLDR keyboards (each converted to `.kbl.json` first).
 
 - Exit code 0: success. Exit code 1: the input has errors, or the operation failed; no output file is written, but
   the report file is.
-- Exit code 2: a usage error (unknown flag, wrong number of arguments). The usage text goes to stderr and **no**
+- Exit code 2: a usage error (unknown flag, wrong number of arguments, an unknown `-target` or a command the target does not have, docs/targets.md). The usage text goes to stderr and **no**
   report file is written. A program that builds the command line itself can treat exit 2 as its own bug.
 - `yakbd version` prints `yakbd V` and writes no report; `tool.version` of every report (§2) is the same `V`.
 
