@@ -346,3 +346,30 @@ the shortcut facts above, and the earlier installer's own record and the three p
   (https://learn.microsoft.com/en-us/previous-versions/ms997538(v=msdn.10), read 2026-11-27), which also says
   LoadImage loads an icon of a given size from an EXE; the icon itself is the project's own drawing (yakbd-gui,
   MIT-0). LoadImageW, GetSystemMetrics and their constants: the `windows` crate.
+
+## macOS
+
+### The macOS layout check (2026-11-28)
+
+`tools/macos-check/` (test layouts, bundles, `check.swift`, `run.sh`) and `.github/workflows/macos-layout-check.yml`
+are our own text and code. The two test layouts were written for this check, and no layout was copied. Public
+sources read 2026-11-28, facts only:
+- Apple Technical Note TN2056, "Installing and using keyboard layouts"
+  (https://developer.apple.com/library/archive/technotes/tn2056/_index.html, Apple's archived documentation): the
+  `.keylayout` elements and attributes (`keyboard` group/id/name/maxout, `layouts`, `modifierMap`/`keyMapSelect`/
+  `modifier` and its key words with `?`, later matches winning, `keyMapSet`/`keyMap`/`key`, `actions`/`when`,
+  `terminators`), numeric entities for C0 controls, group 126 and negative ids for Unicode layouts, the install
+  folders and the bundle shape, and the advice to sign out after installing.
+- Kiimo (https://github.com/Manoonchai/kiimo, MIT), `generator/generateMacBundle.ts` and one generated
+  `output/*/*.bundle/Contents/info.plist`: the `Info.plist` keys of a layout bundle (`KLInfo_<layout name>` holding
+  `TISInputSourceID` and `TISIntendedLanguage`), a source id that extends the bundle id, and `Resources/` holding
+  the `.keylayout`. Only key names were taken; no code or text.
+- The runner-images README (https://github.com/actions/runner-images, MIT): the `macos-15` and `macos-26` arm64 labels.
+- Web search result snippets only, no page opened: a Ukelele users' thread and a Keyman issue saying that
+  `TISIntendedLanguage` holds a BCP 47 tag.
+- The Text Input Sources and Unicode Utilities calls (`TISRegisterInputSource`, `TISEnableInputSource`,
+  `TISSelectInputSource`, `TISCreateInputSourceList`, `TISCopyCurrentKeyboardInputSource`,
+  `kTISPropertyUnicodeKeyLayoutData`, `UCKeyTranslate`, `LMGetKbdType`, Carbon modifier bits), `CGEvent` keyboard
+  events, `AXIsProcessTrusted`, `CGPreflightPostEventAccess`, AppKit, the System Events `key code` command, `xattr`,
+  `spctl` and `com.apple.quarantine`: from general knowledge of the public macOS SDK, as Swift imports it. No header
+  file or page was read for them, and the runner's compiler checks every call.

@@ -1,0 +1,34 @@
+# macOS layout check: installs the keyboard-layout bundles of tools/macos-check/cases on GitHub's Mac runners,
+# selects each one and checks it with UCKeyTranslate and by typing key codes (tools/macos-check/README.md).
+# Manual only; it costs nothing until someone runs it.
+name: macos-layout-check
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, macos-26]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: check
+        run: tools/macos-check/run.sh "$RUNNER_TEMP/macos-check"
+      - name: summary
+        if: always()
+        run: |
+          { echo "### ${{ matrix.os }}"; echo '```'; cat "$RUNNER_TEMP/macos-check/summary.txt"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: macos-check-${{ matrix.os }}
+          path: |
+            ${{ runner.temp }}/macos-check/summary.txt
+            ${{ runner.temp }}/macos-check/build.txt
+            ${{ runner.temp }}/macos-check/stderr.txt
+            ${{ runner.temp }}/macos-check/log.txt
+          if-no-files-found: ignore

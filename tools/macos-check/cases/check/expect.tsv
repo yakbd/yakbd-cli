@@ -1,0 +1,24 @@
+# name<TAB>strokes<TAB>expected text. Strokes: key codes separated by spaces, each with optional +shift +option +caps.
+# Expected: UTF-8 text; \s is a space, \t a tab, \\ a backslash, \u{HEX} any code point.
+plain-q	12	q
+remap-z	6	y
+remap-y	16	z
+shift-remap	6+shift	Y
+non-ascii	41	ø
+shift-non-ascii	41+shift	Ø
+multi-char	39	ng
+shift-multi-char	39+shift	NG
+option-s	1+option	ß
+option-a	0+option	æ
+shift-option-a	0+shift+option	Æ
+dead-e	24 14	é
+dead-a	24 0	á
+dead-space	24 49	´
+dead-twice	24 24	´
+dead-terminator	24 7	´x
+caps-q	12+caps	Q
+caps-digit	18+caps	1
+shift-digit	18+shift	!
+caps-non-ascii	41+caps	Ø
+caps-dead-e	24+caps 14	é
+word	4 14 37 37 31 49 42	hello\s\\
