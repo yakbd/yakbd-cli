@@ -25,7 +25,7 @@ func TestValidateRejects(t *testing.T) {
 	tests := []struct{ name, doc, code, path string }{
 		{"unknown property", `{"kbl":"0.1","metadata":{"id":"en","name":"x"},"colour":1}`, "kbl.schema", "/colour"},
 		{"missing metadata", `{"kbl":"0.1"}`, "kbl.schema", ""},
-		{"unknown version", `{"kbl":"0.3","metadata":{"id":"en","name":"x"}}`, "kbl.version", "/kbl"},
+		{"unknown version", `{"kbl":"0.3","metadata":{"id":"en","name":"x"}}`, "kbl.schema", "/kbl"},
 		{"version not a string", `{"kbl":2,"metadata":{"id":"en","name":"x"}}`, "kbl.schema", "/kbl"},
 		{"0.2 member in a 0.1 file", `{"kbl":"0.1","metadata":{"id":"en","name":"x"},"targets":{"macos":{}}}`, "kbl.schema", "/targets"},
 		{"lone high", `{"kbl":"0.1","metadata":{"id":"en","name":"\ud83d"}}`, "kbl.loneSurrogate", ""},

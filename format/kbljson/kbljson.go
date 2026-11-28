@@ -96,7 +96,7 @@ func Validate(data []byte, name string) *loss.Report {
 	if obj, ok := doc.(map[string]any); ok {
 		if k, ok := obj["kbl"].(string); ok {
 			if v = VersionOf(k); v == nil {
-				r.Errorf("kbl.version", w("/kbl"), "format version %q is not one this tool reads (%s); a newer yakbd may read it", k, versionList())
+				r.Errorf("kbl.schema", w("/kbl"), "format version %q is not one this tool reads (%s); a newer yakbd may read it", k, versionList())
 				return r
 			}
 		}

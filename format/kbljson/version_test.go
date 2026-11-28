@@ -8,7 +8,7 @@ import (
 )
 
 // TestVersions: a 0.1 file and a 0.2 file both read; a writer writes the lowest version that holds the layout
-// (SPEC §1.1), keeps a higher one the file names, and raises `kbl` and `$schema` together.
+// (SPEC §1.1), and changes `kbl` and `$schema` together.
 func TestVersions(t *testing.T) {
 	const s01 = "https://yakbd.github.io/kbl-spec/schema/0.1/kbl.schema.json"
 	const s02 = "https://yakbd.github.io/kbl-spec/schema/0.2/kbl.schema.json"
@@ -18,10 +18,10 @@ func TestVersions(t *testing.T) {
 		addMacOS               bool
 	}{
 		{"0.1 stays 0.1", `{"$schema":"` + s01 + `","kbl":"0.1",` + body + `}`, "0.1", s01, false},
-		{"0.2 stays 0.2", `{"$schema":"` + s02 + `","kbl":"0.2",` + body + `}`, "0.2", s02, false},
+		{"0.2 using nothing new is written as 0.1", `{"$schema":"` + s02 + `","kbl":"0.2",` + body + `}`, "0.1", s01, false},
 		{"0.2 with macos", `{"kbl":"0.2",` + body + `,"targets":{"macos":{"onLoss":{"kinds":{"macos.*":"error"}}}}}`, "0.2", "", false},
 		{"0.1 raised by targets.macos", `{"$schema":"` + s01 + `","kbl":"0.1",` + body + `}`, "0.2", s02, true},
-		{"0.1 raised by an xkb kind", `{"kbl":"0.1",` + strings.Replace(body, `"metadata":{`, `"onLoss":{"kinds":{"windows.*":"accept"}},"metadata":{`, 1) + `}`, "0.1", "", false},
+		{"0.1 with a windows kind stays 0.1", `{"kbl":"0.1",` + strings.Replace(body, `"metadata":{`, `"onLoss":{"kinds":{"windows.*":"accept"}},"metadata":{`, 1) + `}`, "0.1", "", false},
 	}
 	for _, tt := range tests {
 		l, r := Read([]byte(tt.doc), "t")
