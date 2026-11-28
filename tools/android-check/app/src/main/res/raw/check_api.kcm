@@ -1,21 +1,22 @@
 # yakbd android-check layout check_api: Q types thorn, AltGr+W types o-slash, E is a dead acute accent.
+# Characters are written as \uXXXX escapes: the .kcm parser takes only ASCII inside quotes.
 type OVERLAY
 
 key Q {
     label:                              'Q'
-    base:                               'þ'
-    shift, capslock:                    'Þ'
+    base:                               '\u00fe'
+    shift, capslock:                    '\u00de'
 }
 
 key W {
     label:                              'W'
     base:                               'w'
     shift, capslock:                    'W'
-    ralt:                               'ø'
+    ralt:                               '\u00f8'
 }
 
 key E {
     label:                              'E'
-    base:                               '́'
+    base:                               '\u0301'
     shift, capslock:                    'E'
 }

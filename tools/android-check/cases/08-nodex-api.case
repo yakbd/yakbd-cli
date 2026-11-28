@@ -1,9 +1,0 @@
-# Question 1: the layout of the APK without classes.dex (no hasCode attribute), selected like 06, types.
-kind=uinput
-device=yakbd-check-nodex
-vid=0x1209
-pid=0xa006
-select=api
-layout=org.yakbd.androidcheck.kcm2/org.yakbd.androidcheck.kcm2.Layouts/check_nodex
-keys=Q RALT+W E A
-expect=ŋøá

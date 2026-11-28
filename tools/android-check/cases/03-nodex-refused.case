@@ -1,0 +1,5 @@
+# Question 1, control: an APK without classes.dex that does not say android:hasCode="false" is refused at install.
+kind=listed
+apk=kcm-nodex
+package=org.yakbd.androidcheck.kcm2
+install=code is missing

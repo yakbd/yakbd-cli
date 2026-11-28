@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.hardware.input.InputManager
 import android.os.Bundle
 import android.view.InputDevice
+import android.view.KeyEvent
 import android.view.inputmethod.InputMethodInfo
 import android.view.inputmethod.InputMethodManager
 import android.view.inputmethod.InputMethodSubtype
@@ -104,6 +105,7 @@ class LayoutTool : Instrumentation() {
             }
             val id = InputDevice::class.java.getMethod("getIdentifier").invoke(dev)!!
             line("device $name id=${dev.id} vid=${dev.vendorId} pid=${dev.productId} full=${dev.keyboardType} descriptor=${dev.descriptor}")
+            line("kcm $name Q=${dev.keyCharacterMap.get(KeyEvent.KEYCODE_Q, 0)} E=${dev.keyCharacterMap.get(KeyEvent.KEYCODE_E, 0)}")
             if (args.getString("action") == "set") {
                 val layout = args.getString("layout")!!
                 val set5 = method(im, "setKeyboardLayoutForInputDevice", 5)

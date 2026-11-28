@@ -114,8 +114,14 @@ root_select() { # name vid pid layoutdesc
   handle=$(grep -o "subtypeHandle:[^\"]*" "$OUT/ims-before.xml" | head -n 1 | cut -d: -f2-)
   [ -n "$handle" ] || handle=$(grep "^subtype-handle " "$OUT/layouts.txt" | head -n 1 | cut -d" " -f2)
   [ -n "$handle" ] || { echo "no keyboard subtype handle"; return 1; }
-  local entry="<input-device descriptor=\"vendor:$vid,product:$pid\"><keyed-keyboard-layout key=\"layoutDescriptor:vendor:$vid,product:$pid,userId:0,subtypeHandle:$handle\" layout=\"$layout\" /></input-device>"
-  if grep -q '</input-devices>' "$OUT/ims-before.xml"; then
+  local dev="<input-device descriptor=\"vendor:$vid,product:$pid\""
+  local keyed="<keyed-keyboard-layout key=\"layoutDescriptor:vendor:$vid,product:$pid,userId:0,subtypeHandle:$handle\" layout=\"$layout\" />"
+  local entry="$dev>$keyed</input-device>"
+  if grep -qF "$dev />" "$OUT/ims-before.xml"; then
+    sed "s#$dev />#$entry#" "$OUT/ims-before.xml" > "$OUT/ims-after.xml"
+  elif grep -qF "$dev>" "$OUT/ims-before.xml"; then
+    sed "s#$dev>#$dev>$keyed#" "$OUT/ims-before.xml" > "$OUT/ims-after.xml"
+  elif grep -q '</input-devices>' "$OUT/ims-before.xml"; then
     sed "s#</input-devices>#$entry</input-devices>#" "$OUT/ims-before.xml" > "$OUT/ims-after.xml"
   elif grep -q '<input-devices */>' "$OUT/ims-before.xml"; then
     sed "s#<input-devices */>#<input-devices>$entry</input-devices>#" "$OUT/ims-before.xml" > "$OUT/ims-after.xml"
@@ -151,6 +157,7 @@ wait_boot
 SDK=$(adb shell getprop ro.build.version.sdk | tr -d '\r')
 log "sdk $SDK, $(adb shell getprop ro.build.fingerprint | tr -d '\r')"
 sh_ settings put global hidden_api_policy 1 >> "$LOG"
+adb logcat -G 16M >> "$LOG" 2>&1
 sh_ settings put secure show_ime_with_hard_keyboard 1 >> "$LOG"
 for apk in kcm-nocode kcm-nodex app; do
   adb install -r -t "$APKS/$apk.apk" > "$OUT/install-$apk.txt" 2>&1
@@ -171,7 +178,7 @@ sel="${ANDROID_CHECK_CASES:-}"
 for cf in "$HERE"/cases/*.case; do
   name=$(basename "$cf" .case)
   if [ -n "$sel" ] && [[ " $sel " != *" $name "* ]]; then continue; fi
-  kind="" apk="" package="" nocode="" missing="" device="" vid="" pid="" select="" layout="" keys="" taps="" expect="" expect_ime="" got="" ik=""
+  kind="" apk="" package="" nocode="" install="" missing="" device="" vid="" pid="" select="" layout="" keys="" taps="" expect="" expect_ime="" got="" ik=""
   while IFS='=' read -r k v; do
     case $k in ''|'#'*) continue ;; esac
     printf -v "$k" '%s' "$v"
@@ -180,6 +187,12 @@ for cf in "$HERE"/cases/*.case; do
   reason=""
   case $kind in
     listed)
+      if [ -n "$install" ]; then
+        # A refusal is expected: PASS when the install failed with this text.
+        grep -qF "$install" "$OUT/install-$apk.txt" || reason="install: $(tr "\n" " " < "$OUT/install-$apk.txt")"
+        if [ -z "$reason" ]; then result "PASS $name (refused: $(grep -o "INSTALL_[A-Z_]*" "$OUT/install-$apk.txt" | head -n 1))"; fi
+        [ -z "$reason" ] && continue
+      fi
       grep -q Success "$OUT/install-$apk.txt" || reason="$apk.apk did not install: $(tr '\n' ' ' < "$OUT/install-$apk.txt")"
       sh_ dumpsys package "$package" > "$OUT/cases/$name.package.txt"
       if [ -z "$reason" ] && [ "$nocode" = yes ] && grep -q 'pkgFlags=.*HAS_CODE' "$OUT/cases/$name.package.txt"; then reason="package has HAS_CODE"; fi
@@ -221,14 +234,15 @@ for cf in "$HERE"/cases/*.case; do
       got=$(read_field)
       ;;
     uinput|imehw)
-      uin_register "$device" "$vid" "$pid" || reason="uinput keyboard $device did not appear"
+      # The root route writes the choice before the keyboard first appears, then restarts the system.
+      if [ "$select" = root ]; then
+        rr=$(root_select "$device" "$vid" "$pid" "$layout") || reason="root route: $rr"
+        restart_field
+      fi
+      [ -n "$reason" ] || uin_register "$device" "$vid" "$pid" || reason="uinput keyboard $device did not appear"
       if [ -z "$reason" ] && [ "$select" = api ]; then
         layout_tool set "$device" "$layout" > "$OUT/cases/$name.tool.txt"
         grep -q '^called setKeyboardLayoutForInputDevice' "$OUT/cases/$name.tool.txt" || reason="layout tool: $(grep -m1 -E 'failed|no set|error' "$OUT/cases/$name.tool.txt")"
-        restart_field
-      fi
-      if [ -z "$reason" ] && [ "$select" = root ]; then
-        rr=$(root_select "$device" "$vid" "$pid" "$layout") || reason="root route: $rr"
         restart_field
       fi
       if [ -z "$reason" ]; then
