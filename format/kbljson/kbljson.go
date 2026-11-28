@@ -1,5 +1,5 @@
 // Package kbljson reads and writes `.kbl.json` files, the YAKBD canonical format (kbl-spec). It reads every format
-// version it implements (0.1 and 0.2, SPEC §1.1): a file is checked against the schema of the version its `kbl`
+// version it implements (0.1, 0.2 and 0.3, SPEC §1.1): a file is checked against the schema of the version its `kbl`
 // names, and a `kbl` it does not implement is an error (D3, D108).
 package kbljson
 
@@ -32,6 +32,8 @@ var Versions = []*Version{
 		SchemaCommit: "a264cf0adf04694f5cb175afe5d4428d1da18154"},
 	{Kbl: "0.2", SchemaID: "https://yakbd.github.io/kbl-spec/schema/0.2/kbl.schema.json",
 		SchemaCommit: "886856bc1c2cbf2c9dcc5796a1b2aaa6bf42516d"}, // branch spec-0.2, a draft (COMPATIBILITY.md)
+	{Kbl: "0.3", SchemaID: "https://yakbd.github.io/kbl-spec/schema/0.3/kbl.schema.json",
+		SchemaCommit: "be71647f5a3edd935bb827fecf629e0ea88a1234"}, // branch spec-0.3, a draft (COMPATIBILITY.md)
 }
 
 // SchemaID is the `$id` of the 0.1 schema.

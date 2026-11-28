@@ -13,6 +13,7 @@ executes; nothing here runs on Windows.
 | `go run ./tools/instbundle -guest w11plant -o DIR` | DLL planting check: marker DLL planted next to the installers in Downloads, autonomous `drive.ps1` | `docs/installer.md` §5.2, §8.4 |
 | `go run ./tools/instbundle -guest w11suite -assets DIR -old DIR [-version V] -o OUT` | the two YAKBD installers: the release's clean checks, a silent state-table subset with the takeover of the published earlier installers, the wizard in eight states with screenshots | `docs/installer-cli.md` §12.7 |
 | `go run ./tools/cldrbundle -o DIR` | CLDR conformance: every CLDR test case a Windows build can express, typed by both `yakbd-wincheck` runners | `docs/cldr.md` §4 |
+| `go run ./tools/apkcheck -o DIR`, `-rewrite IN.apk -package P -label L -o OUT.apk` | the apk package's control APKs; `tools/apkcheck/control.sh OUTDIR` checks them with the Android SDK (CI job `apk`) | `docs/apk.md` §4 |
 
 `tools/macos-check` is not Go: a Swift checker and a shell driver for GitHub's Mac runners (workflow `macos-layout-check.yml`, contract `tools/macos-check/README.md`); a case may be a `layout.kbl.json` that the driver builds with yakbd (`compile -target macos -emit-expectations`).
 

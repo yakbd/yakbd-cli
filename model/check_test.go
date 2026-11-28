@@ -64,3 +64,19 @@ func TestCheckKindsD42(t *testing.T) {
 		}
 	}
 }
+
+// TestCheckTouch03: the 0.3 rules of SPEC §19 item 5.
+func TestCheckTouch03(t *testing.T) {
+	l := &Layout{Keys: map[string]*Key{"a": {}}, Touch: []*TouchLayerSet{
+		{Layers: []*TouchLayer{{ID: "base", Rows: [][]string{{"a"}, {"a"}}, RowHeights: []float64{1}}, {ID: "shift", Rows: [][]string{{"a"}}, ReturnLayerID: "base"}}},
+		{Layers: []*TouchLayer{{ID: "base", Rows: [][]string{{"a"}}, ReturnLayerID: "shift"}}},
+	}}
+	r := l.Check()
+	got := map[string]string{}
+	for _, e := range r.Entries {
+		got[e.Where.Path] = e.Code
+	}
+	if got["/touch/0/layers/0/rowHeights"] != "general.rowHeightsMismatch" || got["/touch/1/layers/0/returnLayerId"] != "general.unresolvedReference" || len(got) != 2 {
+		t.Errorf("entries: %v", got)
+	}
+}

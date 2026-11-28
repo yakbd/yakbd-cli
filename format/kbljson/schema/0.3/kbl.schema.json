@@ -1,0 +1,3140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://yakbd.github.io/kbl-spec/schema/0.3/kbl.schema.json",
+  "title": ".kbl.json keyboard layout, version 0.3 (draft)",
+  "description": "A YAKBD keyboard-layout file. Normative text: SPEC.md; this schema checks structure only (SPEC §19 lists further rules).",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Schema URL; informative."
+    },
+    "kbl": {
+      "type": "string",
+      "const": "0.3",
+      "description": "Format version."
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "BCP 47 tag identifying this keyboard (CLDR keyboard3/@locale); its language is the primary locale."
+        },
+        "locales": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "description": "A BCP 47 tag."
+          },
+          "description": "Further BCP 47 tags of supported languages, in order (CLDR locales)."
+        },
+        "name": {
+          "description": "The keyboard's name (CLDR info/@name).",
+          "$ref": "#/$defs/Text"
+        },
+        "localizedNames": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/Text"
+          },
+          "description": "The name in further languages, per BCP 47 tag."
+        },
+        "description": {
+          "description": "Free text.",
+          "$ref": "#/$defs/Text"
+        },
+        "authors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "description": "Name.",
+                "$ref": "#/$defs/Text"
+              },
+              "email": {
+                "type": "string",
+                "description": "E-mail address."
+              },
+              "url": {
+                "type": "string",
+                "description": "Web address."
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "additionalProperties": false,
+            "description": "An author."
+          },
+          "description": "Authors of the layout."
+        },
+        "attribution": {
+          "description": "Originating entity of the design (CLDR info/@attribution).",
+          "$ref": "#/$defs/Text"
+        },
+        "layoutPattern": {
+          "type": "string",
+          "description": "Layout pattern such as QWERTY (CLDR info/@layout)."
+        },
+        "indicator": {
+          "type": "string",
+          "description": "Short switcher label (CLDR info/@indicator)."
+        },
+        "version": {
+          "type": "string",
+          "description": "Version of the layout data; Semantic Versioning recommended (CLDR version/@number)."
+        },
+        "license": {
+          "type": "string",
+          "description": "SPDX licence expression for the layout data."
+        },
+        "copyright": {
+          "description": "Copyright statement (.klc COPYRIGHT).",
+          "$ref": "#/$defs/Text"
+        },
+        "organization": {
+          "description": "Publishing organisation (.klc COMPANY).",
+          "$ref": "#/$defs/Text"
+        },
+        "draft": {
+          "type": "string",
+          "enum": [
+            "approved",
+            "contributed",
+            "provisional",
+            "unconfirmed"
+          ],
+          "description": "CLDR approval status (keyboard3/@draft)."
+        },
+        "provenance": {
+          "type": "object",
+          "properties": {
+            "source": {
+              "type": "string",
+              "description": "Source file name or description."
+            },
+            "format": {
+              "type": "string",
+              "enum": [
+                "cldr",
+                "klc",
+                "windowsDll",
+                "kbl",
+                "keylayout",
+                "xkb",
+                "kcm",
+                "kbdgen",
+                "kmn",
+                "keymantouch",
+                "other"
+              ],
+              "description": "Format of the source."
+            },
+            "cldrConformsTo": {
+              "type": "integer",
+              "minimum": 45,
+              "description": "conformsTo of the CLDR source."
+            },
+            "cldrImports": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "description": "One import path."
+              },
+              "description": "CLDR import paths that were inlined (cldr: prefix for base=cldr)."
+            },
+            "notes": {
+              "description": "Free text.",
+              "$ref": "#/$defs/Text"
+            }
+          },
+          "additionalProperties": false,
+          "description": "Informative record of where the data came from; never changes behaviour."
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "additionalProperties": false,
+      "description": "Descriptive data (SPEC §4)."
+    },
+    "settings": {
+      "type": "object",
+      "properties": {
+        "normalization": {
+          "type": "string",
+          "enum": [
+            "enabled",
+            "disabled"
+          ],
+          "description": "CLDR normalisation: enabled (default) or disabled."
+        },
+        "capsLockFallback": {
+          "type": "boolean",
+          "description": "With Caps Lock on and no binding in the matched layer, resolve again without Caps Lock (default true)."
+        },
+        "capsLockOffBy": {
+          "type": "string",
+          "enum": [
+            "capsLock",
+            "shift"
+          ],
+          "description": "What turns Caps Lock off: capsLock (default) or shift (Shift Lock)."
+        },
+        "bidiMarksOnShiftBackspace": {
+          "type": "boolean",
+          "description": "Left/right Shift + Backspace type LRM/RLM (default false)."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Behaviour settings (SPEC §5)."
+    },
+    "positions": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/PositionId"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "scanCode": {
+            "type": "string",
+            "pattern": "^([0-9A-Fa-f]{2}|[Ee][01][0-9A-Fa-f]{2})$",
+            "description": "Set-1 scan code: 2 hex digits, or E0xx / E1xx."
+          },
+          "name": {
+            "description": "The key's display name (Windows key names, .klc KEYNAME).",
+            "$ref": "#/$defs/Text"
+          },
+          "numLock": {
+            "type": "boolean",
+            "description": "The key is a number-pad key subject to Num Lock (SPEC §14.1)."
+          },
+          "description": {
+            "description": "Free text.",
+            "$ref": "#/$defs/Text"
+          }
+        },
+        "additionalProperties": false,
+        "description": "A physical key (SPEC §6.1)."
+      },
+      "description": "Physical keys by PositionId (SPEC §6.1)."
+    },
+    "forms": {
+      "type": "object",
+      "propertyNames": {
+        "not": {
+          "const": "touch"
+        },
+        "$ref": "#/$defs/Id"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "rows": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/PositionId"
+              },
+              "description": "One row."
+            },
+            "description": "Rows top to bottom, each a list of positions left to right."
+          },
+          "cldrSpecial": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "The XML text of one <special> element."
+            },
+            "description": "Complete XML text of each CLDR <special> element whose parent corresponds to this form, in document order (SPEC §18)."
+          }
+        },
+        "required": [
+          "rows"
+        ],
+        "additionalProperties": false,
+        "description": "A hardware form (SPEC §6.2)."
+      },
+      "description": "Hardware forms by FormId (SPEC §6.2)."
+    },
+    "customModifiers": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[A-Za-z][A-Za-z0-9]{0,31}$",
+        "description": "A modifier component: shift, ctrl, ctrlL, ctrlR, alt, altL, altR, caps, other, or a name declared in customModifiers (SPEC §7).",
+        "not": {
+          "enum": [
+            "none",
+            "other",
+            "shift",
+            "ctrl",
+            "ctrlL",
+            "ctrlR",
+            "alt",
+            "altL",
+            "altR",
+            "caps"
+          ]
+        }
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "held",
+              "lock"
+            ],
+            "description": "held: active while held; lock: toggled."
+          },
+          "positions": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/PositionId"
+            },
+            "uniqueItems": true,
+            "description": "The positions that operate it."
+          },
+          "fallback": {
+            "type": "boolean",
+            "description": "lock only: with the lock on and no binding in the matched layer, resolve again without it (SPEC §9.3). Default true."
+          },
+          "description": {
+            "description": "Free text.",
+            "$ref": "#/$defs/Text"
+          }
+        },
+        "required": [
+          "kind",
+          "positions"
+        ],
+        "additionalProperties": false,
+        "description": "A custom modifier component (SPEC §7.2)."
+      },
+      "description": "Custom modifier components (SPEC §7.2)."
+    },
+    "keys": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/Id"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "output": {
+            "description": "Emitted text (CLDR key/@output).",
+            "$ref": "#/$defs/MarkedText"
+          },
+          "deadKey": {
+            "description": "The key is this dead key.",
+            "$ref": "#/$defs/Id"
+          },
+          "gap": {
+            "type": "boolean",
+            "const": true,
+            "description": "The key is empty space (CLDR key/@gap)."
+          },
+          "width": {
+            "type": "number",
+            "minimum": 0.01,
+            "maximum": 100,
+            "description": "Width in key units, default 1 (CLDR key/@width)."
+          },
+          "stretch": {
+            "type": "boolean",
+            "const": true,
+            "description": "May be stretched in a touch row (CLDR key/@stretch)."
+          },
+          "layerId": {
+            "description": "Switches the touch layout to this layer (CLDR key/@layerId).",
+            "$ref": "#/$defs/Id"
+          },
+          "flickId": {
+            "description": "The key's flicks (CLDR key/@flickId).",
+            "$ref": "#/$defs/Id"
+          },
+          "longPressKeyIds": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/Id"
+            },
+            "description": "Long-press choices in order."
+          },
+          "longPressDefaultKeyId": {
+            "description": "Default long-press choice.",
+            "$ref": "#/$defs/Id"
+          },
+          "multiTapKeyIds": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/Id"
+            },
+            "description": "Keys for 2, 3, … taps."
+          },
+          "function": {
+            "type": "string",
+            "enum": [
+              "backspace",
+              "enter",
+              "tab",
+              "escape",
+              "shift",
+              "capsLock",
+              "space",
+              "nextKeyboard"
+            ],
+            "description": "Informative identity of a touch key."
+          },
+          "hint": {
+            "description": "0.3: a small secondary label on the touch key cap, such as its long-press default.",
+            "$ref": "#/$defs/Text"
+          }
+        },
+        "additionalProperties": false,
+        "description": "A CLDR key: an output with gestures (SPEC §8).",
+        "anyOf": [
+          {
+            "required": [
+              "output"
+            ]
+          },
+          {
+            "required": [
+              "deadKey"
+            ]
+          },
+          {
+            "required": [
+              "gap"
+            ]
+          },
+          {
+            "required": [
+              "layerId"
+            ]
+          },
+          {
+            "required": [
+              "function"
+            ]
+          }
+        ],
+        "not": {
+          "required": [
+            "output",
+            "deadKey"
+          ]
+        }
+      },
+      "description": "CLDR's bag of keys by KeyId (SPEC §8)."
+    },
+    "hardware": {
+      "type": "object",
+      "properties": {
+        "formId": {
+          "description": "The form the layout was designed on (CLDR layers/@formId).",
+          "$ref": "#/$defs/Id"
+        },
+        "minDeviceWidth": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 999,
+          "description": "CLDR layers/@minDeviceWidth, millimetres."
+        },
+        "layers": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "description": "Layer id (CLDR layer/@id).",
+                "$ref": "#/$defs/Id"
+              },
+              "modifiers": {
+                "description": "The modifier sets this layer serves.",
+                "$ref": "#/$defs/Modifiers"
+              },
+              "bindings": {
+                "type": "object",
+                "propertyNames": {
+                  "$ref": "#/$defs/PositionId"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/Binding"
+                },
+                "description": "Binding per position; an absent position does nothing in this layer."
+              },
+              "cldrSpecial": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "description": "The XML text of one <special> element."
+                },
+                "description": "Complete XML text of each CLDR <special> element whose parent corresponds to this layer, in document order (SPEC §18)."
+              }
+            },
+            "required": [
+              "modifiers",
+              "bindings"
+            ],
+            "additionalProperties": false,
+            "description": "A hardware layer (SPEC §9.1)."
+          },
+          "description": "The layers."
+        },
+        "cldrSpecial": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "The XML text of one <special> element."
+          },
+          "description": "Complete XML text of each CLDR <special> element whose parent corresponds to the hardware layers element, in document order (SPEC §18)."
+        }
+      },
+      "required": [
+        "layers"
+      ],
+      "additionalProperties": false,
+      "description": "The physical keyboard's layers (SPEC §9.1)."
+    },
+    "touch": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "minDeviceWidth": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 999,
+            "description": "Minimum device width in millimetres."
+          },
+          "layers": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "description": "Layer id; one layer of a set is base.",
+                  "$ref": "#/$defs/Id"
+                },
+                "modifiers": {
+                  "description": "Optional modifier sets.",
+                  "$ref": "#/$defs/Modifiers"
+                },
+                "rows": {
+                  "minItems": 1,
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/Id"
+                    },
+                    "description": "One row."
+                  },
+                  "description": "Rows of KeyIds."
+                },
+                "cldrSpecial": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "description": "The XML text of one <special> element."
+                  },
+                  "description": "Complete XML text of each CLDR <special> element whose parent corresponds to this layer, in document order (SPEC §18)."
+                },
+                "rowHeights": {
+                  "minItems": 1,
+                  "type": "array",
+                  "items": {
+                    "type": "number",
+                    "minimum": 0.01,
+                    "maximum": 100,
+                    "description": "Height of one row, relative to the others."
+                  },
+                  "description": "0.3: the height of each row, in order, relative to each other; default 1 each."
+                },
+                "returnLayerId": {
+                  "description": "0.3: after a key of this layer without a layerId of its own, switch to this layer.",
+                  "$ref": "#/$defs/Id"
+                }
+              },
+              "required": [
+                "id",
+                "rows"
+              ],
+              "additionalProperties": false,
+              "description": "A touch layer (SPEC §9.4)."
+            },
+            "description": "The layers."
+          },
+          "cldrSpecial": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "The XML text of one <special> element."
+            },
+            "description": "Complete XML text of each CLDR <special> element whose parent corresponds to this layers element, in document order (SPEC §18)."
+          },
+          "orientation": {
+            "type": "string",
+            "enum": [
+              "portrait",
+              "landscape"
+            ],
+            "description": "0.3: the screen orientation this set is for; default both."
+          },
+          "deviceClass": {
+            "type": "string",
+            "enum": [
+              "phone",
+              "tablet"
+            ],
+            "description": "0.3: the device class this set is for, a label for formats that name one."
+          },
+          "systemRow": {
+            "type": "boolean",
+            "description": "0.3: true: the rows leave out the bottom row and the target adds its own. Default false."
+          }
+        },
+        "required": [
+          "layers"
+        ],
+        "additionalProperties": false,
+        "description": "A touch layer set."
+      },
+      "description": "Touch layouts (SPEC §9.4)."
+    },
+    "deadKeys": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/Id"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "spacing": {
+            "description": "Text the dead key stands for when it does not combine; default Windows dead character.",
+            "$ref": "#/$defs/TextOrUnits"
+          },
+          "name": {
+            "description": "Name of the dead key (.klc KEYNAME_DEAD).",
+            "$ref": "#/$defs/Text"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "base": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/$defs/Text"
+                    },
+                    {
+                      "$ref": "#/$defs/DeadKeyRef"
+                    },
+                    {
+                      "$ref": "#/$defs/CodeUnits"
+                    }
+                  ],
+                  "description": "The input that composes: text, another dead key, or code units."
+                },
+                "result": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/$defs/Text"
+                    },
+                    {
+                      "$ref": "#/$defs/DeadKeyRef"
+                    },
+                    {
+                      "$ref": "#/$defs/CodeUnits"
+                    }
+                  ],
+                  "description": "The result: text, a chained dead key, or code units."
+                }
+              },
+              "required": [
+                "base",
+                "result"
+              ],
+              "additionalProperties": false,
+              "description": "A dead-key table entry (SPEC §10)."
+            },
+            "description": "Composition table in order; first match wins."
+          },
+          "noMatch": {
+            "type": "string",
+            "enum": [
+              "emitBoth",
+              "emitText",
+              "emitSpacing",
+              "emitNothing"
+            ],
+            "description": "Behaviour when the next input has no entry (default emitBoth)."
+          },
+          "display": {
+            "description": "Key-cap text if different from spacing.",
+            "$ref": "#/$defs/MarkedText"
+          }
+        },
+        "required": [
+          "spacing",
+          "entries"
+        ],
+        "additionalProperties": false,
+        "description": "A dead key (SPEC §10)."
+      },
+      "description": "Dead keys by DeadKeyId (SPEC §10)."
+    },
+    "flicks": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/Id"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "segments": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "directions": {
+                  "minItems": 1,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "n",
+                      "e",
+                      "s",
+                      "w",
+                      "ne",
+                      "nw",
+                      "se",
+                      "sw"
+                    ],
+                    "description": "A direction."
+                  },
+                  "description": "Path of directions."
+                },
+                "keyId": {
+                  "description": "The resulting key.",
+                  "$ref": "#/$defs/Id"
+                }
+              },
+              "required": [
+                "directions",
+                "keyId"
+              ],
+              "additionalProperties": false,
+              "description": "One flick segment."
+            },
+            "description": "Flick paths and their results."
+          },
+          "cldrSpecial": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "The XML text of one <special> element."
+            },
+            "description": "Complete XML text of each CLDR <special> element whose parent corresponds to this flick, in document order (SPEC §18)."
+          }
+        },
+        "required": [
+          "segments"
+        ],
+        "additionalProperties": false,
+        "description": "A flick set (SPEC §11.1)."
+      },
+      "description": "Flicks by FlickId (SPEC §11.1)."
+    },
+    "displays": {
+      "type": "object",
+      "properties": {
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "output": {
+                "description": "Output whose keys get this cap.",
+                "$ref": "#/$defs/MarkedText"
+              },
+              "keyId": {
+                "description": "The key that gets this cap.",
+                "$ref": "#/$defs/Id"
+              },
+              "display": {
+                "description": "Text to show.",
+                "$ref": "#/$defs/MarkedText"
+              }
+            },
+            "required": [
+              "display"
+            ],
+            "additionalProperties": false,
+            "description": "One rule: for keys with this output, or for the key keyId.",
+            "oneOf": [
+              {
+                "required": [
+                  "output"
+                ]
+              },
+              {
+                "required": [
+                  "keyId"
+                ]
+              }
+            ]
+          },
+          "description": "Display rules."
+        },
+        "baseCharacter": {
+          "description": "Base for combining marks instead of U+25CC.",
+          "$ref": "#/$defs/Text"
+        },
+        "cldrSpecial": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "The XML text of one <special> element."
+          },
+          "description": "Complete XML text of each CLDR <special> element whose parent corresponds to displays, in document order (SPEC §18)."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Key-cap display data (SPEC §12)."
+    },
+    "variables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "Unique id.",
+            "$ref": "#/$defs/VariableId"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "string",
+              "set",
+              "uset"
+            ],
+            "description": "string, set or uset."
+          },
+          "value": {
+            "description": "Value in CLDR syntax.",
+            "$ref": "#/$defs/Pattern"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "value"
+        ],
+        "additionalProperties": false,
+        "description": "A CLDR variable (SPEC §13.1)."
+      },
+      "description": "CLDR variables in order (SPEC §13.1)."
+    },
+    "transforms": {
+      "type": "object",
+      "properties": {
+        "simple": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "transforms": {
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "from": {
+                          "description": "Match pattern.",
+                          "$ref": "#/$defs/Pattern"
+                        },
+                        "to": {
+                          "description": "Replacement; absent deletes.",
+                          "$ref": "#/$defs/Pattern"
+                        }
+                      },
+                      "required": [
+                        "from"
+                      ],
+                      "additionalProperties": false,
+                      "description": "A transform."
+                    },
+                    "description": "Rules in order; the first match applies."
+                  },
+                  "cldrSpecial": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "description": "The XML text of one <special> element."
+                    },
+                    "description": "Complete XML text of each CLDR <special> element whose parent corresponds to this transformGroup, in document order (SPEC §18)."
+                  }
+                },
+                "required": [
+                  "transforms"
+                ],
+                "additionalProperties": false,
+                "description": "A group of transforms."
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "reorders": {
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "from": {
+                          "description": "Characters matched.",
+                          "$ref": "#/$defs/Pattern"
+                        },
+                        "before": {
+                          "description": "Required preceding context.",
+                          "$ref": "#/$defs/Pattern"
+                        },
+                        "order": {
+                          "oneOf": [
+                            {
+                              "type": "integer",
+                              "minimum": -128,
+                              "maximum": 127,
+                              "description": "One value for all."
+                            },
+                            {
+                              "minItems": 1,
+                              "type": "array",
+                              "items": {
+                                "type": "integer",
+                                "minimum": -128,
+                                "maximum": 127,
+                                "description": "A weight."
+                              },
+                              "description": "One value per element; the last repeats."
+                            }
+                          ],
+                          "description": "Primary weights."
+                        },
+                        "tertiary": {
+                          "oneOf": [
+                            {
+                              "type": "integer",
+                              "minimum": -128,
+                              "maximum": 127,
+                              "description": "One value for all."
+                            },
+                            {
+                              "minItems": 1,
+                              "type": "array",
+                              "items": {
+                                "type": "integer",
+                                "minimum": -128,
+                                "maximum": 127,
+                                "description": "A weight."
+                              },
+                              "description": "One value per element; the last repeats."
+                            }
+                          ],
+                          "description": "Tertiary weights."
+                        },
+                        "tertiaryBase": {
+                          "oneOf": [
+                            {
+                              "type": "boolean",
+                              "description": "One value for all."
+                            },
+                            {
+                              "minItems": 1,
+                              "type": "array",
+                              "items": {
+                                "type": "boolean",
+                                "description": "A value."
+                              },
+                              "description": "One value per element; the last repeats."
+                            }
+                          ],
+                          "description": "May carry tertiary characters."
+                        },
+                        "preBase": {
+                          "oneOf": [
+                            {
+                              "type": "boolean",
+                              "description": "One value for all."
+                            },
+                            {
+                              "minItems": 1,
+                              "type": "array",
+                              "items": {
+                                "type": "boolean",
+                                "description": "A value."
+                              },
+                              "description": "One value per element; the last repeats."
+                            }
+                          ],
+                          "description": "Typed before the base."
+                        }
+                      },
+                      "required": [
+                        "from"
+                      ],
+                      "additionalProperties": false,
+                      "description": "A reorder rule."
+                    },
+                    "description": "Reorder rules."
+                  },
+                  "cldrSpecial": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "description": "The XML text of one <special> element."
+                    },
+                    "description": "Complete XML text of each CLDR <special> element whose parent corresponds to this transformGroup, in document order (SPEC §18)."
+                  }
+                },
+                "required": [
+                  "reorders"
+                ],
+                "additionalProperties": false,
+                "description": "A group of reorders."
+              }
+            ],
+            "description": "A transform group: transforms or reorders, never both (SPEC §13.2)."
+          },
+          "description": "Groups applied after each input."
+        },
+        "backspace": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "transforms": {
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "from": {
+                          "description": "Match pattern.",
+                          "$ref": "#/$defs/Pattern"
+                        },
+                        "to": {
+                          "description": "Replacement; absent deletes.",
+                          "$ref": "#/$defs/Pattern"
+                        }
+                      },
+                      "required": [
+                        "from"
+                      ],
+                      "additionalProperties": false,
+                      "description": "A transform."
+                    },
+                    "description": "Rules in order; the first match applies."
+                  },
+                  "cldrSpecial": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "description": "The XML text of one <special> element."
+                    },
+                    "description": "Complete XML text of each CLDR <special> element whose parent corresponds to this transformGroup, in document order (SPEC §18)."
+                  }
+                },
+                "required": [
+                  "transforms"
+                ],
+                "additionalProperties": false,
+                "description": "A group of transforms."
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "reorders": {
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "from": {
+                          "description": "Characters matched.",
+                          "$ref": "#/$defs/Pattern"
+                        },
+                        "before": {
+                          "description": "Required preceding context.",
+                          "$ref": "#/$defs/Pattern"
+                        },
+                        "order": {
+                          "oneOf": [
+                            {
+                              "type": "integer",
+                              "minimum": -128,
+                              "maximum": 127,
+                              "description": "One value for all."
+                            },
+                            {
+                              "minItems": 1,
+                              "type": "array",
+                              "items": {
+                                "type": "integer",
+                                "minimum": -128,
+                                "maximum": 127,
+                                "description": "A weight."
+                              },
+                              "description": "One value per element; the last repeats."
+                            }
+                          ],
+                          "description": "Primary weights."
+                        },
+                        "tertiary": {
+                          "oneOf": [
+                            {
+                              "type": "integer",
+                              "minimum": -128,
+                              "maximum": 127,
+                              "description": "One value for all."
+                            },
+                            {
+                              "minItems": 1,
+                              "type": "array",
+                              "items": {
+                                "type": "integer",
+                                "minimum": -128,
+                                "maximum": 127,
+                                "description": "A weight."
+                              },
+                              "description": "One value per element; the last repeats."
+                            }
+                          ],
+                          "description": "Tertiary weights."
+                        },
+                        "tertiaryBase": {
+                          "oneOf": [
+                            {
+                              "type": "boolean",
+                              "description": "One value for all."
+                            },
+                            {
+                              "minItems": 1,
+                              "type": "array",
+                              "items": {
+                                "type": "boolean",
+                                "description": "A value."
+                              },
+                              "description": "One value per element; the last repeats."
+                            }
+                          ],
+                          "description": "May carry tertiary characters."
+                        },
+                        "preBase": {
+                          "oneOf": [
+                            {
+                              "type": "boolean",
+                              "description": "One value for all."
+                            },
+                            {
+                              "minItems": 1,
+                              "type": "array",
+                              "items": {
+                                "type": "boolean",
+                                "description": "A value."
+                              },
+                              "description": "One value per element; the last repeats."
+                            }
+                          ],
+                          "description": "Typed before the base."
+                        }
+                      },
+                      "required": [
+                        "from"
+                      ],
+                      "additionalProperties": false,
+                      "description": "A reorder rule."
+                    },
+                    "description": "Reorder rules."
+                  },
+                  "cldrSpecial": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "description": "The XML text of one <special> element."
+                    },
+                    "description": "Complete XML text of each CLDR <special> element whose parent corresponds to this transformGroup, in document order (SPEC §18)."
+                  }
+                },
+                "required": [
+                  "reorders"
+                ],
+                "additionalProperties": false,
+                "description": "A group of reorders."
+              }
+            ],
+            "description": "A transform group: transforms or reorders, never both (SPEC §13.2)."
+          },
+          "description": "Groups applied on the backspace action."
+        },
+        "cldrSpecial": {
+          "type": "object",
+          "properties": {
+            "simple": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "description": "The XML text of one <special> element."
+              },
+              "description": "Complete XML text of each CLDR <special> element whose parent corresponds to transforms type=simple, in document order (SPEC §18)."
+            },
+            "backspace": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "description": "The XML text of one <special> element."
+              },
+              "description": "Complete XML text of each CLDR <special> element whose parent corresponds to transforms type=backspace, in document order (SPEC §18)."
+            }
+          },
+          "additionalProperties": false,
+          "description": "special children of the transforms elements."
+        }
+      },
+      "additionalProperties": false,
+      "description": "CLDR transforms (SPEC §13.2)."
+    },
+    "tests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "info": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name."
+              },
+              "author": {
+                "description": "Author.",
+                "$ref": "#/$defs/Text"
+              },
+              "keyboard": {
+                "type": "string",
+                "description": "File name of the tested keyboard."
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "additionalProperties": false,
+            "description": "Test file information."
+          },
+          "repertoires": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Name."
+                },
+                "chars": {
+                  "type": "string",
+                  "description": "UnicodeSet in CLDR test syntax."
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "default",
+                    "simple",
+                    "gesture",
+                    "flick",
+                    "longPress",
+                    "multiTap",
+                    "hardware"
+                  ],
+                  "description": "How the characters must be typeable."
+                }
+              },
+              "required": [
+                "name",
+                "chars"
+              ],
+              "additionalProperties": false,
+              "description": "A repertoire test."
+            },
+            "description": "Repertoire tests."
+          },
+          "suites": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Name."
+                },
+                "tests": {
+                  "minItems": 1,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "Name."
+                      },
+                      "startContext": {
+                        "description": "Text before the insertion point.",
+                        "$ref": "#/$defs/Text"
+                      },
+                      "steps": {
+                        "type": "array",
+                        "items": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "keystroke": {
+                                  "oneOf": [
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "key": {
+                                          "description": "KeyId.",
+                                          "$ref": "#/$defs/Id"
+                                        },
+                                        "flick": {
+                                          "minItems": 1,
+                                          "type": "array",
+                                          "items": {
+                                            "type": "string",
+                                            "enum": [
+                                              "n",
+                                              "e",
+                                              "s",
+                                              "w",
+                                              "ne",
+                                              "nw",
+                                              "se",
+                                              "sw"
+                                            ],
+                                            "description": "A direction."
+                                          },
+                                          "description": "Flick path."
+                                        },
+                                        "longPress": {
+                                          "type": "integer",
+                                          "minimum": 0,
+                                          "description": "Long-press choice; 0 = default."
+                                        },
+                                        "tapCount": {
+                                          "type": "integer",
+                                          "minimum": 2,
+                                          "description": "Number of taps, at least 2."
+                                        }
+                                      },
+                                      "required": [
+                                        "key"
+                                      ],
+                                      "additionalProperties": false,
+                                      "description": "Press a Key.",
+                                      "not": {
+                                        "anyOf": [
+                                          {
+                                            "required": [
+                                              "flick",
+                                              "longPress"
+                                            ]
+                                          },
+                                          {
+                                            "required": [
+                                              "flick",
+                                              "tapCount"
+                                            ]
+                                          },
+                                          {
+                                            "required": [
+                                              "longPress",
+                                              "tapCount"
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "position": {
+                                          "description": "The position.",
+                                          "$ref": "#/$defs/PositionId"
+                                        },
+                                        "modifiers": {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "string",
+                                            "pattern": "^[A-Za-z][A-Za-z0-9]{0,31}$",
+                                            "description": "A modifier component: shift, ctrl, ctrlL, ctrlR, alt, altL, altR, caps, other, or a name declared in customModifiers (SPEC §7)."
+                                          },
+                                          "uniqueItems": true,
+                                          "description": "Held modifiers, by side: shiftL, shiftR, ctrlL, ctrlR, altL, altR (shift, ctrl, alt = left), custom held components."
+                                        },
+                                        "locks": {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "string",
+                                            "pattern": "^[A-Za-z][A-Za-z0-9]{0,31}$",
+                                            "description": "A modifier component: shift, ctrl, ctrlL, ctrlR, alt, altL, altR, caps, other, or a name declared in customModifiers (SPEC §7)."
+                                          },
+                                          "uniqueItems": true,
+                                          "description": "Locks on: caps, custom lock components."
+                                        }
+                                      },
+                                      "required": [
+                                        "position"
+                                      ],
+                                      "additionalProperties": false,
+                                      "description": "Press a hardware position."
+                                    }
+                                  ],
+                                  "description": "A CLDR key press with optional gesture, or a hardware position press."
+                                }
+                              },
+                              "required": [
+                                "keystroke"
+                              ],
+                              "additionalProperties": false,
+                              "description": "A keystroke."
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "emit": {
+                                  "description": "The text.",
+                                  "$ref": "#/$defs/Text"
+                                }
+                              },
+                              "required": [
+                                "emit"
+                              ],
+                              "additionalProperties": false,
+                              "description": "Input text directly."
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "backspace": {
+                                  "type": "boolean",
+                                  "const": true,
+                                  "description": "Always true."
+                                }
+                              },
+                              "required": [
+                                "backspace"
+                              ],
+                              "additionalProperties": false,
+                              "description": "The backspace action."
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "check": {
+                                  "description": "Expected text before the insertion point.",
+                                  "$ref": "#/$defs/Text"
+                                }
+                              },
+                              "required": [
+                                "check"
+                              ],
+                              "additionalProperties": false,
+                              "description": "Check the context."
+                            }
+                          ],
+                          "description": "One test step (SPEC §15)."
+                        },
+                        "description": "Steps in order."
+                      },
+                      "cldrSpecial": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "description": "The XML text of one <special> element."
+                        },
+                        "description": "Complete XML text of each CLDR <special> element whose parent corresponds to this test, in document order (SPEC §18)."
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "steps"
+                    ],
+                    "additionalProperties": false,
+                    "description": "A test."
+                  },
+                  "description": "Tests."
+                },
+                "cldrSpecial": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "description": "The XML text of one <special> element."
+                  },
+                  "description": "Complete XML text of each CLDR <special> element whose parent corresponds to this suite, in document order (SPEC §18)."
+                }
+              },
+              "required": [
+                "name",
+                "tests"
+              ],
+              "additionalProperties": false,
+              "description": "A suite."
+            },
+            "description": "Test suites."
+          },
+          "cldrSpecial": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "The XML text of one <special> element."
+            },
+            "description": "Complete XML text of each CLDR <special> element whose parent corresponds to this test file, in document order (SPEC §18)."
+          }
+        },
+        "required": [
+          "info"
+        ],
+        "additionalProperties": false,
+        "description": "A test file (SPEC §15)."
+      },
+      "description": "Test files (SPEC §15)."
+    },
+    "targets": {
+      "type": "object",
+      "properties": {
+        "windows": {
+          "type": "object",
+          "properties": {
+            "dllName": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_]{0,7}$",
+              "description": "DLL file name without .dll (rule dllName)."
+            },
+            "builds": {
+              "minItems": 1,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "x86",
+                  "x64",
+                  "wow64",
+                  "arm64x"
+                ],
+                "description": "One build."
+              },
+              "uniqueItems": true,
+              "description": "DLL builds to make (rule builds)."
+            },
+            "useTableA": {
+              "type": "boolean",
+              "description": "false: rule vk uses no Table A at all, the file's VKs are exactly its pins (default true; targets/windows.md §5)."
+            },
+            "localeFlags": {
+              "type": "object",
+              "properties": {
+                "altGr": {
+                  "type": "boolean",
+                  "description": "KLLF_ALTGR (rule altGr)."
+                },
+                "shiftLock": {
+                  "type": "boolean",
+                  "description": "KLLF_SHIFTLOCK (rule shiftLock)."
+                },
+                "lrmRlm": {
+                  "type": "boolean",
+                  "description": "KLLF_LRM_RLM (rule lrmRlm)."
+                }
+              },
+              "additionalProperties": false,
+              "description": "fLocaleFlags low word."
+            },
+            "kbdVersion": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 65535,
+              "description": "High word of fLocaleFlags (rule kbdVersion)."
+            },
+            "keyboardType": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 4294967295,
+                  "description": "dwType."
+                },
+                "subType": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 4294967295,
+                  "description": "dwSubType."
+                }
+              },
+              "required": [
+                "type",
+                "subType"
+              ],
+              "additionalProperties": false,
+              "description": "dwType and dwSubType (rule keyboardType)."
+            },
+            "modifiers": {
+              "type": "object",
+              "properties": {
+                "bits": {
+                  "minItems": 1,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "vk": {
+                        "type": "string",
+                        "pattern": "^([A-Za-z0-9_]{1,32}|0[xX][0-9A-Fa-f]{2})$",
+                        "description": "The modifier VK."
+                      },
+                      "bit": {
+                        "type": "number",
+                        "enum": [
+                          1,
+                          2,
+                          4,
+                          8,
+                          16,
+                          32,
+                          64,
+                          128
+                        ],
+                        "description": "Its modifier bit (1, 2, 4, 8, 16, 32, 64, 128)."
+                      },
+                      "component": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z][A-Za-z0-9]{0,31}$",
+                        "description": "The kbl component it stands for."
+                      }
+                    },
+                    "required": [
+                      "vk",
+                      "bit",
+                      "component"
+                    ],
+                    "additionalProperties": false,
+                    "description": "One entry."
+                  },
+                  "description": "VK_TO_BIT entries in order."
+                },
+                "modNumber": {
+                  "minItems": 1,
+                  "maxItems": 256,
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 14,
+                        "description": "Column."
+                      },
+                      {
+                        "type": "null",
+                        "description": "SHFT_INVALID."
+                      }
+                    ],
+                    "description": "Column index or null."
+                  },
+                  "description": "ModNumber: column per bit combination (index), null = SHFT_INVALID."
+                },
+                "kanaLockComponent": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z][A-Za-z0-9]{0,31}$",
+                  "description": "The custom lock that is Windows' Kana lock (KANALOK)."
+                }
+              },
+              "additionalProperties": false,
+              "description": "MODIFIERS (rules modifierBits, modNumber)."
+            },
+            "keys": {
+              "type": "object",
+              "propertyNames": {
+                "$ref": "#/$defs/PositionId"
+              },
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "vk": {
+                    "type": "string",
+                    "pattern": "^([A-Za-z0-9_]{1,32}|0[xX][0-9A-Fa-f]{2})$",
+                    "description": "Virtual key of the position (rule vk)."
+                  },
+                  "scanCodeFlags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "ext",
+                        "multiVk",
+                        "special",
+                        "numpad",
+                        "unicode",
+                        "injectedVk",
+                        "mappedVk",
+                        "break"
+                      ],
+                      "description": "KBDEXT, KBDMULTIVK, KBDSPECIAL, KBDNUMPAD, KBDUNICODE, KBDINJECTEDVK, KBDMAPPEDVK, KBDBREAK."
+                    },
+                    "uniqueItems": true,
+                    "description": "Scan-code flags (rule scanCodeFlags)."
+                  },
+                  "attributes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "CAPLOK",
+                        "SGCAPS",
+                        "CAPLOKALTGR",
+                        "KANALOK",
+                        "GRPSELTAP"
+                      ],
+                      "description": "One attribute."
+                    },
+                    "uniqueItems": true,
+                    "description": "Row attributes (rule attributes)."
+                  }
+                },
+                "additionalProperties": false,
+                "description": "Windows data of one position."
+              },
+              "description": "Windows data per position."
+            },
+            "scanCodeTableSize": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 255,
+              "description": "bMaxVSCtoVK (rule scanCodeTableSize)."
+            },
+            "tables": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "width": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 15,
+                    "description": "Number of columns of the table."
+                  },
+                  "rows": {
+                    "type": "array",
+                    "items": {
+                      "oneOf": [
+                        {
+                          "$ref": "#/$defs/PositionId"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "vk": {
+                              "type": "string",
+                              "pattern": "^([A-Za-z0-9_]{1,32}|0[xX][0-9A-Fa-f]{2})$",
+                              "description": "The VK."
+                            }
+                          },
+                          "required": [
+                            "vk"
+                          ],
+                          "additionalProperties": false,
+                          "description": "A VK of extraRows."
+                        }
+                      ],
+                      "description": "A row."
+                    },
+                    "description": "Rows in order: a position, or a VK of extraRows."
+                  }
+                },
+                "required": [
+                  "width",
+                  "rows"
+                ],
+                "additionalProperties": false,
+                "description": "One table."
+              },
+              "description": "Character tables in order (rule tables)."
+            },
+            "extraRows": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "vk": {
+                    "type": "string",
+                    "pattern": "^([A-Za-z0-9_]{1,32}|0[xX][0-9A-Fa-f]{2})$",
+                    "description": "The row's VK."
+                  },
+                  "attributes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "CAPLOK",
+                        "SGCAPS",
+                        "CAPLOKALTGR",
+                        "KANALOK",
+                        "GRPSELTAP"
+                      ],
+                      "description": "One attribute."
+                    },
+                    "uniqueItems": true,
+                    "description": "Row attributes."
+                  },
+                  "cells": {
+                    "minItems": 1,
+                    "maxItems": 15,
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/WinCell"
+                    },
+                    "description": "Cells per column."
+                  }
+                },
+                "required": [
+                  "vk",
+                  "cells"
+                ],
+                "additionalProperties": false,
+                "description": "One row."
+              },
+              "description": "Rows for VKs no position produces."
+            },
+            "deadKeys": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "character": {
+                    "description": "The dead character, one unit (rule deadCharacter).",
+                    "$ref": "#/$defs/TextOrUnits"
+                  }
+                },
+                "additionalProperties": false,
+                "description": "Windows data of one dead key."
+              },
+              "description": "Windows data per dead key."
+            },
+            "strings": {
+              "type": "object",
+              "properties": {
+                "layoutName": {
+                  "description": "String 1000 per LANGID.",
+                  "$ref": "#/$defs/LangIdText"
+                },
+                "languageName": {
+                  "description": "String 1100 per LANGID.",
+                  "$ref": "#/$defs/LangIdText"
+                },
+                "localeName": {
+                  "type": "string",
+                  "description": "String 1200, a locale name."
+                }
+              },
+              "additionalProperties": false,
+              "description": "DLL strings (rule strings)."
+            },
+            "versionInfo": {
+              "type": "object",
+              "properties": {
+                "fileVersion": {
+                  "description": "FileVersion.",
+                  "$ref": "#/$defs/Version4"
+                },
+                "productVersion": {
+                  "description": "ProductVersion.",
+                  "$ref": "#/$defs/Version4"
+                },
+                "companyName": {
+                  "description": "CompanyName.",
+                  "$ref": "#/$defs/Text"
+                },
+                "legalCopyright": {
+                  "description": "LegalCopyright.",
+                  "$ref": "#/$defs/Text"
+                },
+                "fileDescription": {
+                  "description": "FileDescription.",
+                  "$ref": "#/$defs/Text"
+                }
+              },
+              "additionalProperties": false,
+              "description": "Version resource (rule versionInfo)."
+            },
+            "registration": {
+              "type": "object",
+              "properties": {
+                "klid": {
+                  "type": "string",
+                  "pattern": "^[0-9A-Fa-f]{8}$",
+                  "description": "KLID, 8 hex digits."
+                },
+                "langId": {
+                  "type": "string",
+                  "pattern": "^[0-9A-Fa-f]{4}$",
+                  "description": "LANGID, 4 hex digits (no default)."
+                },
+                "layoutId": {
+                  "type": "string",
+                  "pattern": "^[0-9A-Fa-f]{4}$",
+                  "description": "Layout Id, 4 hex digits."
+                },
+                "layoutText": {
+                  "description": "Layout Text.",
+                  "$ref": "#/$defs/Text"
+                },
+                "localeName": {
+                  "type": "string",
+                  "description": "Layout Locale Name (custom locales)."
+                },
+                "customLanguageName": {
+                  "description": "Custom Language Name.",
+                  "$ref": "#/$defs/Text"
+                },
+                "productCode": {
+                  "type": "string",
+                  "pattern": "^\\{[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}\\}$",
+                  "description": "Product GUID, {XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}: ownership marker, uninstall-entry key, upgrade identity (rule productCode, targets/windows-install.md §2)."
+                }
+              },
+              "additionalProperties": false,
+              "description": "Registry data for the installer (rule registration)."
+            },
+            "install": {
+              "type": "object",
+              "properties": {
+                "enableForUser": {
+                  "type": "boolean",
+                  "description": "Add the layout to the installing user's input list (rule enableForUser, default true)."
+                },
+                "enableForSignInAndNewUsers": {
+                  "type": "boolean",
+                  "description": "Also add the layout to the sign-in screen and to accounts created later (rule enableForSignInAndNewUsers, default false; targets/windows-install.md §7.1)."
+                },
+                "productName": {
+                  "description": "Display name of the uninstall entry (rule uninstallEntry).",
+                  "$ref": "#/$defs/Text"
+                },
+                "productVersion": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Version shown in the uninstall entry, free text (rule uninstallEntry)."
+                },
+                "publisher": {
+                  "description": "Publisher of the uninstall entry (rule uninstallEntry).",
+                  "$ref": "#/$defs/Text"
+                }
+              },
+              "additionalProperties": false,
+              "description": "Installer choices (targets/windows-install.md)."
+            },
+            "nls": {
+              "type": "object",
+              "properties": {
+                "oemIdentifier": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 65535,
+                  "description": "OEMIdentifier."
+                },
+                "layoutInformation": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 65535,
+                  "description": "LayoutInformation."
+                },
+                "vkToF": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "vk": {
+                        "type": "string",
+                        "pattern": "^([A-Za-z0-9_]{1,32}|0[xX][0-9A-Fa-f]{2})$",
+                        "description": "Vk."
+                      },
+                      "procType": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 2,
+                        "description": "NLSFEProcType 0–2."
+                      },
+                      "procCurrent": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 255,
+                        "description": "NLSFEProcCurrent."
+                      },
+                      "procSwitch": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 255,
+                        "description": "NLSFEProcSwitch."
+                      },
+                      "proc": {
+                        "minItems": 8,
+                        "maxItems": 8,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "index": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 15,
+                              "description": "NLSFEProcIndex, 0–15."
+                            },
+                            "param": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 4294967295,
+                              "description": "NLSFEProcParam."
+                            }
+                          },
+                          "required": [
+                            "index",
+                            "param"
+                          ],
+                          "additionalProperties": false,
+                          "description": "A VK_FPARAM entry."
+                        },
+                        "description": "NLSFEProc[8]."
+                      },
+                      "procAlt": {
+                        "minItems": 8,
+                        "maxItems": 8,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "index": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 15,
+                              "description": "NLSFEProcIndex, 0–15."
+                            },
+                            "param": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 4294967295,
+                              "description": "NLSFEProcParam."
+                            }
+                          },
+                          "required": [
+                            "index",
+                            "param"
+                          ],
+                          "additionalProperties": false,
+                          "description": "A VK_FPARAM entry."
+                        },
+                        "description": "NLSFEProcAlt[8]."
+                      }
+                    },
+                    "required": [
+                      "vk",
+                      "procType",
+                      "procCurrent",
+                      "procSwitch",
+                      "proc",
+                      "procAlt"
+                    ],
+                    "additionalProperties": false,
+                    "description": "One VK_F entry."
+                  },
+                  "description": "VK_F entries."
+                },
+                "mouseVKeys": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "vk": {
+                        "type": "string",
+                        "pattern": "^([A-Za-z0-9_]{1,32}|0[xX][0-9A-Fa-f]{2})$",
+                        "description": "Vk."
+                      },
+                      "flags": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "ext",
+                            "multiVk",
+                            "special",
+                            "numpad"
+                          ],
+                          "description": "A flag."
+                        },
+                        "uniqueItems": true,
+                        "description": "Flags."
+                      }
+                    },
+                    "required": [
+                      "vk"
+                    ],
+                    "additionalProperties": false,
+                    "description": "One entry."
+                  },
+                  "description": "pusMouseVKey entries."
+                }
+              },
+              "additionalProperties": false,
+              "description": "KbdNlsLayerDescriptor table: carried, not compiled."
+            },
+            "dispatcher": {
+              "type": "object",
+              "properties": {
+                "tables": {
+                  "maxItems": 8,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "dllName": {
+                        "type": "string",
+                        "description": "Layout DLL file name."
+                      },
+                      "type": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "dwType."
+                      },
+                      "subType": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "dwSubType."
+                      }
+                    },
+                    "required": [
+                      "dllName",
+                      "type",
+                      "subType"
+                    ],
+                    "additionalProperties": false,
+                    "description": "One entry."
+                  },
+                  "description": "KBDTABLE_DESC entries (at most 8)."
+                },
+                "realDllFile": {
+                  "type": "string",
+                  "description": "File name returned by KbdLayerRealDllFile."
+                }
+              },
+              "additionalProperties": false,
+              "description": "Multi-table dispatcher data: carried, not compiled."
+            },
+            "onLoss": {
+              "description": "Loss policy for this target.",
+              "$ref": "#/$defs/OnLoss"
+            }
+          },
+          "additionalProperties": false,
+          "description": "Windows build choices (SPEC §16.1, targets/windows.md)."
+        },
+        "klc": {
+          "type": "object",
+          "properties": {
+            "msklcEditorCompatible": {
+              "type": "boolean",
+              "description": "Write only what the MSKLC editor keeps (default false)."
+            },
+            "versionLine": {
+              "type": "string",
+              "description": "Text of the VERSION line."
+            },
+            "onLoss": {
+              "description": "Loss policy for .klc conversion.",
+              "$ref": "#/$defs/OnLoss"
+            }
+          },
+          "additionalProperties": false,
+          "description": ".klc conversion choices (SPEC §16.2)."
+        },
+        "cldr": {
+          "type": "object",
+          "properties": {
+            "conformsTo": {
+              "type": "integer",
+              "minimum": 45,
+              "description": "keyboard3/@conformsTo to write."
+            },
+            "locale": {
+              "type": "string",
+              "description": "keyboard3/@locale if different from metadata.id."
+            },
+            "carryInSpecial": {
+              "type": "boolean",
+              "description": "Carry kbl-only data in a <special> element (default true)."
+            },
+            "onLoss": {
+              "description": "Loss policy for CLDR conversion.",
+              "$ref": "#/$defs/OnLoss"
+            }
+          },
+          "additionalProperties": false,
+          "description": "CLDR conversion choices (SPEC §16.3)."
+        },
+        "macos": {
+          "type": "object",
+          "properties": {
+            "layoutName": {
+              "type": "string",
+              "pattern": "^[^/:\\x00-\\x1f\\x7f]{1,128}$",
+              "description": "Layout name: keyboard/@name, the .keylayout and .icns file names, the KLInfo_<name> key (rule layoutName)."
+            },
+            "bundleName": {
+              "type": "string",
+              "pattern": "^[^/:\\x00-\\x1f\\x7f]{1,128}$",
+              "description": "Bundle folder name without .bundle, and CFBundleName (rule bundleName)."
+            },
+            "bundleId": {
+              "type": "string",
+              "maxLength": 255,
+              "pattern": "^[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)+$",
+              "description": "CFBundleIdentifier (rule bundleId)."
+            },
+            "inputSourceId": {
+              "type": "string",
+              "maxLength": 255,
+              "pattern": "^[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)+$",
+              "description": "TISInputSourceID, the input-source id the system selects by (rule inputSourceId)."
+            },
+            "language": {
+              "type": "string",
+              "pattern": "^[A-Za-z]{2,8}(-[A-Za-z0-9]{1,8})*$",
+              "description": "TISIntendedLanguage, a BCP 47 tag (rule language)."
+            },
+            "localizedNames": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "pattern": "^[A-Za-z]{2,8}(-[A-Za-z0-9]{1,8})*$",
+                "description": "A BCP 47 tag: the <tag>.lproj folder."
+              },
+              "additionalProperties": {
+                "$ref": "#/$defs/Text"
+              },
+              "description": "Localised layout names, one InfoPlist.strings per language (rule localizedNames)."
+            },
+            "bundleVersion": {
+              "type": "string",
+              "pattern": "^[0-9]{1,9}(\\.[0-9]{1,9}){0,2}$",
+              "description": "CFBundleShortVersionString and CFBundleVersion (rule bundleVersion)."
+            },
+            "icon": {
+              "type": "object",
+              "properties": {
+                "icns": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9+/]+={0,2}$",
+                  "description": "The .icns file, base64 (RFC 4648 §4, no line breaks)."
+                },
+                "template": {
+                  "type": "boolean",
+                  "description": "TISIconIsTemplate: the icon is a template image the system tints. Default false."
+                }
+              },
+              "required": [
+                "icns"
+              ],
+              "additionalProperties": false,
+              "description": "The layout's icon, Resources/<layoutName>.icns (no default: the system's generic icon)."
+            },
+            "group": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 32767,
+              "description": "keyboard/@group, the script code; 126 = Unicode (rule group)."
+            },
+            "id": {
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647,
+              "description": "keyboard/@id; Unicode layouts use negative ids (rule keyboardId)."
+            },
+            "maxout": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535,
+              "description": "keyboard/@maxout: most UTF-16 units of one output; a terminator and a key output count separately (rule maxout)."
+            },
+            "hardwareRanges": {
+              "minItems": 1,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "first": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 255,
+                    "description": "layout/@first, first hardware keyboard type."
+                  },
+                  "last": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 255,
+                    "description": "layout/@last, last hardware keyboard type."
+                  }
+                },
+                "required": [
+                  "first",
+                  "last"
+                ],
+                "additionalProperties": false,
+                "description": "One <layout> element."
+              },
+              "description": "The <layout> elements, in order, all selecting the one key map set (rule hardwareRanges)."
+            },
+            "keys": {
+              "type": "object",
+              "propertyNames": {
+                "$ref": "#/$defs/PositionId"
+              },
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "keyCode": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 255,
+                    "description": "Virtual key code, key/@code (rule keyCode)."
+                  }
+                },
+                "required": [
+                  "keyCode"
+                ],
+                "additionalProperties": false,
+                "description": "macOS data of one position."
+              },
+              "description": "macOS data per position."
+            },
+            "standardKeys": {
+              "type": "boolean",
+              "description": "true: unbound standard keys (Return, Tab, arrows, …) get the outputs of the position table (rule standardKeys, default true)."
+            },
+            "commandMap": {
+              "type": "string",
+              "enum": [
+                "withoutCommand",
+                "base"
+              ],
+              "description": "States with Command that no layer serves: the table of the same state without Command, or the base table (rule commandMap)."
+            },
+            "controlMap": {
+              "type": "string",
+              "enum": [
+                "controlCharacters",
+                "withoutControl",
+                "nothing"
+              ],
+              "description": "States with Control that no layer serves: the table without Control with ASCII letters turned into U+0001–U+001A, that table unchanged, or no output (rule controlMap)."
+            },
+            "modifiers": {
+              "type": "object",
+              "properties": {
+                "command": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z][A-Za-z0-9]{0,31}$",
+                  "description": "The custom held component that is the Command key."
+                }
+              },
+              "additionalProperties": false,
+              "description": "Which custom components are macOS modifier keys."
+            },
+            "deadKeys": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "state": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9._:-]{1,64}$",
+                    "description": "The dead key's state name (rule stateName)."
+                  }
+                },
+                "additionalProperties": false,
+                "description": "macOS data of one dead key."
+              },
+              "description": "macOS data per dead key."
+            },
+            "onLoss": {
+              "description": "Loss policy for this target.",
+              "$ref": "#/$defs/OnLoss"
+            }
+          },
+          "additionalProperties": false,
+          "description": "macOS build choices (SPEC §16.4, targets/macos.md)."
+        },
+        "xkb": {
+          "type": "object",
+          "properties": {
+            "symbolsName": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+              "description": "The symbols file name and the layout name in rules/evdev.xml (rule symbolsName)."
+            },
+            "variant": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+              "description": "The section name: basic (default) is the file's default section and a layout of its own; any other name is a variant of the layout symbolsName (rule variant)."
+            },
+            "description": {
+              "description": "The layout's name: name[Group1] and the registry's <description> (rule description).",
+              "$ref": "#/$defs/Text"
+            },
+            "shortDescription": {
+              "type": "string",
+              "pattern": "^[^\\x00-\\x1f\\x7f]{1,16}$",
+              "description": "The registry's <shortDescription>, the short label of the layout (rule shortDescription)."
+            },
+            "languages": {
+              "minItems": 1,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z]{3}$",
+                "description": "An ISO 639-2 or 639-3 language code."
+              },
+              "uniqueItems": true,
+              "description": "The registry's <languageList>, three-letter codes; no default (none written)."
+            },
+            "characters": {
+              "type": "string",
+              "enum": [
+                "keysyms",
+                "utf8"
+              ],
+              "description": "How characters are written in the symbols file: keysym names and Uxxxx (any libxkbcommon, xkbcomp) or UTF-8 strings (libxkbcommon 1.9 and later only) (rule characters)."
+            },
+            "keys": {
+              "type": "object",
+              "propertyNames": {
+                "$ref": "#/$defs/PositionId"
+              },
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "keyName": {
+                    "type": "string",
+                    "pattern": "^[0-9A-Za-z_+-]{1,4}$",
+                    "description": "The XKB key name, without the angle brackets (rule keyName)."
+                  },
+                  "type": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "ONE_LEVEL",
+                          "TWO_LEVEL",
+                          "ALPHABETIC",
+                          "FOUR_LEVEL",
+                          "CTRL+ALT",
+                          "FOUR_LEVEL_ALPHABETIC",
+                          "FOUR_LEVEL_SEMIALPHABETIC",
+                          "FOUR_LEVEL_PLUS_LOCK",
+                          "EIGHT_LEVEL",
+                          "EIGHT_LEVEL_ALPHABETIC",
+                          "EIGHT_LEVEL_SEMIALPHABETIC"
+                        ],
+                        "description": "A stock key type of xkeyboard-config (targets/xkb.md §3)."
+                      },
+                      {
+                        "type": "string",
+                        "pattern": "^YAKBD_[1-8]{8}([1-8]{8})?$",
+                        "description": "A yakbd key type: YAKBD_ and the level of each of the 8 (or 16, with LevelFive) states, Lock always consumed (targets/xkb.md §3)."
+                      }
+                    ],
+                    "description": "The key type of this key (rule keyType)."
+                  }
+                },
+                "additionalProperties": false,
+                "description": "XKB data of one position."
+              },
+              "description": "XKB data per position."
+            },
+            "customTypes": {
+              "type": "boolean",
+              "description": "true: a key no stock type fits gets a yakbd key type, installed with the layout (needs libxkbcommon 1.13 or a types option on X11); default false (rule keyType)."
+            },
+            "modifiers": {
+              "type": "object",
+              "properties": {
+                "levelThree": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z][A-Za-z0-9]{0,31}$",
+                  "description": "The component that is the level-3 shift: altR, alt or a custom held component (rule levelThree)."
+                },
+                "levelFive": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z][A-Za-z0-9]{0,31}$",
+                  "description": "The component that is the level-5 shift: a custom held component or altR; no default (no level 5)."
+                }
+              },
+              "additionalProperties": false,
+              "description": "Which components shift XKB levels."
+            },
+            "deadKeys": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "keysym": {
+                    "type": "string",
+                    "pattern": "^dead_[A-Za-z0-9_]{1,40}$",
+                    "description": "The dead_* keysym the dead key's key types (rule deadKeysym)."
+                  }
+                },
+                "additionalProperties": false,
+                "description": "XKB data of one dead key."
+              },
+              "description": "XKB data per dead key."
+            },
+            "compose": {
+              "type": "object",
+              "properties": {
+                "write": {
+                  "type": "boolean",
+                  "description": "Write a Compose file with the dead-key sequences (default: when the file has dead keys)."
+                },
+                "includeLocale": {
+                  "type": "boolean",
+                  "description": "Start the Compose file with include \"%L\", keeping the system sequences (default true)."
+                }
+              },
+              "additionalProperties": false,
+              "description": "The Compose file of the build (rule compose)."
+            },
+            "onLoss": {
+              "description": "Loss policy for this target.",
+              "$ref": "#/$defs/OnLoss"
+            }
+          },
+          "additionalProperties": false,
+          "description": "Linux XKB build choices (SPEC §16.5, targets/xkb.md)."
+        },
+        "android": {
+          "type": "object",
+          "properties": {
+            "onLoss": {
+              "description": "Loss policy for this target.",
+              "$ref": "#/$defs/OnLoss"
+            }
+          },
+          "additionalProperties": false,
+          "description": "Android physical-keyboard build choices (SPEC §16.6, targets/android.md)."
+        },
+        "androidime": {
+          "type": "object",
+          "properties": {
+            "onLoss": {
+              "description": "Loss policy for this target.",
+              "$ref": "#/$defs/OnLoss"
+            }
+          },
+          "additionalProperties": false,
+          "description": "Android on-screen keyboard build choices (SPEC §16.7, targets/androidime.md)."
+        },
+        "ios": {
+          "type": "object",
+          "properties": {
+            "onLoss": {
+              "description": "Loss policy for this target.",
+              "$ref": "#/$defs/OnLoss"
+            }
+          },
+          "additionalProperties": false,
+          "description": "iOS keyboard build choices (SPEC §16.8, targets/ios.md)."
+        },
+        "chromeos": {
+          "type": "object",
+          "properties": {
+            "onLoss": {
+              "description": "Loss policy for this target.",
+              "$ref": "#/$defs/OnLoss"
+            }
+          },
+          "additionalProperties": false,
+          "description": "ChromeOS input-method build choices (SPEC §16.9, targets/chromeos.md)."
+        },
+        "keyman": {
+          "type": "object",
+          "properties": {
+            "onLoss": {
+              "description": "Loss policy for this target.",
+              "$ref": "#/$defs/OnLoss"
+            }
+          },
+          "additionalProperties": false,
+          "description": "Keyman package build choices (SPEC §16.10, targets/keyman.md)."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Per-target choices (SPEC §16)."
+    },
+    "onLoss": {
+      "description": "Loss policy for every target (SPEC §17.2).",
+      "$ref": "#/$defs/OnLoss"
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^([a-z][a-z0-9+.-]*:.+|[a-z0-9-]+(\\.[a-z0-9-]+)+)$",
+        "description": "An absolute URI or reverse-DNS name."
+      },
+      "additionalProperties": {},
+      "description": "Data of other tools, by URI or reverse-DNS name (SPEC §18)."
+    },
+    "cldrSpecial": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "description": "The XML text of one <special> element."
+      },
+      "description": "Complete XML text of each CLDR <special> element whose parent corresponds to keyboard3 (and keys, flicks, variables with a kbl:parent comment), in document order (SPEC §18)."
+    }
+  },
+  "required": [
+    "kbl",
+    "metadata"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "Text": {
+      "type": "string",
+      "description": "Text (SPEC §2.1): a JSON string of Unicode scalar values; no lone surrogates."
+    },
+    "PositionId": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9_]{0,63}$",
+      "description": "A position id (SPEC §2.5, §6.1); W3C UI Events code values are recommended."
+    },
+    "Id": {
+      "type": "string",
+      "pattern": "^[^\\s,]{1,64}$",
+      "description": "A KeyId, FlickId, LayerId, DeadKeyId, MarkerId or FormId (SPEC §2.5)."
+    },
+    "VariableId": {
+      "type": "string",
+      "pattern": "^[0-9A-Za-z_]{1,32}$",
+      "description": "A variable id (SPEC §13.1)."
+    },
+    "MarkedText": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/Text"
+        },
+        {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/Text"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "marker": {
+                    "description": "The marker id.",
+                    "$ref": "#/$defs/Id"
+                  }
+                },
+                "required": [
+                  "marker"
+                ],
+                "additionalProperties": false,
+                "description": "A CLDR marker (SPEC §13.3)."
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "variable": {
+                    "description": "The variable id.",
+                    "$ref": "#/$defs/VariableId"
+                  }
+                },
+                "required": [
+                  "variable"
+                ],
+                "additionalProperties": false,
+                "description": "The value of a string variable (SPEC §13.1)."
+              }
+            ],
+            "description": "One item."
+          },
+          "description": "Items concatenated in order."
+        }
+      ],
+      "description": "MarkedText (SPEC §2.3): a Text, or an array of Texts, markers and string variables."
+    },
+    "ModifierSet": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z][A-Za-z0-9]{0,31}$",
+        "description": "A modifier component: shift, ctrl, ctrlL, ctrlR, alt, altL, altR, caps, other, or a name declared in customModifiers (SPEC §7)."
+      },
+      "uniqueItems": true,
+      "description": "A modifier set (SPEC §7.1): components active together; [] means none, [\"other\"] means no other layer matches."
+    },
+    "Modifiers": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ModifierSet"
+      },
+      "description": "The modifier sets a layer serves (CLDR's comma-separated layer/@modifiers)."
+    },
+    "Binding": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "description": "Shorthand: the key emits this Text."
+        },
+        {
+          "type": "object",
+          "properties": {
+            "output": {
+              "description": "The emitted text.",
+              "$ref": "#/$defs/MarkedText"
+            }
+          },
+          "required": [
+            "output"
+          ],
+          "additionalProperties": false,
+          "description": "The key emits this MarkedText."
+        },
+        {
+          "type": "object",
+          "properties": {
+            "key": {
+              "description": "The KeyId.",
+              "$ref": "#/$defs/Id"
+            }
+          },
+          "required": [
+            "key"
+          ],
+          "additionalProperties": false,
+          "description": "The key behaves as this Key of `keys` (or an implied key)."
+        },
+        {
+          "type": "object",
+          "properties": {
+            "deadKey": {
+              "description": "The DeadKeyId.",
+              "$ref": "#/$defs/Id"
+            }
+          },
+          "required": [
+            "deadKey"
+          ],
+          "additionalProperties": false,
+          "description": "The key is this dead key."
+        },
+        {
+          "$ref": "#/$defs/CodeUnits"
+        }
+      ],
+      "description": "What a position does in a layer (SPEC §9.2)."
+    },
+    "CodeUnits": {
+      "type": "object",
+      "properties": {
+        "utf16": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[0-9A-Fa-f]{4}$",
+            "description": "One UTF-16 code unit."
+          },
+          "description": "The UTF-16 code units, each four hex digits."
+        }
+      },
+      "required": [
+        "utf16"
+      ],
+      "additionalProperties": false,
+      "description": "CodeUnits (SPEC §2.2): exact UTF-16 code units, for values a Text cannot hold (Windows)."
+    },
+    "TextOrUnits": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/Text"
+        },
+        {
+          "$ref": "#/$defs/CodeUnits"
+        }
+      ],
+      "description": "A Text or a CodeUnits value."
+    },
+    "DeadKeyRef": {
+      "type": "object",
+      "properties": {
+        "deadKey": {
+          "description": "The DeadKeyId.",
+          "$ref": "#/$defs/Id"
+        }
+      },
+      "required": [
+        "deadKey"
+      ],
+      "additionalProperties": false,
+      "description": "Another dead key."
+    },
+    "Pattern": {
+      "type": "string",
+      "description": "A CLDR transform/reorder pattern or variable value, verbatim in CLDR syntax (SPEC §2.4)."
+    },
+    "WinCell": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/Text"
+        },
+        {
+          "$ref": "#/$defs/CodeUnits"
+        },
+        {
+          "$ref": "#/$defs/DeadKeyRef"
+        },
+        {
+          "type": "null",
+          "description": "No character."
+        }
+      ],
+      "description": "A Windows table cell of an extra row: Text, CodeUnits, a dead key, or null (WCH_NONE)."
+    },
+    "LangIdText": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[0-9A-Fa-f]{4}$",
+        "description": "A LANGID."
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/Text"
+      },
+      "description": "Text per Windows LANGID (four hex digits)."
+    },
+    "Version4": {
+      "type": "string",
+      "pattern": "^\\d{1,5}\\.\\d{1,5}\\.\\d{1,5}\\.\\d{1,5}$",
+      "description": "A Windows four-part version a.b.c.d (each 0–65535)."
+    },
+    "Policy": {
+      "type": "string",
+      "enum": [
+        "error",
+        "warning",
+        "accept"
+      ],
+      "description": "error: the build or conversion fails; warning: reported; accept: reported as accepted."
+    },
+    "OnLoss": {
+      "type": "object",
+      "properties": {
+        "default": {
+          "description": "Policy for kinds not listed in `kinds`.",
+          "$ref": "#/$defs/Policy"
+        },
+        "kinds": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "enum": [
+              "cldr.*",
+              "cldr.capsFallbackExpanded",
+              "cldr.customForm",
+              "cldr.customModifierDropped",
+              "cldr.keyIdGenerated",
+              "cldr.positionNotInForm",
+              "cldr.windowsOnlyDropped",
+              "dll.*",
+              "dll.architectureUnsupported",
+              "dll.capsCellUnexpressed",
+              "dll.containerIgnored",
+              "dll.dispatcherNotRead",
+              "dll.duplicateRow",
+              "dll.keyboardTypeNotTrusted",
+              "dll.ligatureMismatch",
+              "dll.malformed",
+              "dll.modifierDropped",
+              "dll.nlsUnreadable",
+              "dll.registrationMissing",
+              "dll.resourceDropped",
+              "dll.unknownFlags",
+              "dll.unreachableColumn",
+              "dll.unreachableData",
+              "dll.unusualShape",
+              "general.*",
+              "general.displayDropped",
+              "general.duplicateDeadKeyEntry",
+              "general.extensionDropped",
+              "general.importInlined",
+              "general.layerOverlap",
+              "general.metadataDropped",
+              "general.noLayers",
+              "general.normalizationNotApplied",
+              "general.outputNormalized",
+              "general.bindingOnModifier",
+              "general.codeUnitsAreText",
+              "general.duplicateScanCode",
+              "general.duplicateVariableId",
+              "general.longPressDefaultInvalid",
+              "general.modifierSetInvalid",
+              "general.multiTapSelf",
+              "general.touchBaseMissing",
+              "general.testsDropped",
+              "general.touchDropped",
+              "general.unresolvedReference",
+              "klc.*",
+              "klc.editorDropped",
+              "klc.impliedRows",
+              "klc.nameTooLong",
+              "klc.notRepresentable",
+              "windows.*",
+              "windows.altGrConflict",
+              "windows.altOnlyLayer",
+              "windows.architectureUnsupported",
+              "windows.bidiMarksConflict",
+              "windows.capsNotExpressible",
+              "windows.capsUnmatched",
+              "windows.ctrlLetterFallback",
+              "windows.deadCharacterCollision",
+              "windows.deadCharacterInvalid",
+              "windows.deadKeyBaseUnencodable",
+              "windows.deadKeyFirstUnitComposes",
+              "windows.deadKeyNoMatchExpanded",
+              "windows.deadKeyNoMatchNotExpressible",
+              "windows.deadKeyResultUnencodable",
+              "windows.dispatcherNotCompiled",
+              "windows.frameKeyWithoutText",
+              "windows.installerMachinesMissing",
+              "windows.kanaLockNotExpressible",
+              "windows.langIdMissing",
+              "windows.ligatureTooLong",
+              "windows.ligatureTruncatedTyped",
+              "windows.lockUnmapped",
+              "windows.markerNotCompiled",
+              "windows.modifierUnmapped",
+              "windows.nlsNotCompiled",
+              "windows.noHardwareLayers",
+              "windows.numpadShiftUnreachable",
+              "windows.outputUnencodable",
+              "windows.pinOverridesModel",
+              "windows.registrationInvalid",
+              "windows.scanCodeMissing",
+              "windows.scanCodeUnsupported",
+              "windows.sgcapsDeadKey",
+              "windows.sgcapsLigature",
+              "windows.sharedVkRowConflict",
+              "windows.sideModifierWidened",
+              "windows.sizeLimit",
+              "windows.stringLanguageUnmapped",
+              "windows.tooManyColumns",
+              "windows.transformNotCompiled",
+              "windows.unreachableState",
+              "windows.versionUnrepresentable",
+              "windows.vkDuplicate",
+              "windows.vkMissing",
+              "windows.wow64Missing",
+              "windowsDefault.*",
+              "windowsDefault.altGr",
+              "windowsDefault.attributes",
+              "windowsDefault.builds",
+              "windowsDefault.deadCharacter",
+              "windowsDefault.dllName",
+              "windowsDefault.enableForSignInAndNewUsers",
+              "windowsDefault.enableForUser",
+              "windowsDefault.kbdVersion",
+              "windowsDefault.keyboardType",
+              "windowsDefault.lrmRlm",
+              "windowsDefault.modNumber",
+              "windowsDefault.modifierBits",
+              "windowsDefault.productCode",
+              "windowsDefault.registration",
+              "windowsDefault.scanCodeFlags",
+              "windowsDefault.scanCodeTableSize",
+              "windowsDefault.shiftLock",
+              "windowsDefault.strings",
+              "windowsDefault.tables",
+              "windowsDefault.uninstallEntry",
+              "windowsDefault.versionInfo",
+              "windowsDefault.vk",
+              "macos.*",
+              "macos.deadKeyEndedByEmptyKey",
+              "macos.deadKeyNoMatchExpanded",
+              "macos.keyCodeDuplicate",
+              "macos.keyCodeMissing",
+              "macos.keyCodeUnknown",
+              "macos.keyMapSetDropped",
+              "macos.lockUnmapped",
+              "macos.malformed",
+              "macos.markerNotCompiled",
+              "macos.modifierUnmapped",
+              "macos.noHardwareLayers",
+              "macos.numLockIgnored",
+              "macos.outputBeyondMaxout",
+              "macos.outputUnencodable",
+              "macos.positionWithoutKey",
+              "macos.rangeActionDropped",
+              "macos.settingNotCompiled",
+              "macos.sideModifierDropped",
+              "macos.sideModifierWidened",
+              "macos.stateNameDuplicate",
+              "macos.stateNotExpressible",
+              "macos.transformNotCompiled",
+              "macos.xmlDetailsIgnored",
+              "macosDefault.*",
+              "macosDefault.bundleId",
+              "macosDefault.bundleName",
+              "macosDefault.bundleVersion",
+              "macosDefault.commandMap",
+              "macosDefault.controlMap",
+              "macosDefault.group",
+              "macosDefault.hardwareRanges",
+              "macosDefault.inputSourceId",
+              "macosDefault.isoKeys",
+              "macosDefault.keyCode",
+              "macosDefault.keyboardId",
+              "macosDefault.language",
+              "macosDefault.layoutName",
+              "macosDefault.localizedNames",
+              "macosDefault.maxout",
+              "macosDefault.standardKeys",
+              "macosDefault.stateName",
+              "xkb.*",
+              "xkb.actionsDropped",
+              "xkb.capsLockNotExpressible",
+              "xkb.capsLockStacks",
+              "xkb.composeBaseNotSingle",
+              "xkb.composeSequenceDropped",
+              "xkb.controlAltLayerDropped",
+              "xkb.customKeyType",
+              "xkb.deadKeyChainCut",
+              "xkb.deadKeyNoCompose",
+              "xkb.deadKeyNoMatchNotCompiled",
+              "xkb.deadKeyStacks",
+              "xkb.deadKeysymDuplicate",
+              "xkb.deadKeysymMissing",
+              "xkb.groupDropped",
+              "xkb.includeUnresolved",
+              "xkb.keyNameDuplicate",
+              "xkb.keyNameMissing",
+              "xkb.keyNameUnknown",
+              "xkb.keyTypeNotExact",
+              "xkb.keyTypeUnknown",
+              "xkb.keysymNotText",
+              "xkb.lockUnmapped",
+              "xkb.malformed",
+              "xkb.markerNotCompiled",
+              "xkb.modifierUnmapped",
+              "xkb.multiCharacterOutput",
+              "xkb.noHardwareLayers",
+              "xkb.numLockKeyReduced",
+              "xkb.outputUnencodable",
+              "xkb.positionWithoutKey",
+              "xkb.settingNotCompiled",
+              "xkb.syntaxDetailsIgnored",
+              "xkb.systemComposeSequences",
+              "xkb.systemLayoutShadowed",
+              "xkb.tooManyLevels",
+              "xkb.transformNotCompiled",
+              "xkb.typeModifierDropped",
+              "xkb.utf8Characters",
+              "xkbDefault.*",
+              "xkbDefault.characters",
+              "xkbDefault.compose",
+              "xkbDefault.deadKeysym",
+              "xkbDefault.description",
+              "xkbDefault.keyName",
+              "xkbDefault.keyType",
+              "xkbDefault.levelThree",
+              "xkbDefault.shortDescription",
+              "xkbDefault.symbolsName",
+              "xkbDefault.variant",
+              "cldr.touchDataDropped",
+              "general.deviceClassDerived",
+              "general.rowHeightsMismatch",
+              "android.*",
+              "androidDefault.*",
+              "androidime.*",
+              "androidimeDefault.*",
+              "ios.*",
+              "iosDefault.*",
+              "chromeos.*",
+              "chromeosDefault.*",
+              "keyman.*",
+              "keymanDefault.*",
+              "kbdgen.*",
+              "kmn.*",
+              "keymantouch.*"
+            ],
+            "description": "A loss kind of SPEC §17.3, a prefix wildcard, or <target>Default.<rule>."
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/Policy"
+          },
+          "description": "Policy per loss kind, per `<prefix>.*`, or per defaulted-choice kind `<target>Default.<rule>`."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Loss policy (SPEC §17.2)."
+    }
+  }
+}

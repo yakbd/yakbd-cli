@@ -59,8 +59,8 @@ Rules a target keeps:
    `target/windows/wintarget` over `target/windows` and `target/windows/build`).
 2. One line in `target/registry/registry.go`: `macos.Target{},` in `Targets`.
 3. The file's own choices: `targets.<name>` in `model.Targets` (`model/model.go`) as the spec's schema defines it
-   (`MacOS` and `XKB` exist, holding `onLoss` only, as in the 0.2 draft), and a `case "<name>"` in `policy.Resolve`
-   (macos and xkb are there). A member new in a format version also goes into `model.MinVersion`, so that a writer
+   (the 0.3 targets `Android`, `AndroidIME`, `IOS`, `ChromeOS` and `Keyman` exist, each its own type holding `onLoss` only: add members to your own type, in schema order), and a `case "<name>"` in `policy.Resolve`
+   (every target of the schema is there). A member new in a format version also goes into `model.MinVersion`, so that a writer
    raises `kbl` only when a file needs it. The loss kinds `<name>.*` come from the
    spec's kind table (`policy/kinds.go`, tested against the schema).
 4. Tests: the target's own package tests, plus one command-line case in `internal/cli` (see `TestTargetInterface`
@@ -77,3 +77,32 @@ and a writer (model → file, its losses resolved under the file's policies). A 
 (`.keylayout`, an XKB symbols file) is one more row, its code in `format/<name>` and `convert/<name>kbl` as for
 `.klc`. A format without a fixed suffix (XKB symbols files have none) needs a way to name it on the command line;
 add that flag with the format, additively: XKB symbols files are named with `convert -from xkb` / `-to xkb` (`formatByName`), and a writer may add files next to its output (`writeOptions.side`, the Compose file of an XKB output).
+
+## 5. On-screen keyboards, runtimes and signing keys
+
+Format 0.3 adds targets for on-screen keyboards (Android `androidime`, `ios`) and for platforms whose packages are
+signed by the builder (Android). What they share:
+
+- **Which layers a target builds from.** A target may implement `target.LayerSource` (`Layers()`): `Hardware` (the
+  default: every target without it, Windows, macOS, XKB), `Touch` (the touch layers only) or `TouchOrDerived` (the
+  touch layers; for a file that has none, touch layers derived from its hardware layers by the target's default
+  rule, reported as `<DefaultsKind>.touchFromHardware`; `target.DeriveTouch(t, layout)` says when). The command line
+  rejects no file for its layers: a file without the layers a target needs is that target's own loss
+  (`<name>.noHardwareLayers` and the like), so `validate -target` reports it like any other. `-h` of a touch target
+  says that it builds an on-screen keyboard.
+- **One layout per build.** Every building command takes exactly one layout file and writes one installable
+  keyboard for the target; there is no list or set input.
+- **`-runtime <file|dir>`.** A target built on a prebuilt runtime (the Android IME APK for `androidime`, the
+  runtime's source folder for `ios`) registers `-runtime` with `target.RuntimeFlag(fs, what)` and checks it in
+  `Check` with `target.CheckRuntime(path, dir)`: required, and an existing file or folder (else exit 2). The
+  public tool never embeds a runtime: the builder names it.
+- **`-key <file.pem>`.** An Android target registers `-key` with `apk.KeyFlag(fs)` and gets its signer from
+  `apk.SignerFor(path)`: the builder's own key (PEM: a PKCS #8 private key, RSA 2048 or more or EC P-256, and
+  optionally its certificate; an RSA key without one gets a certificate derived from the key alone, the same on
+  every build; an EC key needs its certificate), or without `-key` a generated test key. It reports each APK with
+  `apk.ReportSigned`: an info entry `apk.signed` with the package name and the certificate's SHA-256 fingerprint (what
+  a builder registers for Android developer verification), and with a test key a warning `apk.testKey` (a later
+  build cannot update that APK). The package itself is described in [apk.md](apk.md).
+
+`-runtime` and `-key` are conventions, not names the command line reserves: only targets that need them register
+them, always through these helpers, so the flags mean the same on every target.

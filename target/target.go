@@ -4,7 +4,10 @@
 package target
 
 import (
+	"errors"
 	"flag"
+	"fmt"
+	"os"
 	"sort"
 
 	"github.com/yakbd/yakbd-cli/loss"
@@ -87,4 +90,62 @@ func Lookup(ts []Target, name string) (Target, bool) {
 		}
 	}
 	return nil, false
+}
+
+// Layers says which layers of a file a target builds from (docs/targets.md §5).
+type Layers int
+
+const (
+	// Hardware: the hardware layers. Every target without LayerSource (Windows, macOS, XKB); a file without
+	// hardware layers is the target's own loss (<name>.noHardwareLayers).
+	Hardware Layers = iota
+	// Touch: the touch layers only (SPEC §9.4); a file without them is the target's own loss.
+	Touch
+	// TouchOrDerived: the touch layers; for a file without any, touch layers the target derives from the hardware
+	// layers by its default rule, reported as <DefaultsKind>.touchFromHardware.
+	TouchOrDerived
+)
+
+// LayerSource is the optional interface of a target that builds from touch layers (an on-screen keyboard).
+type LayerSource interface {
+	Layers() Layers
+}
+
+// LayersOf returns what t builds from: Hardware unless t implements LayerSource.
+func LayersOf(t Target) Layers {
+	if s, ok := t.(LayerSource); ok {
+		return s.Layers()
+	}
+	return Hardware
+}
+
+// DeriveTouch reports whether a TouchOrDerived target must derive touch layers for l: l has hardware layers
+// and no touch layers.
+func DeriveTouch(t Target, l *model.Layout) bool {
+	return LayersOf(t) == TouchOrDerived && len(l.Touch) == 0 && l.Hardware != nil
+}
+
+// RuntimeFlag registers -runtime on fs: the prebuilt runtime a target builds on (an APK for androidime, a
+// source folder for ios; docs/targets.md §5). what says which, for the help text. The command's Check calls
+// CheckRuntime.
+func RuntimeFlag(fs *flag.FlagSet, what string) *string {
+	return fs.String("runtime", "", "the runtime to build on: "+what+" (required)")
+}
+
+// CheckRuntime is the usage check of -runtime: given, and an existing file (dir false) or folder (dir true).
+func CheckRuntime(path string, dir bool) error {
+	if path == "" {
+		return errors.New("-runtime is required: the runtime this target builds on")
+	}
+	fi, err := os.Stat(path)
+	if err != nil {
+		return fmt.Errorf("-runtime: %v", err)
+	}
+	if fi.IsDir() != dir {
+		if dir {
+			return fmt.Errorf("-runtime %s: not a folder", path)
+		}
+		return fmt.Errorf("-runtime %s: not a file", path)
+	}
+	return nil
 }

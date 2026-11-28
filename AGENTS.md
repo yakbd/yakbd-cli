@@ -19,7 +19,7 @@ only, no other setup.
     go run ./tools/genkeysyms -h <keysymdef.h of xorgproto> -version xorgproto-2026.1   # regenerate format/xkb/keysyms_table.go
 
 CI (`.github/workflows/ci.yml`: gofmt, vet, test with the fuzz seeds but never the fuzzer, a cross-build for six
-OS/arch pairs plus `cmd/yakbd-wincheck` for windows/amd64 and 386) runs only on push to `main` and `workflow_dispatch`, and only when
+OS/arch pairs plus `cmd/yakbd-wincheck` for windows/amd64 and 386; a job `apk` checks the `apk` package against the Android SDK's apksigner, aapt2 and zipalign, docs/apk.md §4) runs only on push to `main` and `workflow_dispatch`, and only when
 a path in its `paths` filter changes: a push that touches only Markdown starts no run. Keep it that way (owner
 rule: no `pull_request` trigger, no runner matrix). Push in batches, after vet and test pass locally.
 
@@ -36,15 +36,15 @@ with `--repo <named repo>`.
   `installer/stub-386.exe` and `.version` with the change; otherwise `TestEmbeddedStubIsFresh` fails in CI. Locally
   that test skips unless your Go version equals the recorded one.
 - Spec copies must equal the spec repository: `format/kbljson/schema/<version>/kbl.schema.json`, one per format version
-  the reader implements (0.1, 0.2; `Versions` with each `SchemaCommit` in `format/kbljson/kbljson.go`; 0.2 is a
-  draft on the spec branch `spec-0.2`, so its drift test needs that branch checked out), `testdata/kbl-spec/examples/`, `target/macos/keycode/macos-default-keycode.tsv` and `target/xkb/keyname/xkb-default-keyname.tsv` (each `SpecCommit`, a commit of `spec-0.2`), `target/windows/vk/windows-default-vk.tsv`
+  the reader implements (0.1, 0.2, 0.3; `Versions` with each `SchemaCommit` in `format/kbljson/kbljson.go`; 0.3 is a
+  draft on the spec branch `spec-0.3`, so its drift test needs that branch checked out), `testdata/kbl-spec/examples/`, `target/macos/keycode/macos-default-keycode.tsv` and `target/xkb/keyname/xkb-default-keyname.tsv` (each `SpecCommit`, a commit of `spec-0.2`), `target/windows/vk/windows-default-vk.tsv`
   (`TableASpecTag` in `target/windows/vk/scancodes.go`: a spec release tag, read at the tag when the checkout has it). Their drift tests skip silently, in CI too, unless the spec
   repo is checked out next to this one as `../kbl-spec` (or under its former name `../kbl-spec-prototype`) or `YAKBD_SPEC_DIR` names it. When you copy new
   versions, copy the files unchanged, move the commit constant, and run
   `YAKBD_SPEC_DIR=<spec checkout> go test -count=1 ./format/kbljson ./target/windows/vk ./target/macos/keycode ./target/xkb/keyname ./policy`. The spec
   repo's `STATUS.md` changelog names the format changes the tool has to follow.
 - Golden files: an intended change of DLL bytes needs `go test ./target/windows -update`, of `.klc` diagnostics
-  `go test ./format/klc -update`. A change in what a CLDR keyboard imports, loses or types fails
+  `go test ./format/klc -update`. Of Android binary XML or resource tables: `go test ./apk -update`. A change in what a CLDR keyboard imports, loses or types fails
   `convert/cldrconf` (docs/cldr.md §3): `go test ./convert/cldrconf -update`. Review the diff of `testdata/` and say in the commit which layouts changed.
 - `installer/cmdline` tests read their tables from `docs/installer-cli.md`: editing that document's tables changes
   the tests. Run `go test ./installer/...` after editing it.

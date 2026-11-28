@@ -1,7 +1,7 @@
 package policy
 
 // kindDefaults is the table of SPEC §17.3 (kbl-spec b25f9fc; general.outputNormalized from 858a7d9,
-// D73): every loss kind with its default policy. "fatal" kinds are always errors. TestKindsMatchSchema checks it against the schema.
+// D73; the 0.3 kinds from spec-0.3 be71647): every loss kind with its default policy. "fatal" kinds are always errors. TestKindsMatchSchema checks it against the schema.
 var kindDefaults = map[string]string{
 	"windows.wow64Missing":                 "warning",
 	"general.noLayers":                     "warning",
@@ -15,6 +15,8 @@ var kindDefaults = map[string]string{
 	"general.multiTapSelf":                 "error",
 	"general.bindingOnModifier":            "error",
 	"general.touchBaseMissing":             "error",
+	"general.rowHeightsMismatch":           "error",
+	"general.deviceClassDerived":           "accept",
 	"general.codeUnitsAreText":             "warning",
 	"general.importInlined":                "accept",
 	"general.metadataDropped":              "accept",
@@ -94,6 +96,7 @@ var kindDefaults = map[string]string{
 	"cldr.positionNotInForm":               "error",
 	"cldr.customForm":                      "warning",
 	"cldr.keyIdGenerated":                  "accept",
+	"cldr.touchDataDropped":                "warning",
 	"macos.noHardwareLayers":               "error",
 	"macos.keyCodeMissing":                 "error",
 	"macos.positionWithoutKey":             "warning",

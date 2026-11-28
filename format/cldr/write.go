@@ -675,6 +675,9 @@ func (wr *writer) keys() {
 	w.tag("keys", nil, false)
 	for _, id := range sortedKeys(all) {
 		k := all[id]
+		if k.Hint != "" || k.Function == "nextKeyboard" {
+			wr.lost("cldr.touchDataDropped", "/keys/"+model.Escape(id), nil, "key %s: a hint and the function nextKeyboard have no CLDR attribute", id)
+		}
 		a := []kv{{"id", id}, {"flickId", k.FlickID}}
 		if k.Gap {
 			a = append(a, kv{"gap", "true"})
@@ -822,7 +825,17 @@ func modifierString(sets []model.ModifierSet) string {
 
 func (wr *writer) touch() {
 	w := &wr.w
-	for _, set := range wr.l.Touch {
+	for i, set := range wr.l.Touch {
+		// The 0.3 touch members have no CLDR element (SPEC §17.3; carried in <special> like any other loss).
+		sp := fmt.Sprintf("/touch/%d", i)
+		if set.Orientation != "" || set.DeviceClass != "" || set.SystemRow != nil {
+			wr.lost("cldr.touchDataDropped", sp, nil, "a touch set's orientation, deviceClass and systemRow have no CLDR element")
+		}
+		for j, tl := range set.Layers {
+			if tl.RowHeights != nil || tl.ReturnLayerID != "" {
+				wr.lost("cldr.touchDataDropped", fmt.Sprintf("%s/layers/%d", sp, j), nil, "touch layer %s: rowHeights and returnLayerId have no CLDR element", tl.ID)
+			}
+		}
 		mdw := ""
 		if set.MinDeviceWidth != 0 {
 			mdw = strconv.Itoa(set.MinDeviceWidth)

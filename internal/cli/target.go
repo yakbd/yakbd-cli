@@ -117,6 +117,17 @@ func targetCmd(cmd string, args []string, stdout, stderr io.Writer) int {
 	if cmd == "compile" || cmd == "installer" {
 		accept = fs.String("accept", "", "comma-separated loss kinds (or prefix.*) to accept for this run")
 	}
+	if t != nil && target.LayersOf(t) != target.Hardware {
+		usage := fs.Usage
+		fs.Usage = func() {
+			usage()
+			msg := "The target %s builds an on-screen keyboard from the touch layers of the one layout given.\n"
+			if target.LayersOf(t) == target.TouchOrDerived {
+				msg = "The target %s builds an on-screen keyboard from the touch layers of the one layout given (or from touch\nlayers derived from its hardware layers when it has none).\n"
+			}
+			fmt.Fprintf(stderr, msg, tname)
+		}
+	}
 	var c target.Command
 	if t != nil {
 		if c = t.Command(cmd, fs); c == nil {

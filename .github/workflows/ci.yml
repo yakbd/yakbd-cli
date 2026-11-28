@@ -11,6 +11,7 @@ on:
       - 'format/kbljson/schema/**'
       - 'format/cldr/import/**'
       - 'installer/stub-386.*'
+      - 'tools/apkcheck/**'
       - '.github/workflows/ci.yml'
   workflow_dispatch:
 concurrency:
@@ -48,3 +49,20 @@ jobs:
           for arch in amd64 386; do
             GOOS=windows GOARCH=$arch go build -o /dev/null ./cmd/yakbd-wincheck
           done
+  apk:
+    # The apk package against the Android SDK's own tools (docs/apk.md §4): apksigner, aapt2 and zipalign of the
+    # runner's preinstalled SDK. No emulator; the SDK is used here only, never by the tool.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.8'
+      - name: APK control
+        run: tools/apkcheck/control.sh "$RUNNER_TEMP/apkcheck"
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: apkcheck
+          path: ${{ runner.temp }}/apkcheck
+          retention-days: 7

@@ -53,7 +53,7 @@ corpus and the CLDR keyboards (each converted to `.kbl.json` first).
 | `entries` | every entry, in the order the steps made them; an empty list when there is nothing to say |
 | `class` | `diagnostic` (a remark on the input), `loss` (data a conversion or build dropped or changed) or `defaulted` (a value a default rule chose, §4) |
 | `severity` | `info`, `accept` (a loss a policy accepts), `warning` or `error`; any `error` means exit code 1 |
-| `kind` | a stable identifier: the spec's loss kinds (SPEC §17.3), `windowsDefault.<rule>`, or a diagnostic code of the tool (`kbl.schema`, `klc.vk.unknown`, ...); policies (`onLoss`, `-accept`) refer to it |
+| `kind` | a stable identifier: the spec's loss kinds (SPEC §17.3), `windowsDefault.<rule>`, or a diagnostic code of the tool (`kbl.schema`, `klc.vk.unknown`, `apk.signed` (§7), ...); policies (`onLoss`, `-accept`) refer to it |
 | `where` | the location, §3; every member optional |
 | `message` | for people; its wording may change |
 | `detail` | free-form data of some kinds; for `defaulted` entries `value` (the chosen value) and, for a rule that fills several members, `fields` (§4) |
@@ -116,3 +116,18 @@ a file name.
 - 0.1.0-preview.1 wrote only `entries`, with every location in `where.path` (pointers mixed with labels, every
   default at `/targets/windows`), and took flags only before the arguments (except `convert`). From
   0.1.0-preview.2 on, the file and the command line are as described here.
+
+## 7. Signed packages (since 2026-11-28)
+
+A build that writes a signed Android package (APK) adds, for each package, a `diagnostic` entry of kind
+`apk.signed`, severity `info`, `where.path` the APK file written. Its `detail`:
+
+| member | meaning |
+|---|---|
+| `file` | the APK file |
+| `package` | the Android package name |
+| `certificateSha256` | the SHA-256 fingerprint of the signing certificate, upper-case hex pairs joined by `:`: what a builder registers, with the package name, for Android developer verification |
+| `testKey` | `true` when the APK is signed with a key the tool generated for this run |
+
+With a generated key, a `diagnostic` entry of kind `apk.testKey`, severity `warning`, follows: no later build has
+that key, so no later build can update the installed package. Neither entry changes the exit code.

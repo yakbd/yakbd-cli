@@ -4,6 +4,7 @@ import (
 	"flag"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -110,5 +111,68 @@ func TestMacOS(t *testing.T) {
 	b, _ := os.ReadFile(again[0])
 	if string(a) != string(b) {
 		t.Errorf("the .keylayout built from the imported .keylayout differs")
+	}
+}
+
+// touchTarget builds from touch layers (deriving them from hardware layers) on a -runtime file.
+type touchTarget struct{}
+
+func (touchTarget) Name() string          { return "faketouch" }
+func (touchTarget) DefaultsKind() string  { return "faketouchDefault" }
+func (touchTarget) Layers() target.Layers { return target.TouchOrDerived }
+func (touchTarget) Command(name string, fs *flag.FlagSet) target.Command {
+	if name != "compile" && name != "validate" {
+		return nil
+	}
+	c := &touchCompile{}
+	c.runtime = target.RuntimeFlag(fs, "a test file")
+	return c
+}
+
+type touchCompile struct{ runtime *string }
+
+func (c *touchCompile) Check() error { return target.CheckRuntime(*c.runtime, false) }
+func (c *touchCompile) Run(j *target.Job) *target.Result {
+	line := "touch layer sets: " + strconv.Itoa(len(j.Layout.Touch))
+	if target.DeriveTouch(touchTarget{}, j.Layout) {
+		line = "derive touch layers"
+	}
+	return &target.Result{Lines: []string{line}}
+}
+
+// TestTouchTarget: a touch-only file reaches a touch target's command; -runtime is the target's usage check.
+func TestTouchTarget(t *testing.T) {
+	saved := registry.Targets
+	registry.Targets = append(append([]target.Target(nil), saved...), touchTarget{})
+	defer func() { registry.Targets = saved }()
+	dir := t.TempDir()
+	touchOnly := filepath.Join(dir, "touch.kbl.json")
+	os.WriteFile(touchOnly, []byte(`{"kbl":"0.1","metadata":{"id":"und-t-k0-touch","name":"Touch only"},"keys":{"a":{"output":"a"}},"touch":[{"layers":[{"id":"base","rows":[["a"]]}]}]}`), 0o644)
+	rt := filepath.Join(dir, "runtime.bin")
+	os.WriteFile(rt, []byte("x"), 0o644)
+	if code, so, se := run("compile", "-target", "faketouch", "-runtime", rt, touchOnly); code != ExitOK || !strings.Contains(so, "touch layer sets: 1") {
+		t.Errorf("touch-only: %d %s %s", code, so, se)
+	}
+	if code, so, se := run("compile", "-target", "faketouch", "-runtime", rt, example); code != ExitOK || !strings.Contains(so, "derive touch layers") {
+		t.Errorf("hardware only: %d %s %s", code, so, se)
+	}
+	if code, _, se := run("compile", "-target", "faketouch", touchOnly); code != ExitUsage || !strings.Contains(se, "-runtime is required") {
+		t.Errorf("no -runtime: %d %s", code, se)
+	}
+	if code, _, se := run("compile", "-target", "faketouch", "-runtime", dir, touchOnly); code != ExitUsage || !strings.Contains(se, "not a file") {
+		t.Errorf("-runtime folder: %d %s", code, se)
+	}
+	if code, _, _ := run("compile", "-target", "faketouch", "-runtime", rt, touchOnly, example); code != ExitUsage {
+		t.Errorf("two layouts accepted")
+	}
+	if code, _, se := run("compile", "-target", "faketouch", "-h"); code != ExitUsage || !strings.Contains(se, "on-screen keyboard") || !strings.Contains(se, "-runtime") {
+		t.Errorf("-h: %d %s", code, se)
+	}
+	if code, so, se := run("validate", "-target", "faketouch", "-runtime", rt, touchOnly); code != ExitOK || !strings.Contains(so, "valid") {
+		t.Errorf("validate: %d %s %s", code, so, se)
+	}
+	// The hardware targets are unchanged: a touch-only file is their loss, not a usage error.
+	if code, _, se := run("compile", "-target", "macos", "-o", dir, touchOnly); code != ExitError || !strings.Contains(se, "macos.noHardwareLayers") {
+		t.Errorf("macos: %d %s", code, se)
 	}
 }

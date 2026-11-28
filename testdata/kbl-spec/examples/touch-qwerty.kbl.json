@@ -1,0 +1,517 @@
+{
+  "$schema": "https://yakbd.github.io/kbl-spec/schema/0.3/kbl.schema.json",
+  "kbl": "0.3",
+  "metadata": {
+    "id": "en-t-k0-kbltouch",
+    "name": "Touch QWERTY (example)",
+    "version": "0.1.0",
+    "license": "MIT-0",
+    "description": "Example (h): a touch-only QWERTY layout using the 0.3 touch core: a phone set and a tablet set, relative row heights, a one-shot shift layer (returnLayerId) with caps lock on a double tap (multi-tap on the shift key), a next-keyboard key, hints over long-press keys, and a tablet set whose bottom row the target supplies (systemRow).",
+    "authors": [
+      {
+        "name": "The YAKBD contributors"
+      }
+    ]
+  },
+  "keys": {
+    "shift": {
+      "function": "shift",
+      "layerId": "shift",
+      "multiTapKeyIds": [
+        "capsLock"
+      ]
+    },
+    "unshift": {
+      "function": "shift",
+      "layerId": "base"
+    },
+    "capsLock": {
+      "function": "capsLock",
+      "layerId": "caps"
+    },
+    "capsOff": {
+      "function": "capsLock",
+      "layerId": "base"
+    },
+    "bksp": {
+      "function": "backspace",
+      "width": 1.5
+    },
+    "enter": {
+      "function": "enter",
+      "width": 2
+    },
+    "globe": {
+      "function": "nextKeyboard"
+    },
+    "toSymbols": {
+      "layerId": "symbols",
+      "width": 1.5
+    },
+    "toLetters": {
+      "layerId": "base",
+      "width": 1.5
+    },
+    "space": {
+      "output": " ",
+      "stretch": true,
+      "width": 5
+    },
+    "period": {
+      "output": "."
+    },
+    "comma": {
+      "output": ","
+    },
+    "e": {
+      "output": "e",
+      "hint": "é",
+      "longPressKeyIds": [
+        "eAcute",
+        "eGrave"
+      ],
+      "longPressDefaultKeyId": "eAcute"
+    },
+    "eAcute": {
+      "output": "é"
+    },
+    "eGrave": {
+      "output": "è"
+    },
+    "E": {
+      "output": "E",
+      "hint": "É",
+      "longPressKeyIds": [
+        "EAcute"
+      ]
+    },
+    "EAcute": {
+      "output": "É"
+    },
+    "halfGap": {
+      "gap": true,
+      "width": 0.5
+    },
+    "d1": {
+      "output": "1"
+    },
+    "d2": {
+      "output": "2"
+    },
+    "d3": {
+      "output": "3"
+    },
+    "d4": {
+      "output": "4"
+    },
+    "d5": {
+      "output": "5"
+    },
+    "d6": {
+      "output": "6"
+    },
+    "d7": {
+      "output": "7"
+    },
+    "d8": {
+      "output": "8"
+    },
+    "d9": {
+      "output": "9"
+    },
+    "d0": {
+      "output": "0"
+    }
+  },
+  "touch": [
+    {
+      "deviceClass": "phone",
+      "layers": [
+        {
+          "id": "base",
+          "rows": [
+            [
+              "q",
+              "w",
+              "e",
+              "r",
+              "t",
+              "y",
+              "u",
+              "i",
+              "o",
+              "p"
+            ],
+            [
+              "halfGap",
+              "a",
+              "s",
+              "d",
+              "f",
+              "g",
+              "h",
+              "j",
+              "k",
+              "l",
+              "halfGap"
+            ],
+            [
+              "shift",
+              "z",
+              "x",
+              "c",
+              "v",
+              "b",
+              "n",
+              "m",
+              "bksp"
+            ],
+            [
+              "toSymbols",
+              "globe",
+              "space",
+              "period",
+              "enter"
+            ]
+          ],
+          "rowHeights": [
+            1,
+            1,
+            1,
+            1.1
+          ]
+        },
+        {
+          "id": "shift",
+          "rows": [
+            [
+              "Q",
+              "W",
+              "E",
+              "R",
+              "T",
+              "Y",
+              "U",
+              "I",
+              "O",
+              "P"
+            ],
+            [
+              "halfGap",
+              "A",
+              "S",
+              "D",
+              "F",
+              "G",
+              "H",
+              "J",
+              "K",
+              "L",
+              "halfGap"
+            ],
+            [
+              "unshift",
+              "Z",
+              "X",
+              "C",
+              "V",
+              "B",
+              "N",
+              "M",
+              "bksp"
+            ],
+            [
+              "toSymbols",
+              "globe",
+              "space",
+              "period",
+              "enter"
+            ]
+          ],
+          "rowHeights": [
+            1,
+            1,
+            1,
+            1.1
+          ],
+          "modifiers": [
+            [
+              "shift"
+            ]
+          ],
+          "returnLayerId": "base"
+        },
+        {
+          "id": "caps",
+          "rows": [
+            [
+              "Q",
+              "W",
+              "E",
+              "R",
+              "T",
+              "Y",
+              "U",
+              "I",
+              "O",
+              "P"
+            ],
+            [
+              "halfGap",
+              "A",
+              "S",
+              "D",
+              "F",
+              "G",
+              "H",
+              "J",
+              "K",
+              "L",
+              "halfGap"
+            ],
+            [
+              "capsOff",
+              "Z",
+              "X",
+              "C",
+              "V",
+              "B",
+              "N",
+              "M",
+              "bksp"
+            ],
+            [
+              "toSymbols",
+              "globe",
+              "space",
+              "period",
+              "enter"
+            ]
+          ],
+          "rowHeights": [
+            1,
+            1,
+            1,
+            1.1
+          ],
+          "modifiers": [
+            [
+              "caps"
+            ]
+          ]
+        },
+        {
+          "id": "symbols",
+          "rows": [
+            [
+              "d1",
+              "d2",
+              "d3",
+              "d4",
+              "d5",
+              "d6",
+              "d7",
+              "d8",
+              "d9",
+              "d0"
+            ],
+            [
+              "comma",
+              "period"
+            ],
+            [
+              "toLetters",
+              "globe",
+              "space",
+              "enter"
+            ]
+          ],
+          "rowHeights": [
+            1,
+            1,
+            1.1
+          ]
+        }
+      ]
+    },
+    {
+      "minDeviceWidth": 90,
+      "deviceClass": "tablet",
+      "orientation": "landscape",
+      "systemRow": true,
+      "layers": [
+        {
+          "id": "base",
+          "rows": [
+            [
+              "q",
+              "w",
+              "e",
+              "r",
+              "t",
+              "y",
+              "u",
+              "i",
+              "o",
+              "p",
+              "bksp"
+            ],
+            [
+              "halfGap",
+              "a",
+              "s",
+              "d",
+              "f",
+              "g",
+              "h",
+              "j",
+              "k",
+              "l",
+              "enter"
+            ],
+            [
+              "shift",
+              "z",
+              "x",
+              "c",
+              "v",
+              "b",
+              "n",
+              "m",
+              "comma",
+              "period",
+              "shift"
+            ]
+          ]
+        },
+        {
+          "id": "shift",
+          "modifiers": [
+            [
+              "shift"
+            ]
+          ],
+          "returnLayerId": "base",
+          "rows": [
+            [
+              "Q",
+              "W",
+              "E",
+              "R",
+              "T",
+              "Y",
+              "U",
+              "I",
+              "O",
+              "P",
+              "bksp"
+            ],
+            [
+              "halfGap",
+              "A",
+              "S",
+              "D",
+              "F",
+              "G",
+              "H",
+              "J",
+              "K",
+              "L",
+              "enter"
+            ],
+            [
+              "unshift",
+              "Z",
+              "X",
+              "C",
+              "V",
+              "B",
+              "N",
+              "M",
+              "comma",
+              "period",
+              "unshift"
+            ]
+          ]
+        },
+        {
+          "id": "caps",
+          "modifiers": [
+            [
+              "caps"
+            ]
+          ],
+          "rows": [
+            [
+              "Q",
+              "W",
+              "E",
+              "R",
+              "T",
+              "Y",
+              "U",
+              "I",
+              "O",
+              "P",
+              "bksp"
+            ],
+            [
+              "halfGap",
+              "A",
+              "S",
+              "D",
+              "F",
+              "G",
+              "H",
+              "J",
+              "K",
+              "L",
+              "enter"
+            ],
+            [
+              "capsOff",
+              "Z",
+              "X",
+              "C",
+              "V",
+              "B",
+              "N",
+              "M",
+              "comma",
+              "period",
+              "capsOff"
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "displays": {
+    "entries": [
+      {
+        "keyId": "toSymbols",
+        "display": "123"
+      },
+      {
+        "keyId": "toLetters",
+        "display": "ABC"
+      },
+      {
+        "keyId": "shift",
+        "display": "⇧"
+      },
+      {
+        "keyId": "unshift",
+        "display": "⇧"
+      },
+      {
+        "keyId": "capsLock",
+        "display": "⇪"
+      },
+      {
+        "keyId": "capsOff",
+        "display": "⇪"
+      }
+    ]
+  }
+}

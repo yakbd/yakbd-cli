@@ -12,7 +12,7 @@ What the tool does, for people and for programs. Most files here are pages of ht
 | `cldr.md`, `dll-import.md`, `release.md` | `/cli/cldr`, `/cli/dll-import`, `/cli/release` | reference |
 | `migrating-from-msklc.md`, `recover-a-layout.md`, `windows-security-prompts.md`, `code-signing-policy.md` | `/guide/...` (same name) | guides |
 | `macos.md`, `linux.md` | `/guide/macos`, `/guide/linux` | platform guides |
-| `arm64x.md`, `fuzzing.md` | none (GitHub only) | developer notes |
+| `arm64x.md`, `fuzzing.md`, `apk.md` | none (GitHub only) | developer notes |
 
     go test ./tools/release ./installer/...   # link rule (no tag links) and the installer-cli.md tables
 

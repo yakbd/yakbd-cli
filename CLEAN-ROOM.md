@@ -581,3 +581,29 @@ Public sources read 2026-11-28, facts only (Apache-2.0 unless named):
   `InputDevice`, `KeyEvent`, the input-method `subtype` attributes) and the `am`, `ime`, `input`, `settings`,
   `run-as`, `abx2xml`/`xml2abx` shell commands: from general knowledge of the public SDK; the compiler and the
   emulator check every call.
+
+### The apk package, the 0.3 reader and the target interface for on-screen keyboards (2026-11-28)
+
+Rule (c) of the organisation's clean-room record applies: public sources of any licence were read for facts; no
+code or long prose was copied. Written from these (all read 2026-11-28):
+- AOSP `frameworks/base/libs/androidfw/include/androidfw/ResourceTypes.h`
+  (https://android.googlesource.com/platform/frameworks/base, Apache-2.0): the chunk header, the chunk types, the
+  string pool (UTF-8 and UTF-16 lengths), the XML node and attribute layouts, `Res_value` types, the resource
+  table, package, type spec and type chunks, `ResTable_config`'s size field, the entry layout.
+- AOSP `core/res/res/values/public-final.xml` and `public-staging.xml` (same repository, Apache-2.0): the resource ids
+  of the platform attributes in `apk/manifest.go`.
+- "APK Signature Scheme v2" and "APK Signature Scheme v3" (https://source.android.com/docs/security/features/
+  apksigning/v2, .../v3; content Apache-2.0 / CC BY 4.0): the APK Signing Block, the signer structures, the
+  signature algorithm ids, the chunked digest, the end record's offset rule, `X-Android-APK-Signed`, v3's SDK range.
+- AOSP `platform/tools/apksig` (https://android.googlesource.com/platform/tools/apksig, Apache-2.0),
+  `V2SchemeConstants.java` and `V3SchemeConstants.java` only: the block ids and the v2 stripping-protection
+  attribute id `0xbeeff00d`.
+- The JAR file specification (Oracle, docs.oracle.com, "Signed JAR File"; from general knowledge, not re-read): the
+  manifest and signature-file sections, 72-byte lines with continuation, per-section digests; RFC 2315 (PKCS #7
+  SignedData) for the signature block file.
+- zipalign's behaviour (4-byte alignment of stored entries, page alignment of `.so` files, the `0xd935` padding
+  field): from general knowledge of the public build tools; `zipalign -c -p 4` checks it.
+- Checked against, not read: Debian's `apksigner` 0.9, `aapt2` and `zipalign` in a container, and the Android SDK's
+  build tools in CI; two IME APKs from F-Droid (Simple Keyboard, Apache-2.0; Fossify Keyboard, GPL-3.0) as rewrite
+  inputs on the developer machine only, never committed.
+- The spec branch `spec-0.3` (be71647): schema 0.3, SPEC §1.1, §8, §9.4, §17.3, §19 for the 0.3 reader.

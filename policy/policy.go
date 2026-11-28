@@ -14,7 +14,8 @@ func Known(kind string) bool {
 	if _, ok := kindDefaults[kind]; ok {
 		return true
 	}
-	for _, p := range []string{"windowsDefault.", "macosDefault.", "xkbDefault."} {
+	for _, p := range []string{"windowsDefault.", "macosDefault.", "xkbDefault.", "androidDefault.", "androidimeDefault.", "iosDefault.",
+		"chromeosDefault.", "keymanDefault."} {
 		if strings.HasPrefix(kind, p) {
 			return true
 		}
@@ -37,7 +38,7 @@ func severity(p string) (loss.Severity, bool) {
 	return 0, false
 }
 
-// Resolve sets the severity of every Loss and Defaulted entry of r, for target ("windows", "klc", "cldr", "macos", "xkb", or ""
+// Resolve sets the severity of every Loss and Defaulted entry of r, for target ("windows", "klc", "cldr", "macos", "xkb", "android", "androidime", "ios", "chromeos", "keyman", or ""
 // for none), by the rules of SPEC §17.2: target kind, file kind, target prefix.*, file prefix.*, target
 // default, file default, the kind's default. Fatal kinds stay errors. extra, if not nil, is applied after the
 // file (the command line's -strict-defaults, for example).
@@ -66,6 +67,26 @@ func Resolve(r *loss.Report, l *model.Layout, target string, extra *model.OnLoss
 			case "xkb":
 				if t.XKB != nil {
 					tgt = t.XKB.OnLoss
+				}
+			case "android":
+				if t.Android != nil {
+					tgt = t.Android.OnLoss
+				}
+			case "androidime":
+				if t.AndroidIME != nil {
+					tgt = t.AndroidIME.OnLoss
+				}
+			case "ios":
+				if t.IOS != nil {
+					tgt = t.IOS.OnLoss
+				}
+			case "chromeos":
+				if t.ChromeOS != nil {
+					tgt = t.ChromeOS.OnLoss
+				}
+			case "keyman":
+				if t.Keyman != nil {
+					tgt = t.Keyman.OnLoss
 				}
 			}
 		}

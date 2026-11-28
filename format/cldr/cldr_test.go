@@ -113,7 +113,7 @@ func TestPortugueseExample(t *testing.T) {
 // keeps its meaning (tests that press positions are the one part CLDR test files cannot carry).
 func TestSpecExamplesThroughCLDR(t *testing.T) {
 	files, _ := filepath.Glob("../../testdata/kbl-spec/examples/*.kbl.json")
-	if len(files) != 7 {
+	if len(files) != 8 {
 		t.Fatalf("examples: %v", files)
 	}
 	for _, f := range files {

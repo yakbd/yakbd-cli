@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 	"unicode/utf16"
@@ -32,7 +33,7 @@ func (c *checker) diag(code, path, format string, args ...any) {
 	kinds := map[string]string{"longPressDefault": "general.longPressDefaultInvalid", "multiTapSelf": "general.multiTapSelf",
 		"scanCodeDuplicate": "general.duplicateScanCode", "bindingOnModifier": "general.bindingOnModifier",
 		"touchBase": "general.touchBaseMissing", "variableDuplicate": "general.duplicateVariableId",
-		"modifierSet": "general.modifierSetInvalid"}
+		"modifierSet": "general.modifierSetInvalid", "rowHeights": "general.rowHeightsMismatch"}
 	c.r.Append(loss.Entry{Class: loss.Loss, Severity: loss.Error, Code: kinds[code], Where: loss.Where{Path: path},
 		Message: fmt.Sprintf(format, args...)})
 }
@@ -172,8 +173,20 @@ func (c *checker) run() {
 	}
 	for i, set := range l.Touch {
 		hasBase := false
+		inSet := map[string]bool{}
+		for _, layer := range set.Layers {
+			inSet[layer.ID] = true
+		}
 		for _, layer := range set.Layers {
 			hasBase = hasBase || layer.ID == "base"
+			// The pointer names the layer by its index: an id is not a member name of the layers array.
+			lp := fmt.Sprintf("/touch/%d/layers/%d", i, slices.Index(set.Layers, layer))
+			if layer.RowHeights != nil && len(layer.RowHeights) != len(layer.Rows) {
+				c.diag("rowHeights", lp+"/rowHeights", "%d row heights for %d rows", len(layer.RowHeights), len(layer.Rows))
+			}
+			if r := layer.ReturnLayerID; r != "" && !inSet[r] {
+				c.unresolved(lp+"/returnLayerId", "layer %q is not a layer of this touch set", r)
+			}
 			for _, row := range layer.Rows {
 				for _, k := range row {
 					c.key(k, fmt.Sprintf("/touch/%d/layers/%s", i, layer.ID))

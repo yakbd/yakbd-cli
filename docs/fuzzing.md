@@ -35,6 +35,7 @@ written forms must be byte-equal (the first read may be lossy; the second round 
 | `FuzzFromExe` | `installer/payload` | installer bytes | `PEMachine`, `ImageEnd`, `FromExe` (what the installer does with its own file) |
 | `FuzzDecode` | `installer/toolsetup` | tool payload manifest JSON and file bytes | as `installer/payload`'s, format 2 (components, DEFLATE-compressed files): no decoded path that `CheckPath` refuses and no settings location that `CheckUserData` refuses; files inflated only within the budget; decode → inflate → encode → decode is stable |
 | `FuzzBuild` | `installer` | `.kbl.json` bytes | `yakbd installer`'s path: read, lower, compile all five builds, package, write the `setup.exe`; its payload decodes to the packaged builds |
+| `FuzzParseXML` | `apk` | Android binary XML (a runtime APK's manifest) | write → read → write is stable |
 
 Seeds come from the repository's test data, read by glob at test time, so new corpus files are picked up: the
 reference specification's `.klc` corpus (`testdata/reference-spec/*/`, also re-encoded as UTF-16LE), every CLDR
@@ -103,3 +104,6 @@ the default workers: 5 339 425 executions, no finding.
 With payload format 2 (2026-11-27: components, DEFLATE-compressed files) it ran 45 seconds locally with no failure;
 its one finding during development (a decoded `yakbd.exe` without a build that did not encode again) is fixed and
 kept as a seed in `installer/toolsetup/testdata/fuzz`.
+
+apk `FuzzParseXML` (added 2026-11-28 with the apk package, docs/apk.md) ran 2 minutes with `-parallel 4
+-fuzzminimizetime=10s`: 1 111 365 executions, no finding.

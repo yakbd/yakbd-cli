@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The control input of the repackaging check (control.sh): a manifest with the names a package rename must
+     follow (a permission named after the package, a provider authority) and a relative class name it must not. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.yakbd.apkcheck.runtime"
+    android:versionCode="7"
+    android:versionName="0.7">
+    <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="34" />
+    <permission android:name="org.yakbd.apkcheck.runtime.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        android:protectionLevel="signature" />
+    <uses-permission android:name="org.yakbd.apkcheck.runtime.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+    <application android:label="@string/app_name" android:hasCode="false">
+        <service android:name=".Ime" android:label="@string/app_name"
+            android:permission="android.permission.BIND_INPUT_METHOD" android:exported="true">
+            <intent-filter>
+                <action android:name="android.view.InputMethod" />
+            </intent-filter>
+            <meta-data android:name="android.view.im" android:resource="@xml/method" />
+        </service>
+        <provider android:name="org.yakbd.apkcheck.runtime.Startup"
+            android:authorities="org.yakbd.apkcheck.runtime.startup" android:exported="false" />
+    </application>
+</manifest>

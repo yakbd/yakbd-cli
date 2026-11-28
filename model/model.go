@@ -1,6 +1,6 @@
 // Package model is the format-neutral in-memory layout: the hub every format reader writes into and every writer
-// and compiler reads from. Its types follow the `.kbl.json` format 0.2 (kbl-spec SPEC.md and
-// schema/0.2/kbl.schema.json, which holds 0.1) one to one, so that a `.kbl.json` file decodes into it and encodes back with the
+// and compiler reads from. Its types follow the `.kbl.json` format 0.3 (kbl-spec SPEC.md and
+// schema/0.3/kbl.schema.json, which holds 0.1 and 0.2) one to one, so that a `.kbl.json` file decodes into it and encodes back with the
 // same meaning. Union types of the format (Binding, MarkedText, TextOrUnits, ...) have their own JSON methods in
 // json.go. The semantic rules of the format (resolution, matching) are in resolve.go.
 package model
@@ -113,6 +113,8 @@ type Key struct {
 	LongPressDefaultKeyID string      `json:"longPressDefaultKeyId,omitempty"`
 	MultiTapKeyIDs        []string    `json:"multiTapKeyIds,omitempty"`
 	Function              string      `json:"function,omitempty"`
+	// Hint is new in 0.3: a small secondary label on the touch key cap (display only).
+	Hint string `json:"hint,omitempty"`
 }
 
 // ModifierSet is an array of modifier components (SPEC §7.1); empty = none, ["other"] = other.
@@ -139,6 +141,10 @@ type TouchLayerSet struct {
 	MinDeviceWidth int           `json:"minDeviceWidth,omitempty"`
 	Layers         []*TouchLayer `json:"layers"`
 	CLDRSpecial    []string      `json:"cldrSpecial,omitempty"`
+	// Orientation, DeviceClass and SystemRow are new in 0.3 (SPEC §9.4).
+	Orientation string `json:"orientation,omitempty"`
+	DeviceClass string `json:"deviceClass,omitempty"`
+	SystemRow   *bool  `json:"systemRow,omitempty"`
 }
 
 // TouchLayer is one touch layer.
@@ -147,6 +153,9 @@ type TouchLayer struct {
 	Modifiers   []ModifierSet `json:"modifiers,omitempty"`
 	Rows        [][]string    `json:"rows"`
 	CLDRSpecial []string      `json:"cldrSpecial,omitempty"`
+	// RowHeights and ReturnLayerID are new in 0.3 (SPEC §9.4).
+	RowHeights    []float64 `json:"rowHeights,omitempty"`
+	ReturnLayerID string    `json:"returnLayerId,omitempty"`
 }
 
 // DeadKey is SPEC §10.
@@ -297,6 +306,41 @@ type Targets struct {
 	// MacOS and XKB are new in 0.2 (SPEC §16.4, §16.5); the platform targets fill them.
 	MacOS *MacOSTarget `json:"macos,omitempty"`
 	XKB   *XKBTarget   `json:"xkb,omitempty"`
+	// Android, AndroidIME, IOS, ChromeOS and Keyman are new in 0.3 (SPEC §16.6 to §16.10), onLoss only so far;
+	// their platform targets fill them.
+	Android    *AndroidTarget    `json:"android,omitempty"`
+	AndroidIME *AndroidIMETarget `json:"androidime,omitempty"`
+	IOS        *IOSTarget        `json:"ios,omitempty"`
+	ChromeOS   *ChromeOSTarget   `json:"chromeos,omitempty"`
+	Keyman     *KeymanTarget     `json:"keyman,omitempty"`
+}
+
+// The 0.3 targets (SPEC §16.6 to §16.10) hold only their loss policy so far; each platform adds its members to
+// its own type, in schema order.
+
+// AndroidTarget is targets.android (physical keyboards, .kcm; SPEC §16.6).
+type AndroidTarget struct {
+	OnLoss *OnLoss `json:"onLoss,omitempty"`
+}
+
+// AndroidIMETarget is targets.androidime (the on-screen keyboard app; SPEC §16.7).
+type AndroidIMETarget struct {
+	OnLoss *OnLoss `json:"onLoss,omitempty"`
+}
+
+// IOSTarget is targets.ios (SPEC §16.8).
+type IOSTarget struct {
+	OnLoss *OnLoss `json:"onLoss,omitempty"`
+}
+
+// ChromeOSTarget is targets.chromeos (SPEC §16.9).
+type ChromeOSTarget struct {
+	OnLoss *OnLoss `json:"onLoss,omitempty"`
+}
+
+// KeymanTarget is targets.keyman (SPEC §16.10).
+type KeymanTarget struct {
+	OnLoss *OnLoss `json:"onLoss,omitempty"`
 }
 
 // KLCTarget is SPEC §16.2.
