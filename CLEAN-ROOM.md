@@ -476,3 +476,10 @@ sources, and from the measurements of `tools/xkb-check/` (its README). The insta
 the selection commands follow `targets/xkb.md` §5; the case-stability exceptions of the type fit (characters whose
 full uppercase differs while the simple one does not) are those of Unicode's `SpecialCasing.txt` (Unicode 18.0.0,
 https://www.unicode.org/Public/18.0.0/ucd/SpecialCasing.txt, read 2026-11-28, facts only).
+
+### XKB and macOS follow-ups: the X11 section, install blocks per variant, positions without a key (2026-11-28)
+
+Our own code, written from the kbl specification (branch `spec-0.2` at 36aaa7b: `targets/xkb.md` §2, §3, §5,
+`targets/macos.md` §2, D143 to D145), which cites its sources; that libxkbcommon's registry merges `layout`
+elements of one name was read in libxkbcommon's `src/registry.c` (commit `15b2b4e`, MIT, facts only).
+`testdata/klc/msklc-style.klc` is our own file in the shape MSKLC saves (UTF-16, CRLF), MIT-0.

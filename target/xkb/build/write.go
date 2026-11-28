@@ -190,6 +190,10 @@ func (b *builder) write(res *Result) {
 	}
 	header := []string{fmt.Sprintf("The XKB layout %s, written by yakbd from %s.", p.SymbolsName, b.l.Metadata.ID)}
 	res.Symbols = &xkb.File{Sections: []*xkb.Section{sec}}
+	if x := x11Section(sec); x != nil {
+		res.Symbols.Sections = append(res.Symbols.Sections, x)
+		res.X11Section = x.Name
+	}
 	res.SymbolsText = xkb.Write(res.Symbols, xkb.WriteOptions{UTF8: p.Characters == "utf8", Header: header})
 	if len(types) > 0 {
 		res.TypesName = p.SymbolsName
@@ -316,4 +320,37 @@ func rulesPost(p *model.XKBTarget, types string) []byte {
 		return []byte(fmt.Sprintf("! layout[any] = types\n  %s = +%s\n", p.SymbolsName, types))
 	}
 	return []byte(fmt.Sprintf("! layout[any] variant[any] = types\n  %s %s = +%s\n", p.SymbolsName, p.Variant, types))
+}
+
+// x11Section is the X11 section of a build with levels of several keysyms (targets/xkb.md §3, D143): an X11 server
+// refuses a keymap with such a level, so the section is the same as sec with those levels NoSymbol, named
+// <section>-x11 and never the default. nil when no level has several keysyms.
+func x11Section(sec *xkb.Section) *xkb.Section {
+	x := &xkb.Section{Name: sec.Name + "-x11", Flags: []string{"partial", "alphanumeric_keys"}}
+	multi := false
+	for _, st := range sec.Stmts {
+		if st.Kind != xkb.KeyDef {
+			x.Stmts = append(x.Stmts, st)
+			continue
+		}
+		k := *st.Key
+		k.Groups = append([]xkb.Group(nil), k.Groups...)
+		for gi := range k.Groups {
+			g := &k.Groups[gi]
+			g.Levels = append([]xkb.Level(nil), g.Levels...)
+			for li, l := range g.Levels {
+				if len(l) > 1 {
+					g.Levels[li] = nil
+					multi = true
+				}
+			}
+		}
+		c := *st
+		c.Key = &k
+		x.Stmts = append(x.Stmts, &c)
+	}
+	if !multi {
+		return nil
+	}
+	return x
 }

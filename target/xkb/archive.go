@@ -86,6 +86,15 @@ func Archive(res *build.Result) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+// BlockName names the build's marked blocks in the user's files (targets/xkb.md §5, D144): N for the default
+// section, N(V) for a variant V, so that the variants of one layout keep blocks of their own.
+func BlockName(res *build.Result) string {
+	if v := build.VariantOf(res.Pins); v != "" {
+		return res.Pins.SymbolsName + "(" + v + ")"
+	}
+	return res.Pins.SymbolsName
+}
+
 // shq quotes s for a POSIX shell.
 func shq(s string) string { return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'" }
 
@@ -102,6 +111,11 @@ func Selection(res *build.Result) []string {
 		kde = n + "(" + v + ")"
 		x11 += " -variant " + v
 	}
+	if res.X11Section != "" {
+		// an X11 server refuses levels of several keysyms: X11 loads the section without them (targets/xkb.md §3)
+		x11 = "-layout " + n + " -variant " + res.X11Section
+	}
+
 	types := ""
 	if res.Types != nil {
 		types = " -types complete+" + res.TypesName
@@ -117,7 +131,7 @@ func Selection(res *build.Result) []string {
 // InstallScript is install.sh: install for the current user (targets/xkb.md §5), or remove with --uninstall.
 func InstallScript(res *build.Result) []byte {
 	n, v := res.Pins.SymbolsName, build.VariantOf(res.Pins)
-	id := n // the marker blocks are named by the layout (targets/xkb.md §5)
+	id := BlockName(res)
 	types := ""
 	if res.Types != nil {
 		types = res.TypesName
@@ -130,7 +144,8 @@ func InstallScript(res *build.Result) []byte {
 	s.WriteString(`#!/bin/sh
 # Installs the XKB layout below for the current user (no root), or removes it with --uninstall.
 # Written by yakbd (targets/xkb.md §5). It changes only:
-#   ~/.config/xkb/symbols/<name> (and types/<types>): copied, removed on uninstall;
+#   ~/.config/xkb/symbols/<name>: one marked block for this layout (the variants of a layout share the file);
+#   ~/.config/xkb/types/<types>: copied, removed on uninstall;
 #   ~/.config/xkb/rules/evdev.xml and evdev.post: one marked block for this layout;
 #   the Compose file: a new ~/.XCompose, or one marked block in each Compose file you already have
 #   (a copy of each such file is kept as <file>.yakbd-backup first).
@@ -172,9 +187,19 @@ XB="<!-- yakbd $BLOCK begin -->"
 XE="<!-- yakbd $BLOCK end -->"
 RB="// yakbd $BLOCK begin"
 RE="// yakbd $BLOCK end"
+SYM=$XKB/symbols/$NAME
+
+# empty FILE: FILE holds nothing but comments and blank lines.
+empty() {
+	[ -z "$(grep -v '^[[:space:]]*//' "$1" | grep -v '^[[:space:]]*$' || true)" ]
+}
 
 uninstall() {
-	rm -f "$XKB/symbols/$NAME"
+	if [ -f "$SYM" ]; then
+		strip "$SYM" "$RB" "$RE"
+		# the other layouts' blocks (variants of the same layout) stay; an empty file goes
+		empty "$SYM" && rm -f "$SYM"
+	fi
 	[ -n "$TYPES" ] && rm -f "$XKB/types/$TYPES"
 	strip "$XKB/rules/evdev.xml" "$XB" "$XE"
 	strip "$XKB/rules/evdev.post" "$RB" "$RE"
@@ -190,7 +215,8 @@ uninstall() {
 
 install() {
 	mkdir -p "$XKB/symbols" "$XKB/rules"
-	cp "$HERE/xkb/symbols/$NAME" "$XKB/symbols/$NAME"
+	touch "$SYM"
+	block "$SYM" "$RB" "$RE" "$(cat "$HERE/xkb/symbols/$NAME")"
 	if [ -n "$TYPES" ]; then
 		mkdir -p "$XKB/types"
 		cp "$HERE/xkb/types/$TYPES" "$XKB/types/$TYPES"
@@ -281,6 +307,9 @@ func Readme(res *build.Result) []byte {
 		s.WriteString("- " + l + "\n")
 	}
 	s.WriteString("\nThe settings apps may list the layout only after you sign out and in again.\n")
+	if res.X11Section != "" {
+		fmt.Fprintf(&s, "\nSome keys type several characters at once. An X11 server refuses such a layout, so X11 sessions load the\nsection %s (the command above), in which those keys type nothing.\n", res.X11Section)
+	}
 	if p.Characters == "utf8" {
 		s.WriteString("\nThis layout writes characters as UTF-8 strings: it needs libxkbcommon 1.9 or later and does not load in X11 sessions.\n")
 	}

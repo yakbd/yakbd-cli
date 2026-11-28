@@ -19,7 +19,7 @@ install script for your own user, no root needed. It also converts XKB symbols f
 
 | file | what it is |
 |---|---|
-| `xkb/symbols/N` | the symbols file: one section `basic` (or the variant), every key with its key type |
+| `xkb/symbols/N` | the symbols file: one section `basic` (or the variant), every key with its key type; for X11 a second section `basic-x11` when some key types several characters |
 | `xkb/rules/evdev.xml` | the registry entry the settings apps read |
 | `compose/N.XCompose` | the dead-key sequences, after `include "%L"` (only when the layout has dead keys) |
 | `xkb/types/N-types`, `xkb/rules/evdev.post` | yakbd key types (only with `targets.xkb.customTypes`) |
@@ -41,18 +41,21 @@ later; older versions give the key a default type.
 
     tar -xzf <name>.tar.gz && <name>/install.sh          # remove again: <name>/install.sh --uninstall
 
-The script copies the symbols file (and types) into `~/.config/xkb/`, adds the layout to
-`~/.config/xkb/rules/evdev.xml` between marker lines, and puts the dead-key sequences where every program finds
+The script adds the layout's section to `~/.config/xkb/symbols/N` and the layout to `~/.config/xkb/rules/evdev.xml`,
+each between marker lines named after the layout (`N`, or `N(V)` for a variant V, so that several variants of one
+layout can be installed side by side), copies the key types, and puts the dead-key sequences where every program finds
 them: a marked block in the file libxkbcommon and Qt read (`$XCOMPOSEFILE`, else `~/.config/XCompose` or
 `~/.XCompose`) and in the one GTK 4 reads (`~/.config/gtk-4.0/Compose` when it exists), keeping a copy of each as
-`<file>.yakbd-backup`; with no such file, a new `~/.XCompose`. Uninstall removes exactly those files and blocks. It then says how to select the layout:
+`<file>.yakbd-backup`; with no such file, a new `~/.XCompose`. Uninstall removes exactly its own blocks and files,
+and a symbols file once no other variant's block is left in it. It then says how to select the layout:
 
 - **GNOME**: Settings › Keyboard › Input Sources, or `gsettings set org.gnome.desktop.input-sources sources
   "[('xkb', 'us'), ('xkb', 'N')]"`.
 - **KDE Plasma**: System Settings › Keyboard › Layouts.
 - **sway**: `input type:keyboard xkb_layout N` in `~/.config/sway/config`.
 - **X11 sessions** do not read `~/.config/xkb`: `setxkbmap -I"$HOME/.config/xkb" -layout N -print | xkbcomp
-  -I"$HOME/.config/xkb" - "$DISPLAY"` loads it for the running session.
+  -I"$HOME/.config/xkb" - "$DISPLAY"` loads it for the running session (`-variant basic-x11` for a layout with
+  several characters on one key, see below).
 
 The settings apps may list a new layout only after you sign out and in again; programs read the Compose file when
 they start.
@@ -70,8 +73,14 @@ in every combination of Shift, Caps Lock, AltGr and level 5, through the key typ
 
 ## What Linux cannot hold, or not everywhere
 
-- **Several characters on one key** type in libxkbcommon and Qt; GTK 4 types nothing, and an X11 server may refuse
-  the whole layout (measured with Xvfb 21.1: `XkbSetMap` fails) (`xkb.multiCharacterOutput`).
+- **Several characters on one key** type in libxkbcommon and Qt; GTK 4 types nothing, and an X11 server refuses
+  the whole layout (measured with Xvfb 21.1: `XkbSetMap` fails). Such a build adds a second section to the symbols
+  file, `basic-x11` (or `<variant>-x11`), in which those keys type nothing; the X11 command the install script
+  prints loads that section (`xkb.multiCharacterOutput`).
+- **Keys Linux has no key for**: `SysRq` and `Break` are levels of Print Screen and Pause in XKB. Every layout
+  converted from a `.klc` file binds `Break` (MSKLC adds that row); the build leaves it out with a warning
+  (`xkb.positionWithoutKey`). A position no position table names still needs `targets.xkb.keys.<p>.keyName`
+  (`xkb.keyNameMissing`).
 - **Dead keys** need an input method that reads your Compose file: libxkbcommon, Qt 6, GTK 4 on X11 and weston do;
   GTK 4 on sway, KDE Plasma and GNOME without IBus drop them unless `GTK_IM_MODULE=simple` is set
   (`xkb.deadKeyStacks`). What a key without a sequence types after a dead key is up to the input method

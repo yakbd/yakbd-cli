@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/yakbd/yakbd-cli/format/kbljson"
+	"github.com/yakbd/yakbd-cli/format/xkb"
 	"github.com/yakbd/yakbd-cli/model"
 	"github.com/yakbd/yakbd-cli/target/xkb/build"
 )
@@ -228,5 +229,141 @@ func TestCheckCases(t *testing.T) {
 				}
 			}
 		}
+	}
+}
+
+// TestX11Section: a build with levels of several keysyms adds the section basic-x11 with those levels empty, and the
+// X11 instructions load it (targets/xkb.md §3, D143); a build without such levels has no X11 section.
+func TestX11Section(t *testing.T) {
+	if res := built(t, read(t, demo)); res.X11Section != "" || len(res.Symbols.Sections) != 1 {
+		t.Errorf("demo: X11 section %q", res.X11Section)
+	}
+	res := built(t, read(t, "../../tools/xkb-check/gen/gen-multi/layout.kbl.json"))
+	if res.X11Section != "basic-x11" || len(res.Symbols.Sections) != 2 {
+		t.Fatalf("X11 section %q, %d sections", res.X11Section, len(res.Symbols.Sections))
+	}
+	back, r := xkb.Read(res.SymbolsText, "symbols")
+	if back == nil || r.HasErrors() {
+		t.Fatal(r.Summary())
+	}
+	first, x11 := back.Sections[0], back.Sections[1]
+	if x11.Name != "basic-x11" || len(x11.Flags) == 0 || x11.Flags[0] == "default" || len(first.Stmts) != len(x11.Stmts) {
+		t.Fatalf("sections %q %v", x11.Name, x11.Flags)
+	}
+	multi := 0
+	for i, st := range first.Stmts {
+		if st.Kind != xkb.KeyDef {
+			continue
+		}
+		for li, l := range st.Key.Groups[0].Levels {
+			xl := x11.Stmts[i].Key.Groups[0].Levels
+			switch {
+			case len(l) > 1:
+				multi++
+				if li < len(xl) && len(xl[li]) != 0 {
+					t.Errorf("<%s> level %d in the X11 section: %v", st.Key.Name, li+1, xl[li])
+				}
+			case li >= len(xl) || len(xl[li]) != len(l) || len(l) == 1 && xl[li][0] != l[0]:
+				t.Errorf("<%s> level %d changed in the X11 section", st.Key.Name, li+1)
+			}
+		}
+	}
+	if multi == 0 {
+		t.Error("the first section has no level of several keysyms")
+	}
+	sel := strings.Join(Selection(res), "\n")
+	if !strings.Contains(sel, "-layout yakbd-gen-multi -variant basic-x11 -print") || !strings.Contains(string(Readme(res)), "basic-x11") {
+		t.Errorf("selection:\n%s", sel)
+	}
+}
+
+// TestTwoVariants installs two variants of one layout side by side in a temporary home and removes them one by one
+// (targets/xkb.md §5, D144): each keeps its own section in the shared symbols file, its registry entry, rules,
+// types and Compose blocks; removing one leaves the other whole; removing both leaves the home as before.
+func TestTwoVariants(t *testing.T) {
+	for _, tool := range []string{"sh", "awk"} {
+		if _, err := exec.LookPath(tool); err != nil {
+			t.Skip("no " + tool)
+		}
+	}
+	dir := t.TempDir()
+	scripts := map[string]string{}
+	for _, v := range []string{"one", "two"} {
+		l := read(t, demo)
+		l.Targets.XKB.Variant = v
+		res := built(t, l)
+		if BlockName(res) != "yakbd-fo-xkbdemo("+v+")" {
+			t.Fatalf("block name %q", BlockName(res))
+		}
+		data, err := Archive(res)
+		if err != nil {
+			t.Fatal(err)
+		}
+		extract(t, data, dir)
+		scripts[v] = filepath.Join(dir, "yakbd-fo-xkbdemo-"+v, "install.sh")
+	}
+	home := filepath.Join(dir, "home")
+	os.MkdirAll(home, 0o755)
+	run := func(v string, args ...string) {
+		cmd := exec.Command("sh", append([]string{scripts[v]}, args...)...)
+		cmd.Env = []string{"HOME=" + home, "PATH=" + os.Getenv("PATH")}
+		if out, err := cmd.CombinedOutput(); err != nil {
+			t.Fatalf("%s install.sh %v: %v\n%s", v, args, err, out)
+		}
+	}
+	cat := func(p string) string {
+		b, _ := os.ReadFile(filepath.Join(home, p))
+		return string(b)
+	}
+	has := func(v string) bool {
+		t.Helper()
+		sym, reg, post, comp := cat(".config/xkb/symbols/yakbd-fo-xkbdemo"), cat(".config/xkb/rules/evdev.xml"), cat(".config/xkb/rules/evdev.post"), cat(".XCompose")
+		_, typesErr := os.Stat(filepath.Join(home, ".config/xkb/types/yakbd-fo-xkbdemo-"+v+"-types"))
+		parts := []bool{
+			strings.Contains(sym, `xkb_symbols "`+v+`"`), strings.Contains(sym, "// yakbd yakbd-fo-xkbdemo("+v+") begin"),
+			strings.Contains(reg, "<name>"+v+"</name>"), strings.Contains(post, "yakbd-fo-xkbdemo "+v+" = +yakbd-fo-xkbdemo-"+v+"-types"),
+			typesErr == nil, strings.Contains(comp, "# yakbd yakbd-fo-xkbdemo("+v+") begin"),
+		}
+		n := 0
+		for _, p := range parts {
+			if p {
+				n++
+			}
+		}
+		if n != 0 && n != len(parts) {
+			t.Errorf("variant %s is installed in part: %v", v, parts)
+		}
+		return n == len(parts)
+	}
+	run("one")
+	run("two")
+	run("one") // again: its blocks are replaced, not added
+	if !has("one") || !has("two") || strings.Count(cat(".config/xkb/symbols/yakbd-fo-xkbdemo"), `xkb_symbols "one"`) != 1 {
+		t.Fatalf("both installed:\n%s", cat(".config/xkb/symbols/yakbd-fo-xkbdemo"))
+	}
+	f, r := xkb.Read([]byte(cat(".config/xkb/symbols/yakbd-fo-xkbdemo")), "symbols")
+	if f == nil || r.HasErrors() || len(f.Sections) != 2 {
+		t.Fatalf("the shared symbols file does not read as two sections: %s", r.Summary())
+	}
+	run("one", "--uninstall")
+	if has("one") || !has("two") {
+		t.Error("after removing one: two must stay whole and one be gone")
+	}
+	run("two", "--uninstall")
+	if has("two") {
+		t.Error("after removing two")
+	}
+	var fs []string
+	filepath.Walk(home, func(p string, info os.FileInfo, err error) error {
+		if err == nil && !info.IsDir() {
+			fs = append(fs, strings.TrimPrefix(p, home+"/"))
+		}
+		return nil
+	})
+	if got := strings.Join(fs, " "); got != ".config/xkb/rules/evdev.post .config/xkb/rules/evdev.xml" {
+		t.Errorf("after removing both: %s", got)
+	}
+	if strings.Contains(cat(".config/xkb/rules/evdev.xml"), "yakbd") || strings.TrimSpace(cat(".config/xkb/rules/evdev.post")) != "" {
+		t.Errorf("registry or rules not clean:\n%s\n%s", cat(".config/xkb/rules/evdev.xml"), cat(".config/xkb/rules/evdev.post"))
 	}
 }

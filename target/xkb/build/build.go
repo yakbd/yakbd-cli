@@ -8,6 +8,7 @@ package build
 
 import (
 	"fmt"
+	"github.com/yakbd/yakbd-cli/target/postable"
 	"regexp"
 	"sort"
 	"strings"
@@ -82,6 +83,8 @@ type Result struct {
 	Keysyms map[string]xkb.Keysym
 	// UsesL3, UsesL5 report whether the build has the level-3 and level-5 shifts.
 	UsesL3, UsesL5 bool
+	// X11Section is the name of the symbols file's X11 section (targets/xkb.md §3), "" when it has none.
+	X11Section string
 }
 
 // Build builds l. The result is nil when the report has errors after the file's onLoss policies are applied.
@@ -193,7 +196,7 @@ func (b *builder) run() *Result {
 		b.key(p)
 	}
 	if len(b.multi) > 0 {
-		b.lost("xkb.multiCharacterOutput", "/hardware", "levels of several characters (%s): libxkbcommon and Qt type them, GTK 4 types nothing, and an X11 server may refuse the whole keymap (measured: Xvfb 21.1, XkbSetMap BadValue)", strings.Join(b.multi, ", "))
+		b.lost("xkb.multiCharacterOutput", "/hardware", "levels of several characters (%s): libxkbcommon and Qt type them, GTK 4 types nothing, and an X11 server refuses the whole keymap (measured: Xvfb 21.1, XkbSetMap BadValue), so X11 sessions load the section %s-x11, where those levels are empty", strings.Join(b.multi, ", "), sectionName(b.pin))
 	}
 	if len(b.numpad) > 0 {
 		b.lost("xkb.numLockKeyReduced", "/positions", "the number-pad keys %s type their navigation keysym with Num Lock off and their base binding with Num Lock on (type KEYPAD, which also gives Shift the base binding); their other states are not built", strings.Join(b.numpad, ", "))
@@ -503,6 +506,9 @@ func (b *builder) positions() {
 			name = r.KeyName
 			fromRule = append(fromRule, tp+"keys/"+model.Escape(p)+"/keyName")
 			v[p] = name
+		} else if postable.Known(p) {
+			b.lost("xkb.positionWithoutKey", "/positions/"+model.Escape(p), "XKB has no key of its own for the position %s: its bindings are left out (pin targets.xkb.keys.%s.keyName to build them)", p, p)
+			continue
 		} else {
 			b.lost("xkb.keyNameMissing", "/positions/"+model.Escape(p), "the position %s has no XKB key name: pin targets.xkb.keys.%s.keyName", p, p)
 			continue
@@ -746,4 +752,12 @@ func VariantOf(p *model.XKBTarget) string {
 		return ""
 	}
 	return p.Variant
+}
+
+// sectionName is the name of the build's section: basic, or the variant.
+func sectionName(p *model.XKBTarget) string {
+	if v := VariantOf(p); v != "" {
+		return v
+	}
+	return "basic"
 }

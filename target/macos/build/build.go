@@ -7,6 +7,7 @@ package build
 
 import (
 	"fmt"
+	"github.com/yakbd/yakbd-cli/target/postable"
 	"regexp"
 	"sort"
 	"strings"
@@ -487,7 +488,9 @@ func (b *builder) positions() {
 			}
 		}
 		if !ok {
-			if bound[p] {
+			if bound[p] && postable.Known(p) {
+				b.lost("macos.positionWithoutKey", "/positions/"+model.Escape(p), "the position %s has no key in the macOS position table: its bindings are left out (pin targets.macos.keys.%s.keyCode to build them)", p, p)
+			} else if bound[p] {
 				b.lost("macos.keyCodeMissing", "/positions/"+model.Escape(p), "the position %s has bindings but no key code (no pin, no row of the position table)", p)
 			}
 			continue

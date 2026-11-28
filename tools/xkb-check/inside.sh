@@ -104,7 +104,10 @@ start_stack() {
       # yakbd key types (types/<name>-types) are added as the layout's README says
       local types=
       for t in "$HOME"/.config/xkb/types/*-types; do [ -f "$t" ] && types="$types+$(basename "$t")"; done
-      setxkbmap -I"$HOME/.config/xkb" -layout "$l" ${types:+-types "complete$types"} -print 2>>"$LOG/stack.log" \
+      # a yakbd build with levels of several keysyms has an X11 section, which X11 loads (the layout's README)
+      local x11=
+      grep -q '^xkb_symbols "basic-x11"' "$HOME/.config/xkb/symbols/$l" 2>/dev/null && x11=basic-x11
+      setxkbmap -I"$HOME/.config/xkb" -layout "$l" ${x11:+-variant "$x11"} ${types:+-types "complete$types"} -print 2>>"$LOG/stack.log" \
         | xkbcomp -w0 -I"$HOME/.config/xkb" - :1 >>"$LOG/stack.log" 2>&1 || return 2
       export GDK_BACKEND=x11 QT_QPA_PLATFORM=xcb
       INJECT="$BIN/xtestkeys" ;;

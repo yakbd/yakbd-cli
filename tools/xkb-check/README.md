@@ -77,7 +77,7 @@ holds every row of the kbl spec's position table.
 | case | what it checks |
 |---|---|
 | `gen-demo` | the spec example `xkb-caps-deadkeys`: levels 1 to 4, Caps Lock per key type (`FOUR_LEVEL_SEMIALPHABETIC`, `FOUR_LEVEL_ALPHABETIC`, and the yakbd type `YAKBD_12213434` that leaves Caps Lock out of AltGr: þ, not Þ), a dead key through the generated Compose file |
-| `gen-multi` | several characters on one level (`ng`, `x` + U+0301): expected to type in libxkbcommon and Qt and to fail in X11 and GTK 4; `FOUR_LEVEL_PLUS_LOCK` for keys that Caps Lock leaves alone |
+| `gen-multi` | several characters on one level (`ng`, `x` + U+0301): expected to type in libxkbcommon and Qt and to fail in GTK 4; the build adds the section `basic-x11` with those levels empty, which the x11 stack loads, so there only those levels are expected to fail (not yet run: `baseline.txt` holds the run before the X11 section, in which X11 refused the whole keymap); `FOUR_LEVEL_PLUS_LOCK` for keys that Caps Lock leaves alone |
 | `gen-corpus` | xkeyboard-config's `fo(basic)` converted to `.kbl.json` with `testdata/xkb/test.XCompose` (MIT/X11 notices: `COPYING` beside it), renamed `yakbd-gen-fo`: a real layout with its includes inlined and its dead keys |
 
 ## Results
