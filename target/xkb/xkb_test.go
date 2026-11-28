@@ -195,3 +195,38 @@ func extract(t *testing.T, data []byte, dir string) {
 		os.WriteFile(p, b, os.FileMode(h.Mode))
 	}
 }
+
+// TestCheckCases: every generated case of tools/xkb-check builds, gives expectations, and presses only keys
+// keycodes.tsv knows.
+func TestCheckCases(t *testing.T) {
+	kc, err := os.ReadFile("../../tools/xkb-check/keycodes.tsv")
+	if err != nil {
+		t.Fatal(err)
+	}
+	known := map[string]bool{}
+	for _, line := range strings.Split(string(kc), "\n") {
+		if f := strings.Fields(line); len(f) == 2 && !strings.HasPrefix(line, "#") {
+			known[f[0]] = true
+		}
+	}
+	cases, _ := filepath.Glob("../../tools/xkb-check/gen/*/layout.kbl.json")
+	if len(cases) < 3 {
+		t.Fatalf("cases: %v", cases)
+	}
+	for _, c := range cases {
+		l := read(t, c)
+		res := built(t, l)
+		es := Expectations(l, res, 40)
+		if len(es) < 10 {
+			t.Errorf("%s: %d expectations", c, len(es))
+		}
+		for _, e := range es {
+			for _, k := range strings.Fields(e.Keys) {
+				n := strings.Trim(k, "+-<>")
+				if !known[n] {
+					t.Errorf("%s %s: key %s not in keycodes.tsv", c, e.Name, n)
+				}
+			}
+		}
+	}
+}

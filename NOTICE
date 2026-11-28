@@ -181,3 +181,7 @@ release xkeyboard-config-2.49 (https://gitlab.freedesktop.org/xkeyboard-config/x
 2026-11-28, used only as test fixtures: us, de, fr, fo, is, dk, gr, ru and the files they include. The project's
 COPYING, with every notice of its files, is beside them (testdata/third_party/xkeyboard-config-2.49/COPYING); the
 files under sun_vndr/ also carry Oracle's notice in their headers.
+
+tools/xkb-check/gen/gen-corpus/layout.kbl.json is symbols/fo (section basic) of the same xkeyboard-config release
+with the files it includes, converted to .kbl.json by yakbd, with its names changed for the check; xkeyboard-config's
+COPYING is beside it.

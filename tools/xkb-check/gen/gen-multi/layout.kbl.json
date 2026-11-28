@@ -1,0 +1,21 @@
+{
+  "kbl": "0.2",
+  "metadata": {
+    "id": "und-x-genmulti",
+    "name": "yakbd check: several characters per key",
+    "license": "MIT-0"
+  },
+  "settings": { "normalization": "disabled" },
+  "positions": {
+    "Digit1": {}, "KeyG": {}, "KeyN": {}, "KeyX": {}, "AltRight": {}
+  },
+  "hardware": {
+    "layers": [
+      { "modifiers": [[]], "bindings": { "Digit1": "1", "KeyG": "ng", "KeyN": "n", "KeyX": "x́" } },
+      { "modifiers": [["shift"]], "bindings": { "Digit1": "!", "KeyG": "NG", "KeyN": "N", "KeyX": "X́" } },
+      { "modifiers": [["altR"]], "bindings": { "Digit1": "¹", "KeyN": "ŋ" } },
+      { "modifiers": [["shift", "altR"]], "bindings": { "Digit1": "¡", "KeyN": "Ŋ" } }
+    ]
+  },
+  "targets": { "xkb": { "symbolsName": "yakbd-gen-multi", "shortDescription": "ym" } }
+}
