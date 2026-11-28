@@ -1,19 +1,19 @@
 # Windows security prompts
 
 Windows checks programs you download before it runs them. This page says what you can expect to see for the two
-kinds of program yakbd gives you, and what you can do about it:
+kinds of program yakbd gives you, and what you can do about it. None of them is code-signed
+([why](code-signing-policy.md)):
 
 - `yakbd-cli-setup.exe` and `yakbd-gui-setup.exe`, the YAKBD installers (the CLI's and the editor's), downloaded from the
   [latest releases](https://github.com/yakbd/yakbd-cli/releases/latest) of the two repositories, and the programs they install;
-- the layout installers (`<dll name>-setup.exe`) that `yakbd installer` writes for a layout. These are unsigned.
+- the layout installers (`<dll name>-setup.exe`) that `yakbd installer` writes for a layout.
 
 Statements below are marked **[measured]** when we tested them on Windows, and otherwise give the Microsoft page
 they come from (read 2026-11-27). Windows changes these checks from time to time.
 
-**Signing.** The 0.1 preview release ships `yakbd-cli-setup.exe` **unsigned**; you can check it with the release's
-`SHA256SUMS` file and its GitHub release attestation (§3). The project applies to SignPath Foundation for a code
-signing certificate right after that release, so signing starts with a later release
-([`code-signing-policy.md`](code-signing-policy.md)).
+**Signing.** Releases are not code-signed, until further notice
+([`code-signing-policy.md`](code-signing-policy.md)); you can check a download with the release's `SHA256SUMS` file
+and its GitHub release attestation (§3).
 
 ## 1. The three checks
 
@@ -36,14 +36,13 @@ signing certificate right after that release, so signing starts with a later rel
 
 | | Smart App Control on | SmartScreen | UAC |
 |---|---|---|---|
-| `yakbd-cli-setup.exe` once signed (a later release, see [`code-signing-policy.md`](code-signing-policy.md)) | expected to run, as it is signed by a trusted certificate authority (not yet tested) | expected: may warn while the certificate is new, naming SignPath Foundation as the publisher | expected: grey prompt, publisher SignPath Foundation |
-| `yakbd-cli-setup.exe` of the 0.1 preview, and every layout installer | **blocked** **[measured]**: an unsigned program in the Downloads folder was blocked, with and without the download mark | "Windows protected your PC", with "Run anyway" | yellow prompt, no verified publisher |
+| `yakbd-cli-setup.exe`, `yakbd-gui-setup.exe` and every layout installer | **blocked** **[measured]**: an unsigned program in the Downloads folder was blocked, with and without the download mark | "Windows protected your PC", with "Run anyway" | yellow prompt, no verified publisher |
 | `yakbd.exe`, installed by `yakbd-cli-setup.exe` | unsigned, so treated like any unsigned program: expect it to be blocked (not yet tested) | not shown: it is not a download | none: `yakbd.exe` needs no administrator rights |
 
 Smart App Control checks every program it starts, not only downloads
 ([SmartScreen reputation for apps](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/smartscreen-reputation)).
-Only `yakbd-cli-setup.exe` will be signed, so with Smart App Control on, the `yakbd.exe` it installs is expected to be
-blocked like any unsigned program; this has not been tested yet.
+With Smart App Control on, the `yakbd.exe` that `yakbd-cli-setup.exe` installs is expected to be blocked like any
+unsigned program; this has not been tested yet.
 
 The layout DLL itself is not stopped by Smart App Control: an unsigned layout DLL, installed by hand, loaded and
 typed with Smart App Control on **[measured]**. Only the installer program is affected.
@@ -57,7 +56,6 @@ an author can sign their own.
 provenance attestation that ties each file to the source and the workflow run that built it. In PowerShell:
 
     Get-FileHash .\yakbd-cli-setup.exe          # SHA256 by default; compare with the line in SHA256SUMS
-    Get-AuthenticodeSignature .\yakbd-cli-setup.exe   # once signing has started: Status Valid, signer SignPath Foundation
 
 The GitHub CLI checks the attestation with `gh attestation verify`. The exact steps for both checks are in
 [`release.md`](release.md).
@@ -77,7 +75,7 @@ layout installer then runs on Windows.
 - Smart App Control: it cannot make an exception for one program. Turning it off is a decision for the whole PC;
   turning it back on is possible from Windows Security on current Windows versions
   ([What is Smart App Control](https://support.microsoft.com/en-us/topic/what-is-smart-app-control-285ea03d-fa88-4d56-882e-6698afdb7003)).
-  Rather than turning it off for a layout, ask its author for a signed installer (§4).
+  Rather than turning it off for a layout, ask its author for a signed layout installer (§4).
 
 ## 4. Signing your own layout installer
 

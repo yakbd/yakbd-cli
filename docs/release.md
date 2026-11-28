@@ -1,4 +1,4 @@
-# Releases: how they are made, checked and signed
+# Releases: how they are made and checked
 
 A release of yakbd is built only by the workflow [`.github/workflows/release.yml`](../.github/workflows/release.yml)
 on GitHub-hosted runners, from the commit it is started on. Nobody builds release files on their own machine. The
@@ -47,16 +47,14 @@ arm64 build of `yakbd.exe` has so far been tested on Windows on ARM in emulation
        gh workflow run release.yml -R yakbd/yakbd-cli -f version=0.1.0-preview.3
 
    Inputs: `version` (required; it must equal the tool's own version, `0.1.0-preview.3` today, which `go run ./tools/release -version V
-   -check` checks; a version containing `-rehearsal.` is exempt, for trying the workflow out) and `sign` (default
-   off, §4).
-3. The workflow, in four jobs:
+   -check` checks; a version containing `-rehearsal.` is exempt, for trying the workflow out).
+3. The workflow, in three jobs:
    - **build**: checks that the tag does not exist yet; `gofmt`, `go vet`, `go test`; checks that the committed
      installer stub `installer/stub-386.exe` equals a fresh build ([`installer.md`](installer.md) §6); builds every
      file with `go run ./tools/release`, then a second time from a fresh copy of the source in another folder with an
      empty build cache, and fails unless both are identical byte for byte;
    - **macos**: runs the universal macOS binary on a macOS runner (§1);
-   - **sign** (only with `sign`, §4);
-   - **release**: puts the signed installer in place when there is one, writes `SHA256SUMS`, creates the build
+   - **release**: writes `SHA256SUMS`, creates the build
      provenance attestation for every file (`actions/attest-build-provenance`), pushes the tag `vV` on the built
      commit and creates the draft release with all files. A preview (`x.y.z-preview.N`) is a normal release, not a
      pre-release (maintainer decision: a GitHub pre-release is not shown as the release on the repository page, and
@@ -96,7 +94,7 @@ the files depend only on the source and the Go version (the workflow uses the Go
 
     git clone https://github.com/yakbd/yakbd-cli && cd yakbd-cli && git checkout vV
     go run ./tools/release -version V -o ../rebuilt     # with the Go version of installer/stub-386.version
-    diff ../rebuilt/SHA256SUMS SHA256SUMS                # the release's SHA256SUMS (unsigned files only, §4)
+    diff ../rebuilt/SHA256SUMS SHA256SUMS                # the release's SHA256SUMS
 
 ## 3. How to check a downloaded file
 
@@ -113,36 +111,8 @@ commit that built it. With the [GitHub CLI](https://cli.github.com):
 It succeeds only for a file built by a workflow of `yakbd/yakbd-cli`; the output names the workflow file and the
 commit. Add `--signer-workflow yakbd/yakbd-cli/.github/workflows/release.yml` to require the release workflow.
 
-**Signature** (once signing has started, §4): `Get-AuthenticodeSignature .\yakbd-cli-setup.exe` shows `Valid` and the
-signer SignPath Foundation.
-
 ## 4. Signing
 
-`yakbd-cli-setup.exe` and the `yakbd.exe` builds nested in it are to be signed, through [SignPath Foundation](https://signpath.org), which signs open-source
-projects for free with its own certificate; the policy is [`code-signing-policy.md`](code-signing-policy.md). It is
-**not enabled yet**: SignPath Foundation signs a project only after it has released the files it is asked to
-sign, so the first releases ship `yakbd-cli-setup.exe` unsigned.
-
-The workflow is ready for it: with the input `sign` on, the job `sign` sends the unsigned `yakbd-cli-setup.exe` (as a
-workflow artifact) to SignPath with `signpath/github-action-submit-signing-request@v3`, waits until a person has
-approved the request at SignPath, and passes the signed file to the release job, which puts it in the release and
-computes `SHA256SUMS` and the attestation over it. That job signs the installer file only: the `yakbd.exe` builds
-travel inside the installer's own payload format, which a signing service cannot open, so signing them as well means
-signing the builds first and assembling `yakbd-cli-setup.exe` around the signed files (the payload's hashes then cover
-the signed bytes). That change comes with enabling signing. To enable it, once the SignPath project exists:
-
-| repository setting | kind | value |
-|---|---|---|
-| `SIGNPATH_API_TOKEN` | secret | an API token of a SignPath user allowed to submit signing requests |
-| `SIGNPATH_ORGANIZATION_ID` | variable | the SignPath organization id |
-| `SIGNPATH_PROJECT_SLUG` | variable | the project slug (the project is named after this repository's product, `yakbd`) |
-| `SIGNPATH_SIGNING_POLICY_SLUG` | variable | the signing policy, e.g. `release-signing` |
-| `SIGNPATH_ARTIFACT_CONFIGURATION_SLUG` | variable | the artifact configuration that signs `yakbd-cli-setup.exe` inside the artifact zip |
-
-and run the workflow with `sign` on. In SignPath, connect the project to this repository as a trusted build system
-(GitHub-hosted runners only) and let only the `release` workflow on `main` submit requests.
-
-Signing appends the signature and also changes the header (its checksum and certificate table entry), so a rebuild
-(§2) matches the unsigned `yakbd-cli-setup.exe` only. The unsigned file stays available as the artifact
-`setup-unsigned` of the workflow run; every other file of the release is never signed and matches a rebuild
-directly.
+Releases are not code-signed, until further notice: no free code-signing certificate is available to the project
+([`code-signing-policy.md`](code-signing-policy.md)). The checksum and the attestation (§3) are how a download is
+checked.

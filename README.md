@@ -36,8 +36,4 @@ For contributors: [`ARCHITECTURE.md`](ARCHITECTURE.md) and [`AGENTS.md`](AGENTS.
 
 Bug reports and pull requests are welcome: see [contributing](https://github.com/yakbd/.github/blob/main/CONTRIBUTING.md).
 MIT-0 ([`LICENSE`](LICENSE)); third-party material keeps its own licence ([`NOTICE`](NOTICE)).
-
-## Code signing policy
-
-Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by
-[SignPath Foundation](https://signpath.org) ([policy](https://yakbd.github.io/guide/code-signing-policy); the installers are unsigned until signing starts).
+Releases are not code-signed: check a download with its checksum and attestation ([why and how](docs/code-signing-policy.md)).
