@@ -16,6 +16,7 @@ import (
 	"github.com/yakbd/yakbd-cli/format/kbljson"
 	"github.com/yakbd/yakbd-cli/loss"
 	"github.com/yakbd/yakbd-cli/model"
+	"github.com/yakbd/yakbd-cli/target/registry"
 	"github.com/yakbd/yakbd-cli/target/windows/wintarget"
 )
 
@@ -46,24 +47,61 @@ const (
 	ExitUsage = 2
 )
 
-const usage = `usage: yakbd <command> [arguments]
+// usage is the top-level help. Its targets come from target/registry and its formats from the formats table, so
+// a new target or format shows up here without an edit.
+func usage() string {
+	var targets, installers []string
+	for _, n := range registry.Names() {
+		t, _ := registry.Lookup(n)
+		if n == registry.Default {
+			targets = append(targets, n+" (the default)")
+		} else {
+			targets = append(targets, n)
+		}
+		if t.Command("installer", flag.NewFlagSet("", flag.ContinueOnError)) != nil {
+			installers = append(installers, n)
+		}
+	}
+	return `usage: yakbd <command> [arguments]
 
 commands:
-  compile   build the installable files of a layout (.kbl.json, .klc or CLDR .xml) for a target; Windows: the layout DLLs
-  installer write one installer with every build of a layout; Windows: one .exe
-  convert   convert a layout between .kbl.json, .klc and CLDR .xml
+  compile   build the installable files of a layout (` + extList(false) + `) for a target
+  installer write one installer with every build of a layout (targets: ` + strings.Join(installers, ", ") + `)
+  convert   convert a layout from one format to another
+            reads:  ` + formatList(false) + `
+            writes: ` + formatList(true) + `
   validate  check a layout file and, with -target, that it can be built for that target
   pin       write every default of a target into a .kbl.json file
   version   print the version
 
--target names the platform of compile, installer, pin and validate: windows (the default).
+-target names the platform of compile, installer, pin and validate: ` + strings.Join(targets, ", ") + `.
 Run "yakbd <command> -h" for the arguments of a command.
 `
+}
+
+// formatList lists the formats convert can read (or write) with their suffixes: "kbl (.kbl.json), ..., xkb (-from)".
+func formatList(write bool) string {
+	var s []string
+	for _, f := range formats {
+		if (write && f.write == nil) || (!write && f.read == nil) {
+			continue
+		}
+		switch {
+		case f.ext != "":
+			s = append(s, f.name+" ("+f.ext+")")
+		case write:
+			s = append(s, f.name+" (-to)")
+		default:
+			s = append(s, f.name+" (-from)")
+		}
+	}
+	return strings.Join(s, ", ")
+}
 
 // Run runs the command line args (without the program name) and returns the exit code.
 func Run(args []string, stdout, stderr io.Writer) int {
 	if len(args) == 0 {
-		fmt.Fprint(stderr, usage)
+		fmt.Fprint(stderr, usage())
 		return ExitUsage
 	}
 	switch args[0] {
@@ -79,10 +117,10 @@ func Run(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stdout, "yakbd %s\n", VersionString())
 		return ExitOK
 	case "help", "-h", "--help":
-		fmt.Fprint(stdout, usage)
+		fmt.Fprint(stdout, usage())
 		return ExitOK
 	}
-	fmt.Fprintf(stderr, "yakbd: unknown command %q\n\n%s", args[0], usage)
+	fmt.Fprintf(stderr, "yakbd: unknown command %q\n\n%s", args[0], usage())
 	return ExitUsage
 }
 

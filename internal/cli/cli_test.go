@@ -10,6 +10,7 @@ import (
 
 	"github.com/yakbd/yakbd-cli/format/kbljson"
 	"github.com/yakbd/yakbd-cli/installer"
+	"github.com/yakbd/yakbd-cli/target/registry"
 	"github.com/yakbd/yakbd-cli/target/windows"
 )
 
@@ -228,5 +229,31 @@ func TestInstallerCommand(t *testing.T) {
 	}
 	if code, _, se := run("installer", "-q", "-strict-defaults", "-o", out, pinned); code != ExitOK || strings.Contains(se, "windowsDefault") {
 		t.Errorf("strict defaults: %d %s", code, se)
+	}
+}
+
+// TestUsageListsTargetsAndFormats: the top-level help names every registered target and every format convert
+// reads or writes, from the registry and the formats table.
+func TestUsageListsTargetsAndFormats(t *testing.T) {
+	var out, errb bytes.Buffer
+	if code := Run([]string{"-h"}, &out, &errb); code != ExitOK {
+		t.Fatalf("exit %d: %s", code, errb.String())
+	}
+	h := out.String()
+	for _, n := range registry.Names() {
+		if !strings.Contains(h, n) {
+			t.Errorf("help does not name target %s:\n%s", n, h)
+		}
+	}
+	if !strings.Contains(h, registry.Default+" (the default)") {
+		t.Errorf("help does not name the default target:\n%s", h)
+	}
+	for _, f := range formats {
+		if !strings.Contains(h, f.name+" (") {
+			t.Errorf("help does not name format %s:\n%s", f.name, h)
+		}
+		if f.ext != "" && !strings.Contains(h, f.ext) {
+			t.Errorf("help does not name suffix %s:\n%s", f.ext, h)
+		}
 	}
 }
