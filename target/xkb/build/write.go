@@ -64,7 +64,7 @@ func (b *builder) sequences() []composeSeq {
 			default:
 				t := e.Base.Text
 				if e.Base.Kind == model.ValueUnits {
-					t = string(utf16.Decode(e.Base.Units))
+					t = unitsText(e.Base.Units)
 				}
 				l, ok := keysymsOf(t)
 				if !ok || len(l) != 1 {
@@ -153,6 +153,12 @@ func (b *builder) write(res *Result) {
 		levels := make([]xkb.Level, len(k.Levels))
 		for i, v := range k.Levels {
 			levels[i] = b.levelOf(v)
+			// nothing is VoidSymbol, never NoSymbol: libxkbcommon fills a NoSymbol level from the system's key of the
+			// same name (symbols/pc), so the level would type the stock keysym (targets/xkb.md §3); level 5 of CTRL+ALT,
+			// Control+Alt, stays NoSymbol and keeps the system's action there
+			if levels[i] == nil && !(k.Type == "CTRL+ALT" && i == 4) {
+				levels[i] = xkb.Level{{K: xkb.VoidSymbol}}
+			}
 		}
 		if k.Keypad != "" {
 			ks, _ := xkb.KeysymFromName(k.Keypad)
@@ -323,8 +329,9 @@ func rulesPost(p *model.XKBTarget, types string) []byte {
 }
 
 // x11Section is the X11 section of a build with levels of several keysyms (targets/xkb.md §3, D143): an X11 server
-// refuses a keymap with such a level, so the section is the same as sec with those levels NoSymbol, named
-// <section>-x11 and never the default. nil when no level has several keysyms.
+// refuses a keymap with such a level, so the section is the same as sec with those levels VoidSymbol (a key
+// whose levels are all NoSymbol keeps its type and is refused too, measured), named <section>-x11 and never the
+// default. nil when no level has several keysyms.
 func x11Section(sec *xkb.Section) *xkb.Section {
 	x := &xkb.Section{Name: sec.Name + "-x11", Flags: []string{"partial", "alphanumeric_keys"}}
 	multi := false
@@ -340,7 +347,7 @@ func x11Section(sec *xkb.Section) *xkb.Section {
 			g.Levels = append([]xkb.Level(nil), g.Levels...)
 			for li, l := range g.Levels {
 				if len(l) > 1 {
-					g.Levels[li] = nil
+					g.Levels[li] = xkb.Level{{K: xkb.VoidSymbol}}
 					multi = true
 				}
 			}

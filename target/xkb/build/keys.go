@@ -10,6 +10,7 @@ import (
 )
 
 // StockTypes are the stock key types rule keyType tries, in order (targets/xkb.md §3).
+// The keys of ctrlAltKeys try CTRL+ALT first.
 var StockTypes = []string{"ONE_LEVEL", "TWO_LEVEL", "ALPHABETIC", "FOUR_LEVEL", "FOUR_LEVEL_ALPHABETIC",
 	"FOUR_LEVEL_SEMIALPHABETIC", "FOUR_LEVEL_PLUS_LOCK", "EIGHT_LEVEL", "EIGHT_LEVEL_ALPHABETIC",
 	"EIGHT_LEVEL_SEMIALPHABETIC"}
@@ -117,9 +118,6 @@ func (b *builder) fit(t *xkb.KeyType, vals []Value) ([]Value, int) {
 			exact++
 		}
 	}
-	for len(levels) > 1 && levels[len(levels)-1].None() {
-		levels = levels[:len(levels)-1]
-	}
 	return levels, exact
 }
 
@@ -140,6 +138,9 @@ func (b *builder) key(p string) {
 		return
 	}
 	k := Key{Position: p, Name: b.names[p], Values: vals}
+	if v := vals[StLock]; v.Text != "" && !caseStable(v) {
+		b.capsLower = append(b.capsLower, p)
+	}
 	pin := b.pin.Keys[p]
 	if pos := b.l.Positions[p]; pos != nil && pos.NumLock != nil && *pos.NumLock {
 		if r, ok := keyname.ForPosition(p); ok && r.Keypad != "" {
@@ -172,7 +173,11 @@ func (b *builder) key(p string) {
 	}
 	best, bestN := "", -1
 	var bestLevels []Value
-	for _, name := range StockTypes {
+	cands := StockTypes
+	if ctrlAltKeys[k.Name] {
+		cands = append([]string{"CTRL+ALT"}, StockTypes...)
+	}
+	for _, name := range cands {
 		levels, exact := b.fit(xkb.StockType(name), vals)
 		if exact == len(vals) {
 			k.Type, k.Levels = name, levels
@@ -260,3 +265,12 @@ func (b *builder) reduce(s int) int {
 	}
 	return s
 }
+
+// ctrlAltKeys are the keys xkeyboard-config's symbols/pc gives the type CTRL+ALT, with a fifth level for
+// Control+Alt (F1-F12: switch the virtual terminal; the number-pad operators: grab and video-mode actions). The
+// layout's key merges with that one, so a type of fewer levels makes an X11 server refuse the whole keymap
+// (measured, Xvfb 21.1) and libxkbcommon cut the fifth level off; rule keyType tries CTRL+ALT first for them
+// (targets/xkb.md §3).
+var ctrlAltKeys = map[string]bool{"FK01": true, "FK02": true, "FK03": true, "FK04": true, "FK05": true, "FK06": true,
+	"FK07": true, "FK08": true, "FK09": true, "FK10": true, "FK11": true, "FK12": true,
+	"KPMU": true, "KPDV": true, "KPSU": true, "KPAD": true}

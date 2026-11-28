@@ -35,7 +35,9 @@ The build gives each key the first stock type that types every state as the file
 because Caps Lock must leave an AltGr letter alone (`þ` with Caps Lock and AltGr), the build uses the closest stock
 type and reports `xkb.capsLockNotExpressible`; with `"customTypes": true` it writes a yakbd key type instead
 (`YAKBD_12213434`: the level of each state), installed with the layout. Those types need libxkbcommon 1.13 or
-later; older versions give the key a default type.
+later; older versions give the key a default type. A level that types nothing is written `VoidSymbol` (a
+`NoSymbol` level would be filled from the system's key of the same name), and F1 to F12 and the number-pad operators
+get xkeyboard-config's `CTRL+ALT` type, which keeps the system's Control+Alt level (virtual terminals, grabs).
 
 ## Install and select
 
@@ -45,8 +47,8 @@ The script adds the layout's section to `~/.config/xkb/symbols/N` and the layout
 each between marker lines named after the layout (`N`, or `N(V)` for a variant V, so that several variants of one
 layout can be installed side by side), copies the key types, and puts the dead-key sequences where every program finds
 them: a marked block in the file libxkbcommon and Qt read (`$XCOMPOSEFILE`, else `~/.config/XCompose` or
-`~/.XCompose`) and in the one GTK 4 reads (`~/.config/gtk-4.0/Compose` when it exists), keeping a copy of each as
-`<file>.yakbd-backup`; with no such file, a new `~/.XCompose`. Uninstall removes exactly its own blocks and files,
+`~/.XCompose`) and in the one GTK 4 reads (`~/.config/gtk-4.0/Compose`, else `~/.XCompose`; GTK never reads
+`~/.config/XCompose`), keeping a copy of each as `<file>.yakbd-backup`; where no such file exists, a new `~/.XCompose`. Uninstall removes exactly its own blocks and files,
 and a symbols file once no other variant's block is left in it. It then says how to select the layout:
 
 - **GNOME**: Settings › Keyboard › Input Sources, or `gsettings set org.gnome.desktop.input-sources sources
@@ -86,7 +88,11 @@ in every combination of Shift, Caps Lock, AltGr and level 5, through the key typ
   (`xkb.deadKeyStacks`). What a key without a sequence types after a dead key is up to the input method
   (`xkb.deadKeyNoMatchNotCompiled`).
 - **Control and Alt layers** are not built: Linux programs read those shortcuts themselves
-  (`xkb.controlAltLayerDropped`). The number-pad keys get xkeyboard-config's `KEYPAD` type (`xkb.numLockKeyReduced`).
+  (`xkb.controlAltLayerDropped`). The number-pad keys get xkeyboard-config's `KEYPAD` type; Shift with Num Lock on gives
+  the binding with xkeyboard-config 2.48 and later, the navigation key with 2.42 and 2.46 (`xkb.numLockKeyReduced`).
+- **Letters Caps Lock leaves lower case** type upper case in GTK 4 on X11, whatever the key type (`xkb.capsLockStacks`).
+- **A variant of a system layout** (`symbolsName` such as `fo` with a `variant`): the user file hides the system
+  layout, and libxkbcommon before 1.13.2 gives the variant for the layout alone (`xkb.systemLayoutShadowed`).
 - **UTF-8 characters in the symbols file** (`"characters": "utf8"`) need libxkbcommon 1.9 and do not load in X11;
   the default spells keysyms by name, which every version reads.
 

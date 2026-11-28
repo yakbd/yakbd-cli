@@ -326,7 +326,8 @@ func (im *importer) keys() {
 			} else {
 				lv = t.Type(g.Levels, xkbMods(s))
 			}
-			if len(lv) == 0 {
+			// VoidSymbol is an explicit nothing (a yakbd build writes it for every level that types nothing, kbl D146)
+			if len(lv) == 0 || len(lv) == 1 && lv[0].K == xkb.VoidSymbol {
 				continue
 			}
 			for _, x := range lv {

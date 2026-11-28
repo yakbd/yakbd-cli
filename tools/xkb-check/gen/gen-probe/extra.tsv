@@ -5,7 +5,8 @@ nomatch-key	yakbd-gen-probe	build	<AC01> <AE12> <AB02> <AC01>	a´xa
 backspace-after-dead	yakbd-gen-probe	build	<AC01> <AC01> <AE12> <BKSP> <AB02>	aax
 # (8) the entry e has the result "": nothing between the two a.
 empty-result	yakbd-gen-probe	build	<AC01> <AE12> <AD03> <AC01>	aa
-# (10) Numpad1 is type KEYPAD [KP_End, onesuperior]: Num Lock on gives ¹, also with Shift; off gives no text.
+# (10) Numpad1 is type KEYPAD [KP_End, onesuperior]: Num Lock on gives ¹; with Shift too on xkeyboard-config 2.48 and
+# later (2.42 and 2.46 give the navigation keysym, no text: xkb.numLockKeyReduced says so); off gives no text.
 keypad-numlock	yakbd-gen-probe	build	<AC01> <NMLK> <KP1> <NMLK> <AC01>	a¹a
 keypad-numlock-shift	yakbd-gen-probe	build	<AC01> <NMLK> +<LFSH> <KP1> -<LFSH> <NMLK> <AC01>	a¹a
 keypad-plain	yakbd-gen-probe	build	<AC01> <KP1> <AC01>	aa
@@ -16,3 +17,7 @@ pre-both-own-config	yakbd-gen-probe	pre-both	<AE12> <AB02>	2
 pre-both-own-gtk	yakbd-gen-probe	pre-both	<AE12> <AB04>	3
 pre-config-entry	yakbd-gen-probe	pre-config	<AE12> <AC01>	á
 pre-config-own	yakbd-gen-probe	pre-config	<AE12> <AB02>	2
+# The user's own line in ~/.config/XCompose: GTK 4 never reads that file, so GTK types the system's x́ (not a loss of
+# the layout). The layout's own entry z → ʑ (the system has ź): GTK 4 reads it from the ~/.XCompose that install.sh
+# writes when only ~/.config/XCompose exists.
+pre-config-layout	yakbd-gen-probe	pre-config	<AE12> <AB01>	ʑ

@@ -9,9 +9,11 @@ protocol) would bypass the layout, so none is used. The typed text is read back 
     tools/xkb-check/run.sh OUTDIR                       # builds the images, runs everything, writes OUTDIR/summary.txt
     XKB_CHECK_STACKS="distro x11" tools/xkb-check/run.sh OUTDIR    # a subset
     XKB_CHECK_NO_BUILD=1 tools/xkb-check/run.sh OUTDIR  # reuse the images of an earlier run
+    XKB_CHECK_CASES="gen-klc gen-multi" tools/xkb-check/run.sh OUTDIR   # only these generated cases
 
 `XKB_CHECK_PREFIX` (default `xkb-check-`) prefixes every image and container name; `XKB_CHECK_DISTROS` overrides the
-distribution list. A full run takes about 5 to 7 minutes once the images exist; the first image build takes several minutes more, mostly for the desktop image.
+distribution list. With `XKB_CHECK_CASES` the hand-written layouts are left out; the comparison with `baseline.txt`
+always counts only the lines of the stacks, distributions and cases that ran. A full run takes about 5 to 7 minutes once the images exist; the first image build takes several minutes more, mostly for the desktop image.
 
 ## summary.txt
 

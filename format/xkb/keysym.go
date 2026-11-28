@@ -114,8 +114,10 @@ func KeysymFromName(s string) (Keysym, bool) {
 	return 0, false
 }
 
-// Name returns the canonical name of k: its first name in keysymdef.h, U followed by the hex digits of a Unicode
-// keysym, or 0x followed by hex digits.
+// Name returns the canonical name of k: U followed by the hex digits for a Unicode keysym (0x01000100 and up, even
+// when keysymdef.h names it: xorgproto keeps adding names for these values, leftsingleanglequotemark for U+2039 in
+// 2026.1, and libxkbcommon before 1.13.2 reads such a new name as NoSymbol, measured; kbl D147), else its first
+// name in keysymdef.h, or 0x followed by hex digits.
 func (k Keysym) Name() string {
 	initTables()
 	switch k {
@@ -124,11 +126,11 @@ func (k Keysym) Name() string {
 	case VoidSymbol:
 		return "VoidSymbol"
 	}
-	if n, ok := tables.name[k]; ok {
-		return n
-	}
 	if k >= 0x01000100 && k <= 0x0110ffff {
 		return fmt.Sprintf("U%04X", uint32(k-0x01000000))
+	}
+	if n, ok := tables.name[k]; ok {
+		return n
 	}
 	return fmt.Sprintf("0x%08x", uint32(k))
 }

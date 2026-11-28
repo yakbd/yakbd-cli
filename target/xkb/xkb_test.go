@@ -157,8 +157,9 @@ func TestInstallScript(t *testing.T) {
 	os.WriteFile(filepath.Join(home, ".config", "xkb", "rules", "evdev.xml"), []byte(reg), 0o644)
 	os.WriteFile(filepath.Join(home, ".config", "XCompose"), []byte(comp), 0o644)
 	run(home)
-	if _, err := os.Stat(filepath.Join(home, ".XCompose")); err == nil {
-		t.Error("~/.XCompose written although ~/.config/XCompose exists")
+	// GTK 4 does not read ~/.config/XCompose (measured, kbl D148): its target is a new ~/.XCompose
+	if x, _ := os.ReadFile(filepath.Join(home, ".XCompose")); !strings.HasPrefix(string(x), "# Created by yakbd\ninclude \"%L\"\n") || !strings.Contains(string(x), "<dead_acute> <a> : \"á\"") {
+		t.Errorf("~/.XCompose next to ~/.config/XCompose:\n%s", x)
 	}
 	c, _ := os.ReadFile(filepath.Join(home, ".config", "XCompose"))
 	if !strings.HasPrefix(string(c), comp) || !strings.Contains(string(c), "<dead_acute> <a> : \"á\"") || strings.Count(string(c), "include") != 1 {
@@ -169,6 +170,9 @@ func TestInstallScript(t *testing.T) {
 	r, _ := os.ReadFile(filepath.Join(home, ".config", "xkb", "rules", "evdev.xml"))
 	if string(c) != comp || string(r) != reg {
 		t.Errorf("after uninstall:\n%s\n%s", c, r)
+	}
+	if _, err := os.Stat(filepath.Join(home, ".XCompose")); err == nil {
+		t.Error("~/.XCompose left after uninstall")
 	}
 }
 
@@ -232,8 +236,8 @@ func TestCheckCases(t *testing.T) {
 	}
 }
 
-// TestX11Section: a build with levels of several keysyms adds the section basic-x11 with those levels empty, and the
-// X11 instructions load it (targets/xkb.md §3, D143); a build without such levels has no X11 section.
+// TestX11Section: a build with levels of several keysyms adds the section basic-x11 with those levels VoidSymbol, and
+// the X11 instructions load it (targets/xkb.md §3, D143, D146); a build without such levels has no X11 section.
 func TestX11Section(t *testing.T) {
 	if res := built(t, read(t, demo)); res.X11Section != "" || len(res.Symbols.Sections) != 1 {
 		t.Errorf("demo: X11 section %q", res.X11Section)
@@ -260,7 +264,7 @@ func TestX11Section(t *testing.T) {
 			switch {
 			case len(l) > 1:
 				multi++
-				if li < len(xl) && len(xl[li]) != 0 {
+				if li >= len(xl) || len(xl[li]) != 1 || xl[li][0].K != xkb.VoidSymbol {
 					t.Errorf("<%s> level %d in the X11 section: %v", st.Key.Name, li+1, xl[li])
 				}
 			case li >= len(xl) || len(xl[li]) != len(l) || len(l) == 1 && xl[li][0] != l[0]:

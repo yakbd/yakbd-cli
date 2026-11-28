@@ -114,6 +114,7 @@ type builder struct {
 	levelThreeRule bool     // rule levelThree decided the level-3 component
 	multi          []string // levels of several characters
 	numpad         []string // number-pad keys built with KEYPAD
+	capsLower      []string // keys that type a lower-case letter with Caps Lock alone
 	states         int
 	names          map[string]string // position -> key name
 	order          []string          // positions in file order
@@ -198,8 +199,11 @@ func (b *builder) run() *Result {
 	if len(b.multi) > 0 {
 		b.lost("xkb.multiCharacterOutput", "/hardware", "levels of several characters (%s): libxkbcommon and Qt type them, GTK 4 types nothing, and an X11 server refuses the whole keymap (measured: Xvfb 21.1, XkbSetMap BadValue), so X11 sessions load the section %s-x11, where those levels are empty", strings.Join(b.multi, ", "), sectionName(b.pin))
 	}
+	if len(b.capsLower) > 0 {
+		b.lost("xkb.capsLockStacks", "/hardware", "with Caps Lock on, %s type a lower-case letter (Caps Lock leaves it alone): libxkbcommon, Qt and GTK 4 on Wayland type it, GTK 4 on X11 types its upper case whatever the key type (measured with stock and yakbd types)", strings.Join(b.capsLower, ", "))
+	}
 	if len(b.numpad) > 0 {
-		b.lost("xkb.numLockKeyReduced", "/positions", "the number-pad keys %s type their navigation keysym with Num Lock off and their base binding with Num Lock on (type KEYPAD, which also gives Shift the base binding); their other states are not built", strings.Join(b.numpad, ", "))
+		b.lost("xkb.numLockKeyReduced", "/positions", "the number-pad keys %s type their navigation keysym with Num Lock off and their base binding with Num Lock on (type KEYPAD); with Num Lock on, Shift gives the base binding with xkeyboard-config 2.48 and later and the navigation keysym (no text) with 2.42 and 2.46 (measured); their other states are not built", strings.Join(b.numpad, ", "))
 	}
 	if len(b.typeRule) > 0 {
 		b.defaulted("keyType", b.typeRule, b.typeValues, "key types of %d keys: the first stock type that types each as the layout says", len(b.typeRule))
@@ -296,6 +300,8 @@ func (b *builder) registryNames() {
 	if p.Variant == "" {
 		p.Variant = "basic"
 		b.defaulted("variant", []string{tp + "variant"}, "basic", "no variant: the section basic is the file's default and the registry lists the layout %s", p.SymbolsName)
+	} else if !strings.HasPrefix(p.SymbolsName, "yakbd-") {
+		b.lost("xkb.systemLayoutShadowed", tp+"variant", "the variant %s goes into the user's symbols file %s: if %s is a system layout, libxkbcommon before 1.13.2 then gives this variant for the layout %s alone (measured: 1.7.0, 1.13.1; 1.13.2 keeps the system layout)", p.Variant, p.SymbolsName, p.SymbolsName, p.SymbolsName)
 	}
 	p.Description = f.Description
 	if p.Description == "" {
@@ -457,7 +463,7 @@ func (b *builder) value(p string, s int) Value {
 		}
 		o = n
 	}
-	return Value{Text: string(utf16.Decode(o.Units))}
+	return Value{Text: unitsText(o.Units)}
 }
 
 // positions are the positions with a binding in a kept layer, and the level-shift keys; rule keyName.
@@ -694,11 +700,17 @@ func (b *builder) characters() {
 }
 
 // keysymsOf turns a text into keysyms; false when a character has no keysym (controls other than the named
-// ones).
+// ones) or the text is not valid UTF-8 (code units that are not well-formed UTF-16, see unitsText). A real
+// U+FFFD is a character like any other.
 func keysymsOf(t string) (xkb.Level, bool) {
 	var l xkb.Level
-	for _, r := range t {
-		if r == 0 || (r < 0x20 && !namedControl(r)) || (r >= 0x80 && r < 0xa0) || r == utf8.RuneError {
+	for i, r := range t {
+		if r == utf8.RuneError {
+			if _, size := utf8.DecodeRuneInString(t[i:]); size == 1 {
+				return nil, false
+			}
+		}
+		if r == 0 || (r < 0x20 && !namedControl(r)) || (r >= 0x80 && r < 0xa0) {
 			return nil, false
 		}
 		l = append(l, xkb.Sym{K: xkb.FromRune(r)})
@@ -760,4 +772,23 @@ func sectionName(p *model.XKBTarget) string {
 		return v
 	}
 	return "basic"
+}
+
+// unitsText is the text of UTF-16 code units. A lone surrogate, which has no character, becomes an invalid byte
+// (not U+FFFD, which utf16.Decode would make of it), so that keysymsOf reports it.
+func unitsText(u []uint16) string {
+	var b []byte
+	for i := 0; i < len(u); i++ {
+		c := rune(u[i])
+		switch {
+		case c >= 0xd800 && c < 0xdc00 && i+1 < len(u) && u[i+1] >= 0xdc00 && u[i+1] < 0xe000:
+			b = utf8.AppendRune(b, utf16.DecodeRune(c, rune(u[i+1])))
+			i++
+		case utf16.IsSurrogate(c):
+			b = append(b, 0xff)
+		default:
+			b = utf8.AppendRune(b, c)
+		}
+	}
+	return string(b)
 }

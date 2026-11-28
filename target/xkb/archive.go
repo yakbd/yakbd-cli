@@ -247,8 +247,11 @@ install() {
 		elif [ -f "$CONF/XCompose" ]; then LXC=$CONF/XCompose
 		elif [ -f "$HOME/.XCompose" ]; then LXC=$HOME/.XCompose
 		fi
-		GTK=$LXC
-		[ -f "$CONF/gtk-4.0/Compose" ] && GTK=$CONF/gtk-4.0/Compose
+		# GTK 4 reads ~/.config/gtk-4.0/Compose, else ~/.XCompose, never ~/.config/XCompose (measured)
+		GTK=
+		if [ -f "$CONF/gtk-4.0/Compose" ]; then GTK=$CONF/gtk-4.0/Compose
+		elif [ -f "$HOME/.XCompose" ]; then GTK=$HOME/.XCompose
+		fi
 		for f in "$LXC" "$GTK"; do
 			if [ -z "$f" ] || [ ! -f "$f" ]; then
 				f=$HOME/.XCompose
@@ -297,8 +300,8 @@ func Readme(res *build.Result) []byte {
 	s.WriteString("- adds a marked block with the layout to ~/.config/xkb/rules/evdev.xml, so that the settings apps list it\n")
 	if res.ComposeText != nil {
 		s.WriteString("- dead keys: adds a marked block to the Compose file libxkbcommon and Qt read ($XCOMPOSEFILE, else\n" +
-			"  ~/.config/XCompose or ~/.XCompose) and to the one GTK 4 reads (~/.config/gtk-4.0/Compose when it exists),\n" +
-			"  keeping a copy as <file>.yakbd-backup; with no such file it writes ~/.XCompose. Programs read it when they start.\n" +
+			"  ~/.config/XCompose or ~/.XCompose) and to the one GTK 4 reads (~/.config/gtk-4.0/Compose, else ~/.XCompose),\n" +
+			"  keeping a copy as <file>.yakbd-backup; where no such file exists it writes ~/.XCompose. Programs read it when they start.\n" +
 			"  GTK 4 programs on sway, KDE Plasma and GNOME without an input method drop dead keys unless\n" +
 			"  GTK_IM_MODULE=simple is set; IBus and fcitx5 read Compose files of their own.\n")
 	}

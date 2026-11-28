@@ -411,15 +411,17 @@ versions() {
 }
 
 main() {
-  local dir client l scen
+  local dir client l scen layouts="$ROOT"/layouts/*/
+  # run.sh XKB_CHECK_CASES: only the generated cases it names (the hand-written layouts are left out)
+  [ -n "${XKB_CHECK_CASES:-}" ] && layouts=
   if [ "$STACK" = versions ]; then versions; return; fi
   if [ "$STACK" = distro ]; then
     CLIENTS=xkbtype
-    for dir in "$ROOT"/layouts/*/ /xkb-gen/*/; do [ -f "$dir/cases.tsv" ] && xkbcli_checks "${dir%/}"; done
+    for dir in $layouts /xkb-gen/*/; do [ -f "$dir/cases.tsv" ] && xkbcli_checks "${dir%/}"; done
     extra_checks
   fi
   # /xkb-gen: the layouts run.sh generated with yakbd from .kbl.json files (gen/)
-  for dir in "$ROOT"/layouts/*/ /xkb-gen/*/; do
+  for dir in $layouts /xkb-gen/*/; do
     [ -f "$dir/cases.tsv" ] || continue
     [ -f "$dir/distro-only" ] && [ "$STACK" != distro ] && continue
     dir=${dir%/}

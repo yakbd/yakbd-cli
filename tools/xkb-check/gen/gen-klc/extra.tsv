@@ -1,0 +1,3 @@
+# Hand-written lines (README.md, extra.tsv). Numpad1 binds "1" in the base layer only: Shift types nothing (the
+# level is VoidSymbol; a NoSymbol level would take KP_1 from xkeyboard-config's symbols/pc in libxkbcommon).
+kp1-shift-nothing	yakbd-gen-klc	build	<AC01> +<LFSH> <KP1> -<LFSH> <AC01>	aa

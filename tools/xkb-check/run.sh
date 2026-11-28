@@ -10,6 +10,8 @@
 #   XKB_CHECK_DISTROS  base images for the distro stack
 #                      (default "debian:stable ubuntu:latest fedora:latest archlinux:latest")
 #   XKB_CHECK_NO_BUILD set to skip the image builds (reuse the images of an earlier run)
+#   XKB_CHECK_CASES    generated cases to run (names of gen/ folders, e.g. "gen-klc gen-multi"); set, it also skips
+#                      layouts/ and compares only the baseline lines of those cases
 #
 # Needs only Docker (rootless is fine); no root, no /dev/uinput, no GPU. MIT-0.
 set -u
@@ -18,6 +20,7 @@ out=${1:?usage: run.sh OUTDIR}
 prefix=${XKB_CHECK_PREFIX:-xkb-check-}
 stacks=${XKB_CHECK_STACKS:-distro x11 weston sway kwin mutter}
 distros=${XKB_CHECK_DISTROS:-debian:stable ubuntu:latest fedora:latest archlinux:latest}
+cases=${XKB_CHECK_CASES:-}
 mkdir -p "$out/logs"
 chmod 777 "$out/logs"   # the container user writes here (rootless Docker maps it to another uid)
 summary=$out/summary.txt
@@ -33,6 +36,7 @@ if ls "$here"/gen/*/layout.kbl.json >/dev/null 2>&1; then
   if (cd "$here/../.." && go build -o "$out/yakbd" ./cmd/yakbd) 2>"$out/logs/build-yakbd.log"; then
     for c in "$here"/gen/*/; do
       c=${c%/}; name=$(basename "$c"); tmp=$out/gen-tmp/$name
+      if [ -n "$cases" ] && ! printf " %s " "$cases" | grep -q " $name "; then continue; fi
       mkdir -p "$tmp" "$gen/$name"
       if "$out/yakbd" installer -target xkb -q -o "$tmp/layout.tar.gz" "$c/layout.kbl.json" >"$out/logs/gen-$name.log" 2>&1 &&
          "$out/yakbd" compile -target xkb -q -emit-expectations -max-expectations 40 -o "$tmp" "$c/layout.kbl.json" >>"$out/logs/gen-$name.log" 2>&1 &&
@@ -69,7 +73,7 @@ build() { # build TAG DOCKERFILE [BUILD-ARG]
 
 run_in() { # run_in IMAGE NAME ARGS...: inside.sh in a fresh container; prints its result lines
   local img=$1 name=$2; shift 2
-  docker run --rm --name "${prefix}$name" -u tester -e KEEP_LOGS=/logs/$name \
+  docker run --rm --name "${prefix}$name" -u tester -e KEEP_LOGS=/logs/$name -e XKB_CHECK_CASES="$cases" \
     -v "$out/logs:/logs" -v "$here:/xkb-check:ro" -v "$gen:/xkb-gen:ro" "$img" \
     bash /xkb-check/inside.sh "$@" 2> "$out/logs/$name.stderr" |
     grep -E '^(version|distro|x11|weston|sway|kwin|mutter|gnome-shell) '
@@ -104,8 +108,19 @@ results() { grep -E ' (PASS|FAIL)' "$1" | grep -v '^total ' | cut -d' ' -f1-5 | 
 results "$summary" > "$out/results.txt"
 pass=$(grep -c ' PASS$' "$out/results.txt" 2>/dev/null); fail=$(grep -c ' FAIL$' "$out/results.txt" 2>/dev/null)
 changed=0
+# Only the baseline lines of the stacks, distributions and (XKB_CHECK_CASES) cases of this run count; the variants
+# gen-var-a/b report as gen-var.
+baseline() {
+  awk -v s=" $stacks " -v d=" $distros " -v c=" $cases " '{
+    st = $1; sub(/\(.*/, "", st); di = $1; sub(/^[^(]*\(?/, "", di); sub(/\)$/, "", di)
+    n = $3; if (n == "gen-var") n = "gen-var-a"
+    if (!index(s, " " st " ")) next
+    if (st == "distro" && !index(d, " " di " ")) next
+    if (c != "  " && !index(c, " " n " ") && !index(c, " " $3 " ")) next
+    print }' "$here/baseline.txt" | LC_ALL=C sort
+}
 if [ -f "$here/baseline.txt" ]; then
-  diff <(LC_ALL=C sort "$here/baseline.txt") "$out/results.txt" | grep -E '^[<>]' |
+  diff <(baseline) "$out/results.txt" | grep -E '^[<>]' |
     sed 's/^</changed was:/; s/^>/changed now:/' > "$out/changed.txt"
   changed=$(grep -c . "$out/changed.txt")
   cat "$out/changed.txt" >> "$summary"

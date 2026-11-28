@@ -31,7 +31,7 @@ var Versions = []*Version{
 	{Kbl: "0.1", SchemaID: "https://yakbd.github.io/kbl-spec/schema/0.1/kbl.schema.json",
 		SchemaCommit: "a264cf0adf04694f5cb175afe5d4428d1da18154"},
 	{Kbl: "0.2", SchemaID: "https://yakbd.github.io/kbl-spec/schema/0.2/kbl.schema.json",
-		SchemaCommit: "36aaa7b120a323c913953ef1d88b64d236915e7f"}, // branch spec-0.2, a draft (COMPATIBILITY.md)
+		SchemaCommit: "f404398d5fbb08e3122576206201bcf8aba91af8"}, // branch spec-0.2, a draft (COMPATIBILITY.md)
 }
 
 // SchemaID is the `$id` of the 0.1 schema.
